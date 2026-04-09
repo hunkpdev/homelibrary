@@ -1,6 +1,10 @@
 /.idea/
+/.claude/
 backend/target/
 
 # Local-only files – never commit
 backend/local-data/seed.sql
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
