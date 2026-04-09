@@ -2,6 +2,5 @@
 backend/target/
 
 # Local-only files – never commit
-backend/src/test/java/com/homelibrary/util/BcryptHashGeneratorTest.java
 backend/local-data/seed.sql
 
