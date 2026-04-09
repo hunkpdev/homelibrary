@@ -25,6 +25,17 @@
         <springdoc.version>3.0.2</springdoc.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Override vulnerable jackson-core 3.1.0 pulled transitively by aws-serverless-java-container (GHSA-2m67-wjpj-xhg9) -->
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>3.1.1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!-- Spring Boot -->
         <dependency>
