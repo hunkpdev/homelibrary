@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-admin-user
+      author: homelibrary
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  value: 00000000-0000-0000-0000-000000000001
+              - column:
+                  name: username
+                  value: admin
+              - column:
+                  name: email
+                  value: admin@homelibrary.local
+              - column:
+                  name: password_hash
+                  value: ${adminPasswordHash}
+              - column:
+                  name: preferred_language
+                  value: hu
+              - column:
+                  name: role
+                  value: ADMIN
+              - column:
+                  name: active
+                  valueBoolean: true
+              - column:
+                  name: version
+                  valueNumeric: 0
+              - column:
+                  name: created_at
+                  valueComputed: NOW()
+              - column:
+                  name: updated_at
+                  valueComputed: NOW()

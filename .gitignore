@@ -1,3 +1,7 @@
 /.idea/
 backend/target/
 
+# Local-only files – never commit
+backend/src/main/java/com/homelibrary/config/HsqlServerConfig.java
+backend/src/test/java/com/homelibrary/util/BcryptHashGeneratorTest.java
+
