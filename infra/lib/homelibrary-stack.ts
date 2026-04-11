@@ -55,6 +55,7 @@ export class HomelibraryStack extends cdk.Stack {
     // --- Lambda ---
 
     const backendFunction = new lambda.Function(this, 'BackendFunction', {
+      functionName: 'homelibrary-backend',
       runtime: lambda.Runtime.JAVA_21,
       handler: 'com.homelibrary.StreamLambdaHandler',
       code: lambda.Code.fromAsset(
