@@ -101,6 +101,15 @@
             <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- Jakarta EL implementation — required by Hibernate Validator for message interpolation.
+             Normally provided transitively by tomcat-embed-el, but Tomcat is excluded from the
+             Lambda JAR via the shade plugin. GlassFish Expressly provides the same API independently. -->
+        <dependency>
+            <groupId>org.glassfish.expressly</groupId>
+            <artifactId>expressly</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
