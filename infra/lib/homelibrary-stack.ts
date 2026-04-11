@@ -108,6 +108,11 @@ export class HomelibraryStack extends cdk.Stack {
       integration: new apigwv2integrations.HttpLambdaIntegration(
         'BackendIntegration',
         backendAlias,
+        {
+          // aws-serverless-java-container defaultProxy() expects v1.0 (REST API proxy format).
+          // HTTP API Gateway defaults to v2.0 — explicitly set v1.0 to match the handler.
+          payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_1_0,
+        },
       ),
     });
 
