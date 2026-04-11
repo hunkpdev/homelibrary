@@ -22,6 +22,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Build JAR
         run: mvn -f backend/pom.xml clean package
@@ -33,6 +34,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Update Lambda function code
+        # Note: targets the base function (not the alias) — alias is updated in the last step
         run: |
           aws lambda update-function-code \
             --function-name homelibrary-backend \

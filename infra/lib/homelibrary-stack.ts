@@ -10,7 +10,8 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import path from 'node:path';
 
-// SSM parameter names — values must be created manually in AWS before deploy (step 1.12)
+// SSM parameter names — values must be created manually in AWS as SecureString type before deploy (step 1.12)
+// valueForStringParameter() generates a CloudFormation dynamic reference that resolves SecureString at deploy time
 const SSM_NEON_CONN_STRING = '/homelibrary/neon-connection-string';
 const SSM_NEON_USERNAME    = '/homelibrary/neon-username';
 const SSM_NEON_CRED        = '/homelibrary/neon-password';
@@ -29,7 +30,8 @@ export class HomelibraryStack extends cdk.Stack {
     const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
-      versioned: true,
+      // versioned: false — rollback is handled via git revert + redeploy through the CI/CD pipeline
+      // S3 versioning not needed for non-commercial use: the workflow always deploys a clean dist/
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
