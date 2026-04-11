@@ -9,10 +9,12 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import path from 'node:path';
 
-// SSM parameter names — values are created in step 1.12
-const SSM_DATASOURCE_URL   = '/homelibrary/prod/spring-datasource-url';
-const SSM_JWT_SECRET       = '/homelibrary/prod/jwt-secret';
-const SSM_ADMIN_BCRYPT     = '/homelibrary/prod/admin-password-hash';
+// SSM parameter names — values must be created manually in AWS before deploy (step 1.12)
+const SSM_NEON_CONN_STRING = '/homelibrary/neon-connection-string';
+const SSM_NEON_USERNAME    = '/homelibrary/neon-username';
+const SSM_NEON_CRED        = '/homelibrary/neon-password';
+const SSM_JWT_SECRET       = '/homelibrary/jwt-secret';
+const SSM_ADMIN_BCRYPT     = '/homelibrary/admin-password-hash';
 
 export class HomelibraryStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -58,10 +60,12 @@ export class HomelibraryStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       snapStart: lambda.SnapStartConf.ON_PUBLISHED_VERSIONS,
       environment: {
-        SPRING_PROFILES_ACTIVE: 'prod',
-        SPRING_DATASOURCE_URL:  ssm.StringParameter.valueForStringParameter(this, SSM_DATASOURCE_URL),
-        JWT_SECRET:             ssm.StringParameter.valueForStringParameter(this, SSM_JWT_SECRET),
-        ADMIN_PASSWORD_HASH:    ssm.StringParameter.valueForStringParameter(this, SSM_ADMIN_BCRYPT),
+        SPRING_PROFILES_ACTIVE:      'prod',
+        SPRING_DATASOURCE_URL:       ssm.StringParameter.valueForStringParameter(this, SSM_NEON_CONN_STRING),
+        SPRING_DATASOURCE_USERNAME:  ssm.StringParameter.valueForStringParameter(this, SSM_NEON_USERNAME),
+        SPRING_DATASOURCE_PASSWORD:  ssm.StringParameter.valueForStringParameter(this, SSM_NEON_CRED),
+        JWT_SECRET:                  ssm.StringParameter.valueForStringParameter(this, SSM_JWT_SECRET),
+        ADMIN_PASSWORD_HASH:         ssm.StringParameter.valueForStringParameter(this, SSM_ADMIN_BCRYPT),
       },
     });
 
