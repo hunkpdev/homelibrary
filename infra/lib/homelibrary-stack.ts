@@ -10,8 +10,11 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import path from 'node:path';
 
-// SSM parameter names — values must be created manually in AWS as SecureString type before deploy (step 1.12)
-// valueForStringParameter() generates a CloudFormation dynamic reference that resolves SecureString at deploy time
+// SSM parameter names — values must be created manually in AWS as String type before deploy (step 1.12)
+// Note: valueForStringParameter() generates AWS::SSM::Parameter::Value<String> CloudFormation parameter type,
+// which does NOT support SecureString — CloudFormation cannot resolve SecureString into Lambda env vars.
+// The correct solution would be AWS Secrets Manager, but it is excluded due to its cost (~$0.40/secret/month).
+// Lambda env vars are encrypted at rest by AWS, so String type is an acceptable trade-off for a non-commercial project.
 const SSM_NEON_CONN_STRING = '/homelibrary/neon-connection-string';
 const SSM_NEON_USERNAME    = '/homelibrary/neon-username';
 const SSM_NEON_CRED        = '/homelibrary/neon-password';
