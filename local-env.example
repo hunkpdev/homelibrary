@@ -1,0 +1,7 @@
+# Required environment variables for local development.
+# Copy to local-env.sh or set in IntelliJ run configuration.
+# This file does NOT contain real values — never commit real values!
+
+# BCrypt hash for the admin user seed changeset (cost factor: 12)
+# Generate with: new BCryptPasswordEncoder(12).encode("your-password")
+ADMIN_PASSWORD_HASH=<bcrypt-hash-here>

@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: changes/001-create-users.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/002-seed-admin-user.yaml
+      relativeToChangelogFile: true

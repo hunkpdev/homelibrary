@@ -1,0 +1,7 @@
+-- Local development seed data
+-- Copy this file to seed.sql and fill in your own test data.
+-- This file is committed as a template; seed.sql is gitignored.
+
+-- Example: additional test user (admin is already seeded by Liquibase)
+-- INSERT INTO users (id, username, email, password_hash, preferred_language, role, active, version, created_at, updated_at)
+-- VALUES ('00000000-0000-0000-0000-000000000002', 'visitor', 'visitor@homelibrary.local', '<bcrypt-hash>', 'hu', 'VISITOR', true, 0, NOW(), NOW());
