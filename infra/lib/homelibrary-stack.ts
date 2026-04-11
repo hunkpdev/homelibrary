@@ -6,6 +6,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as apigwv2integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import path from 'node:path';
 
@@ -15,6 +16,9 @@ const SSM_NEON_USERNAME    = '/homelibrary/neon-username';
 const SSM_NEON_CRED        = '/homelibrary/neon-password';
 const SSM_JWT_SECRET       = '/homelibrary/jwt-secret';
 const SSM_ADMIN_BCRYPT     = '/homelibrary/admin-password-hash';
+
+const GITHUB_OIDC_URL  = 'https://token.actions.githubusercontent.com';
+const GITHUB_REPO_SUB  = 'repo:hunkpdev/homelibrary:ref:refs/heads/main';
 
 export class HomelibraryStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -99,6 +103,46 @@ export class HomelibraryStack extends cdk.Stack {
         'BackendIntegration',
         backendAlias,
       ),
+    });
+
+    // --- IAM + OIDC ---
+
+    const oidcProvider = new iam.OpenIdConnectProvider(this, 'GithubOidcProvider', {
+      url: GITHUB_OIDC_URL,
+      clientIds: ['sts.amazonaws.com'],
+    });
+
+    const githubActionsRole = new iam.Role(this, 'GithubActionsRole', {
+      assumedBy: new iam.WebIdentityPrincipal(oidcProvider.openIdConnectProviderArn, {
+        StringEquals: {
+          'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
+          'token.actions.githubusercontent.com:sub': GITHUB_REPO_SUB,
+        },
+      }),
+    });
+
+    githubActionsRole.addToPolicy(new iam.PolicyStatement({
+      actions:   ['lambda:UpdateFunctionCode'],
+      resources: [backendFunction.functionArn],
+    }));
+
+    githubActionsRole.addToPolicy(new iam.PolicyStatement({
+      actions:   ['s3:PutObject', 's3:DeleteObject', 's3:ListBucket'],
+      resources: [frontendBucket.bucketArn, `${frontendBucket.bucketArn}/*`],
+    }));
+
+    githubActionsRole.addToPolicy(new iam.PolicyStatement({
+      actions:   ['cloudfront:CreateInvalidation'],
+      resources: [`arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`],
+    }));
+
+    githubActionsRole.addToPolicy(new iam.PolicyStatement({
+      actions:   ['ssm:GetParameter'],
+      resources: [`arn:aws:ssm:${this.region}:${this.account}:parameter/homelibrary/*`],
+    }));
+
+    new cdk.CfnOutput(this, 'GithubActionsRoleArn', {
+      value: githubActionsRole.roleArn,
     });
   }
 }
