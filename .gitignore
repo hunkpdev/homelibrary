@@ -9,3 +9,8 @@ backend/local-data/seed.sql
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
+
+# Infra
+infra/node_modules/
+infra/dist/
+infra/cdk.out/
