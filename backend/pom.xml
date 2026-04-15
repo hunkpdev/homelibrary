@@ -23,6 +23,14 @@
         <aws-serverless-java-container.version>3.0.1</aws-serverless-java-container.version>
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>3.0.2</springdoc.version>
+        <sonar.coverage.exclusions>
+            **/entity/**,
+            **/dto/**,
+            **/model/**,
+            **/config/**,
+            **/repository/**,
+            **/exception/**
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -165,6 +173,24 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
