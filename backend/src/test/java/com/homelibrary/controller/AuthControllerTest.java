@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import jakarta.servlet.http.Cookie;
+
 @WebMvcTest(AuthController.class)
 class AuthControllerTest {
 
@@ -77,6 +79,36 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("admin", "wrong"))))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void refresh_validCookie_returns200WithNewTokenAndCookie() throws Exception {
+        LoginResponse loginResponse = new LoginResponse("new.access.token", "Bearer", 900L);
+        when(authService.refresh("uuid:randompart")).thenReturn(new LoginResult(loginResponse, "uuid:newrandompart"));
+        when(cookieProperties.isSecure()).thenReturn(false);
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .cookie(new Cookie("refreshToken", "uuid:randompart")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("new.access.token"))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("refreshToken=uuid:newrandompart")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("HttpOnly")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("SameSite=Strict")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("Path=/api/auth")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("Max-Age=604800")));
+    }
+
+    @Test
+    void refresh_missingCookie_returns401() throws Exception {
+        when(authService.refresh(null)).thenThrow(new BadCredentialsException("Missing refresh token"));
+
+        mockMvc.perform(post("/api/auth/refresh"))
                 .andExpect(status().isUnauthorized());
     }
 }

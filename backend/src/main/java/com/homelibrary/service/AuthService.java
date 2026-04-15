@@ -8,6 +8,7 @@ import com.homelibrary.entity.User;
 import com.homelibrary.repository.UserRepository;
 import com.homelibrary.util.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.Base64;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -57,6 +59,58 @@ public class AuthService {
                 jwtProperties.getAccessTokenExpirationMs() / 1000
         );
         return new LoginResult(loginResponse, refreshToken);
+    }
+
+    @Transactional
+    public LoginResult refresh(String refreshTokenCookie) {
+        if (refreshTokenCookie == null) {
+            throw new BadCredentialsException("Missing refresh token");
+        }
+
+        String[] parts = refreshTokenCookie.split(":", 2);
+        if (parts.length != 2) {
+            throw new BadCredentialsException("Invalid refresh token format");
+        }
+
+        UUID userId = parseUserId(parts[0]);
+        String secureRandomPart = parts[1];
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+
+        validateRefreshToken(user, secureRandomPart);
+
+        String newAccessToken = jwtUtil.generateToken(user);
+        String newRefreshToken = generateAndSaveRefreshToken(user);
+
+        LoginResponse loginResponse = new LoginResponse(
+                newAccessToken,
+                "Bearer",
+                jwtProperties.getAccessTokenExpirationMs() / 1000
+        );
+        return new LoginResult(loginResponse, newRefreshToken);
+    }
+
+    private UUID parseUserId(String value) {
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException e) {
+            throw new BadCredentialsException("Invalid refresh token format");
+        }
+    }
+
+    private void validateRefreshToken(User user, String secureRandomPart) {
+        if (!user.isActive()) {
+            throw new BadCredentialsException("User is inactive");
+        }
+        if (user.getRefreshTokenExpiresAt() == null
+                || user.getRefreshTokenExpiresAt().isBefore(OffsetDateTime.now())) {
+            throw new BadCredentialsException("Refresh token expired");
+        }
+        if (user.getRefreshTokenHash() == null
+                || !passwordEncoder.matches(secureRandomPart, user.getRefreshTokenHash())) {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
     }
 
     String generateAndSaveRefreshToken(User user) {

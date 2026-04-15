@@ -18,13 +18,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -80,7 +85,8 @@ class AuthServiceTest {
         doThrow(new BadCredentialsException("Bad credentials"))
                 .when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
 
-        assertThatThrownBy(() -> authService.login(new LoginRequest("admin", "wrong")))
+        LoginRequest badRequest = new LoginRequest("admin", "wrong");
+        assertThatThrownBy(() -> authService.login(badRequest))
                 .isInstanceOf(BadCredentialsException.class);
 
         verify(userRepository, never()).save(any());
@@ -106,5 +112,89 @@ class AuthServiceTest {
 
         String secureRandomPart = refreshToken.split(":")[1];
         assertThat(passwordEncoder.matches(secureRandomPart, user.getRefreshTokenHash())).isTrue();
+    }
+
+    @Test
+    void refresh_validToken_returnsNewAccessTokenAndRotatesRefreshToken() {
+        String oldRefreshToken = authService.generateAndSaveRefreshToken(user);
+        String oldHash = user.getRefreshTokenHash();
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        LoginResult result = authService.refresh(oldRefreshToken);
+
+        assertThat(result.loginResponse().accessToken()).isNotBlank();
+        assertThat(result.loginResponse().tokenType()).isEqualTo("Bearer");
+        assertThat(result.refreshToken()).isNotEqualTo(oldRefreshToken);
+        assertThat(user.getRefreshTokenHash()).isNotEqualTo(oldHash);
+        assertThat(user.getRefreshTokenExpiresAt()).isAfter(OffsetDateTime.now());
+    }
+
+    @Test
+    void refresh_hashMismatch_throwsAndDoesNotModifyDb() {
+        authService.generateAndSaveRefreshToken(user);
+        clearInvocations(userRepository);
+        String tamperedToken = user.getId() + ":wrongrandompart";
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        String hashBefore = user.getRefreshTokenHash();
+
+        assertThatThrownBy(() -> authService.refresh(tamperedToken))
+                .isInstanceOf(BadCredentialsException.class);
+
+        assertThat(user.getRefreshTokenHash()).isEqualTo(hashBefore);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void refresh_expiredToken_throws() {
+        authService.generateAndSaveRefreshToken(user);
+        clearInvocations(userRepository);
+        user.setRefreshTokenExpiresAt(OffsetDateTime.now().minusSeconds(1));
+        String expiredToken = user.getId() + ":anypart";
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> authService.refresh(expiredToken))
+                .isInstanceOf(BadCredentialsException.class);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void refresh_nonExistentUserId_throws() {
+        UUID unknownId = UUID.randomUUID();
+        when(userRepository.findById(unknownId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.refresh(unknownId + ":anypart"))
+                .isInstanceOf(BadCredentialsException.class);
+    }
+
+    @Test
+    void refresh_inactiveUser_throws() {
+        user.setActive(false);
+        authService.generateAndSaveRefreshToken(user);
+        clearInvocations(userRepository);
+        String token = user.getId() + ":anypart";
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> authService.refresh(token))
+                .isInstanceOf(BadCredentialsException.class);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void refresh_nullCookie_throws() {
+        assertThatThrownBy(() -> authService.refresh(null))
+                .isInstanceOf(BadCredentialsException.class);
+    }
+
+    @Test
+    void refresh_rotation_oldTokenInvalidAfterRefresh() {
+        String firstToken = authService.generateAndSaveRefreshToken(user);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        authService.refresh(firstToken);
+
+        assertThatThrownBy(() -> authService.refresh(firstToken))
+                .isInstanceOf(BadCredentialsException.class);
     }
 }

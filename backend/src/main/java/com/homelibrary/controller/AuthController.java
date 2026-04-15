@@ -11,10 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,6 +34,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResult result = authService.login(request);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(result.refreshToken()).toString())
+                .body(result.loginResponse());
+    }
+
+    @Operation(summary = "Refresh access token using refresh token cookie")
+    @ApiResponse(responseCode = "200", description = "Token refreshed successfully")
+    @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(
+            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie) {
+        LoginResult result = authService.refresh(refreshTokenCookie);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(result.refreshToken()).toString())
                 .body(result.loginResponse());
