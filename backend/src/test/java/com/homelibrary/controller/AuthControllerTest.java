@@ -111,4 +111,22 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/refresh"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void logout_returns204WithDeleteCookie() throws Exception {
+        when(cookieProperties.isSecure()).thenReturn(false);
+
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("refreshToken=")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("Max-Age=0")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("HttpOnly")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("SameSite=Strict")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("Path=/api/auth")));
+    }
 }

@@ -39,6 +39,16 @@ public class AuthController {
                 .body(result.loginResponse());
     }
 
+    @Operation(summary = "Logout and invalidate refresh token")
+    @ApiResponse(responseCode = "204", description = "Logged out successfully")
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        authService.logout();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, buildDeleteRefreshTokenCookie().toString())
+                .build();
+    }
+
     @Operation(summary = "Refresh access token using refresh token cookie")
     @ApiResponse(responseCode = "200", description = "Token refreshed successfully")
     @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
@@ -58,6 +68,16 @@ public class AuthController {
                 .sameSite("Strict")
                 .path("/api/auth")
                 .maxAge(REFRESH_TOKEN_MAX_AGE)
+                .build();
+    }
+
+    private ResponseCookie buildDeleteRefreshTokenCookie() {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
+                .httpOnly(true)
+                .secure(cookieProperties.isSecure())
+                .sameSite("Strict")
+                .path("/api/auth")
+                .maxAge(0)
                 .build();
     }
 }

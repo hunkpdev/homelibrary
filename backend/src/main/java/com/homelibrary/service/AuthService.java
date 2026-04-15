@@ -10,6 +10,8 @@ import com.homelibrary.util.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,6 +112,16 @@ public class AuthService {
         if (user.getRefreshTokenHash() == null
                 || !passwordEncoder.matches(secureRandomPart, user.getRefreshTokenHash())) {
             throw new BadCredentialsException("Invalid refresh token");
+        }
+    }
+
+    @Transactional
+    public void logout() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof UsernamePasswordAuthenticationToken && auth.getPrincipal() instanceof User user) {
+            user.setRefreshTokenHash(null);
+            user.setRefreshTokenExpiresAt(null);
+            userRepository.save(user);
         }
     }
 

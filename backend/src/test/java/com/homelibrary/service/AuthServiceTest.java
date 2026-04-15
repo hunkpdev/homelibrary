@@ -7,6 +7,7 @@ import com.homelibrary.entity.User;
 import com.homelibrary.model.Role;
 import com.homelibrary.repository.UserRepository;
 import com.homelibrary.util.JwtUtil;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,10 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,6 +47,11 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     private AuthService authService;
     private User user;
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
 
     @BeforeEach
     void setUp() {
@@ -196,5 +204,28 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.refresh(firstToken))
                 .isInstanceOf(BadCredentialsException.class);
+    }
+
+    @Test
+    void logout_authenticatedUser_clearsRefreshTokenFieldsInDb() {
+        authService.generateAndSaveRefreshToken(user);
+        clearInvocations(userRepository);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, List.of()));
+
+        authService.logout();
+
+        assertThat(user.getRefreshTokenHash()).isNull();
+        assertThat(user.getRefreshTokenExpiresAt()).isNull();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void logout_unauthenticatedUser_doesNotModifyDb() {
+        SecurityContextHolder.clearContext();
+
+        authService.logout();
+
+        verify(userRepository, never()).save(any());
     }
 }
