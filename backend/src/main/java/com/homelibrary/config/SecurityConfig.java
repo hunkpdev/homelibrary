@@ -69,8 +69,12 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        String allowedOrigin = corsProperties.getAllowedOrigin();
+        if (allowedOrigin == null) {
+            throw new IllegalStateException("app.cors.allowed-origin is not configured — is the correct Spring profile active?");
+        }
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(corsProperties.getAllowedOrigin()));
+        configuration.setAllowedOriginPatterns(List.of(allowedOrigin));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);

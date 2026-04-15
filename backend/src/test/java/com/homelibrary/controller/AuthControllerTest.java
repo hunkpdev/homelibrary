@@ -1,0 +1,82 @@
+package com.homelibrary.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.homelibrary.config.CookieProperties;
+import com.homelibrary.config.CorsProperties;
+import com.homelibrary.dto.LoginRequest;
+import com.homelibrary.dto.LoginResponse;
+import com.homelibrary.dto.LoginResult;
+import com.homelibrary.repository.UserRepository;
+import com.homelibrary.service.AuthService;
+import com.homelibrary.util.JwtUtil;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(AuthController.class)
+class AuthControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @MockitoBean
+    private AuthService authService;
+
+    @MockitoBean
+    private CookieProperties cookieProperties;
+
+    @MockitoBean
+    private CorsProperties corsProperties;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @Test
+    void login_validCredentials_returns200WithTokenAndCookie() throws Exception {
+        LoginResponse loginResponse = new LoginResponse("access.token.here", "Bearer", 900L);
+        when(authService.login(any())).thenReturn(new LoginResult(loginResponse, "uuid:randompart"));
+        when(cookieProperties.isSecure()).thenReturn(false);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest("admin", "password"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("access.token.here"))
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.expiresIn").value(900))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("refreshToken=uuid:randompart")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("HttpOnly")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("SameSite=Strict")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("Path=/api/auth")))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("Max-Age=604800")));
+    }
+
+    @Test
+    void login_invalidCredentials_returns401() throws Exception {
+        when(authService.login(any())).thenThrow(new BadCredentialsException("Bad credentials"));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest("admin", "wrong"))))
+                .andExpect(status().isUnauthorized());
+    }
+}
