@@ -1,7 +1,6 @@
 package com.homelibrary.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.homelibrary.config.CookieProperties;
 import com.homelibrary.config.CorsProperties;
 import com.homelibrary.dto.LoginRequest;
 import com.homelibrary.dto.LoginResponse;
@@ -9,10 +8,12 @@ import com.homelibrary.dto.LoginResult;
 import com.homelibrary.repository.UserRepository;
 import com.homelibrary.service.AuthService;
 import com.homelibrary.util.JwtUtil;
+import com.homelibrary.util.RefreshTokenCookieBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,7 +37,7 @@ class AuthControllerTest {
     private AuthService authService;
 
     @MockitoBean
-    private CookieProperties cookieProperties;
+    private RefreshTokenCookieBuilder cookieBuilder;
 
     @MockitoBean
     private CorsProperties corsProperties;
@@ -47,11 +48,21 @@ class AuthControllerTest {
     @MockitoBean
     private UserRepository userRepository;
 
+    private static ResponseCookie setRefreshTokenCookie(String value) {
+        return ResponseCookie.from("refreshToken", value)
+                .httpOnly(true).secure(false).sameSite("Strict").path("/api/auth").maxAge(604800L).build();
+    }
+
+    private static ResponseCookie deleteRefreshTokenCookie() {
+        return ResponseCookie.from("refreshToken", "")
+                .httpOnly(true).secure(false).sameSite("Strict").path("/api/auth").maxAge(0).build();
+    }
+
     @Test
     void login_validCredentials_returns200WithTokenAndCookie() throws Exception {
         LoginResponse loginResponse = new LoginResponse("access.token.here", "Bearer", 900L);
         when(authService.login(any())).thenReturn(new LoginResult(loginResponse, "uuid:randompart"));
-        when(cookieProperties.isSecure()).thenReturn(false);
+        when(cookieBuilder.buildSetCookie("uuid:randompart")).thenReturn(setRefreshTokenCookie("uuid:randompart"));
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,7 +97,7 @@ class AuthControllerTest {
     void refresh_validCookie_returns200WithNewTokenAndCookie() throws Exception {
         LoginResponse loginResponse = new LoginResponse("new.access.token", "Bearer", 900L);
         when(authService.refresh("uuid:randompart")).thenReturn(new LoginResult(loginResponse, "uuid:newrandompart"));
-        when(cookieProperties.isSecure()).thenReturn(false);
+        when(cookieBuilder.buildSetCookie("uuid:newrandompart")).thenReturn(setRefreshTokenCookie("uuid:newrandompart"));
 
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "uuid:randompart")))
@@ -114,7 +125,7 @@ class AuthControllerTest {
 
     @Test
     void logout_returns204WithDeleteCookie() throws Exception {
-        when(cookieProperties.isSecure()).thenReturn(false);
+        when(cookieBuilder.buildDeleteCookie()).thenReturn(deleteRefreshTokenCookie());
 
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isNoContent())

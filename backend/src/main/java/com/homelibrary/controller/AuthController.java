@@ -1,15 +1,14 @@
 package com.homelibrary.controller;
 
-import com.homelibrary.config.CookieProperties;
 import com.homelibrary.dto.LoginRequest;
 import com.homelibrary.dto.LoginResponse;
 import com.homelibrary.dto.LoginResult;
 import com.homelibrary.service.AuthService;
+import com.homelibrary.util.RefreshTokenCookieBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +16,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final String REFRESH_TOKEN_COOKIE = "refreshToken";
-    private static final long REFRESH_TOKEN_MAX_AGE = 604800L;
-
     private final AuthService authService;
-    private final CookieProperties cookieProperties;
+    private final RefreshTokenCookieBuilder cookieBuilder;
 
-    public AuthController(AuthService authService, CookieProperties cookieProperties) {
+    public AuthController(AuthService authService, RefreshTokenCookieBuilder cookieBuilder) {
         this.authService = authService;
-        this.cookieProperties = cookieProperties;
+        this.cookieBuilder = cookieBuilder;
     }
 
     @Operation(summary = "Login with username and password")
@@ -35,7 +31,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResult result = authService.login(request);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(result.refreshToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildSetCookie(result.refreshToken()).toString())
                 .body(result.loginResponse());
     }
 
@@ -45,7 +41,7 @@ public class AuthController {
     public ResponseEntity<Void> logout() {
         authService.logout();
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, buildDeleteRefreshTokenCookie().toString())
+                .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildDeleteCookie().toString())
                 .build();
     }
 
@@ -57,27 +53,7 @@ public class AuthController {
             @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie) {
         LoginResult result = authService.refresh(refreshTokenCookie);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, buildRefreshTokenCookie(result.refreshToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildSetCookie(result.refreshToken()).toString())
                 .body(result.loginResponse());
-    }
-
-    private ResponseCookie buildRefreshTokenCookie(String value) {
-        return ResponseCookie.from(REFRESH_TOKEN_COOKIE, value)
-                .httpOnly(true)
-                .secure(cookieProperties.isSecure())
-                .sameSite("Strict")
-                .path("/api/auth")
-                .maxAge(REFRESH_TOKEN_MAX_AGE)
-                .build();
-    }
-
-    private ResponseCookie buildDeleteRefreshTokenCookie() {
-        return ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
-                .httpOnly(true)
-                .secure(cookieProperties.isSecure())
-                .sameSite("Strict")
-                .path("/api/auth")
-                .maxAge(0)
-                .build();
     }
 }

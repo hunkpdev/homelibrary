@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtUtilTest {
 
@@ -30,13 +31,6 @@ class JwtUtilTest {
     }
 
     @Test
-    void generateToken_thenIsTokenValid_returnsTrue() {
-        String token = jwtUtil.generateToken(user);
-
-        assertThat(jwtUtil.isTokenValid(token)).isTrue();
-    }
-
-    @Test
     void generateToken_thenExtractUserId_returnsCorrectUuid() {
         String token = jwtUtil.generateToken(user);
 
@@ -44,15 +38,16 @@ class JwtUtilTest {
     }
 
     @Test
-    void isTokenValid_withTamperedToken_returnsFalse() {
+    void extractUserId_withTamperedToken_throwsException() {
         String token = jwtUtil.generateToken(user);
         String tampered = token.substring(0, token.length() - 5) + "XXXXX";
 
-        assertThat(jwtUtil.isTokenValid(tampered)).isFalse();
+        assertThatThrownBy(() -> jwtUtil.extractUserId(tampered))
+                .isInstanceOf(Exception.class);
     }
 
     @Test
-    void isTokenValid_withExpiredToken_returnsFalse() {
+    void extractUserId_withExpiredToken_throwsException() {
         JwtProperties expiredProperties = new JwtProperties();
         expiredProperties.setSecret("test-secret-key-for-unit-tests-min32chars!!");
         expiredProperties.setAccessTokenExpirationMs(1L);
@@ -60,6 +55,7 @@ class JwtUtilTest {
 
         String token = expiredJwtUtil.generateToken(user);
 
-        assertThat(expiredJwtUtil.isTokenValid(token)).isFalse();
+        assertThatThrownBy(() -> expiredJwtUtil.extractUserId(token))
+                .isInstanceOf(Exception.class);
     }
 }
