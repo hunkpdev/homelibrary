@@ -7,7 +7,8 @@ import com.homelibrary.entity.User;
 import com.homelibrary.model.Role;
 import com.homelibrary.repository.UserRepository;
 import com.homelibrary.util.JwtUtil;
-import org.junit.jupiter.api.AfterEach;
+import com.homelibrary.util.RefreshTokenCookie;
+import com.homelibrary.util.RefreshTokenCookieUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,8 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private RefreshTokenCookieUtil refreshTokenCookieUtil;
 
     private JwtUtil jwtUtil;
     private JwtProperties jwtProperties;
@@ -56,7 +59,7 @@ class AuthServiceTest {
         jwtUtil = new JwtUtil(jwtProperties);
         passwordEncoder = new BCryptPasswordEncoder(4);
 
-        authService = new AuthService(authenticationManager, userRepository, jwtUtil, jwtProperties, passwordEncoder);
+        authService = new AuthService(authenticationManager, userRepository, jwtUtil, jwtProperties, passwordEncoder, refreshTokenCookieUtil);
 
         user = new User();
         user.setId(UUID.randomUUID());
@@ -118,7 +121,9 @@ class AuthServiceTest {
     @Test
     void refresh_validToken_returnsNewAccessTokenAndRotatesRefreshToken() {
         String oldRefreshToken = authService.generateAndSaveRefreshToken(user);
+        String secureRandomPart = oldRefreshToken.split(":")[1];
         String oldHash = user.getRefreshTokenHash();
+        when(refreshTokenCookieUtil.parse(oldRefreshToken)).thenReturn(new RefreshTokenCookie(user.getId(), secureRandomPart));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         LoginResult result = authService.refresh(oldRefreshToken);
@@ -135,6 +140,7 @@ class AuthServiceTest {
         authService.generateAndSaveRefreshToken(user);
         clearInvocations(userRepository);
         String tamperedToken = user.getId() + ":wrongrandompart";
+        when(refreshTokenCookieUtil.parse(tamperedToken)).thenReturn(new RefreshTokenCookie(user.getId(), "wrongrandompart"));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         String hashBefore = user.getRefreshTokenHash();
 
@@ -151,6 +157,7 @@ class AuthServiceTest {
         clearInvocations(userRepository);
         user.setRefreshTokenExpiresAt(OffsetDateTime.now().minusSeconds(1));
         String expiredToken = user.getId() + ":anypart";
+        when(refreshTokenCookieUtil.parse(expiredToken)).thenReturn(new RefreshTokenCookie(user.getId(), "anypart"));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> authService.refresh(expiredToken))
@@ -162,9 +169,11 @@ class AuthServiceTest {
     @Test
     void refresh_nonExistentUserId_throws() {
         UUID unknownId = UUID.randomUUID();
+        String token = unknownId + ":anypart";
+        when(refreshTokenCookieUtil.parse(token)).thenReturn(new RefreshTokenCookie(unknownId, "anypart"));
         when(userRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authService.refresh(unknownId + ":anypart"))
+        assertThatThrownBy(() -> authService.refresh(token))
                 .isInstanceOf(BadCredentialsException.class);
     }
 
@@ -174,6 +183,7 @@ class AuthServiceTest {
         authService.generateAndSaveRefreshToken(user);
         clearInvocations(userRepository);
         String token = user.getId() + ":anypart";
+        when(refreshTokenCookieUtil.parse(token)).thenReturn(new RefreshTokenCookie(user.getId(), "anypart"));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> authService.refresh(token))
@@ -184,6 +194,8 @@ class AuthServiceTest {
 
     @Test
     void refresh_nullCookie_throws() {
+        when(refreshTokenCookieUtil.parse(null)).thenThrow(new BadCredentialsException("Missing refresh token"));
+
         assertThatThrownBy(() -> authService.refresh(null))
                 .isInstanceOf(BadCredentialsException.class);
     }
@@ -191,6 +203,8 @@ class AuthServiceTest {
     @Test
     void refresh_rotation_oldTokenInvalidAfterRefresh() {
         String firstToken = authService.generateAndSaveRefreshToken(user);
+        String secureRandomPart = firstToken.split(":")[1];
+        when(refreshTokenCookieUtil.parse(firstToken)).thenReturn(new RefreshTokenCookie(user.getId(), secureRandomPart));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         authService.refresh(firstToken);

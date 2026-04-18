@@ -5,7 +5,7 @@ import com.homelibrary.dto.LoginResponse;
 import com.homelibrary.dto.LoginResult;
 import com.homelibrary.entity.User;
 import com.homelibrary.service.AuthService;
-import com.homelibrary.util.RefreshTokenCookieBuilder;
+import com.homelibrary.util.RefreshTokenCookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final RefreshTokenCookieBuilder cookieBuilder;
+    private final RefreshTokenCookieUtil cookieUtil;
 
-    public AuthController(AuthService authService, RefreshTokenCookieBuilder cookieBuilder) {
+    public AuthController(AuthService authService, RefreshTokenCookieUtil cookieUtil) {
         this.authService = authService;
-        this.cookieBuilder = cookieBuilder;
+        this.cookieUtil = cookieUtil;
     }
 
     @Operation(summary = "Login with username and password")
@@ -33,7 +33,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResult result = authService.login(request);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildSetCookie(result.refreshToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, cookieUtil.buildSetCookie(result.refreshToken()).toString())
                 .body(result.loginResponse());
     }
 
@@ -43,7 +43,7 @@ public class AuthController {
     public ResponseEntity<Void> logout(@AuthenticationPrincipal User user) {
         authService.logout(user);
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildDeleteCookie().toString())
+                .header(HttpHeaders.SET_COOKIE, cookieUtil.buildDeleteCookie().toString())
                 .build();
     }
 
@@ -55,7 +55,7 @@ public class AuthController {
             @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie) {
         LoginResult result = authService.refresh(refreshTokenCookie);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildSetCookie(result.refreshToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, cookieUtil.buildSetCookie(result.refreshToken()).toString())
                 .body(result.loginResponse());
     }
 }

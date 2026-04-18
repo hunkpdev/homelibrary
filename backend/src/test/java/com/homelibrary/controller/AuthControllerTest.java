@@ -8,7 +8,7 @@ import com.homelibrary.dto.LoginResult;
 import com.homelibrary.repository.UserRepository;
 import com.homelibrary.service.AuthService;
 import com.homelibrary.util.JwtUtil;
-import com.homelibrary.util.RefreshTokenCookieBuilder;
+import com.homelibrary.util.RefreshTokenCookieUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -37,7 +37,7 @@ class AuthControllerTest {
     private AuthService authService;
 
     @MockitoBean
-    private RefreshTokenCookieBuilder cookieBuilder;
+    private RefreshTokenCookieUtil cookieUtil;
 
     // Required by @WebMvcTest: SecurityConfig pulls in CorsProperties, JwtUtil and UserRepository
     @MockitoBean
@@ -63,7 +63,7 @@ class AuthControllerTest {
     void login_validCredentials_returns200WithTokenAndCookie() throws Exception {
         LoginResponse loginResponse = new LoginResponse("access.token.here", "Bearer", 900L);
         when(authService.login(any())).thenReturn(new LoginResult(loginResponse, "uuid:randompart"));
-        when(cookieBuilder.buildSetCookie("uuid:randompart")).thenReturn(setRefreshTokenCookie("uuid:randompart"));
+        when(cookieUtil.buildSetCookie("uuid:randompart")).thenReturn(setRefreshTokenCookie("uuid:randompart"));
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +98,7 @@ class AuthControllerTest {
     void refresh_validCookie_returns200WithNewTokenAndCookie() throws Exception {
         LoginResponse loginResponse = new LoginResponse("new.access.token", "Bearer", 900L);
         when(authService.refresh("uuid:randompart")).thenReturn(new LoginResult(loginResponse, "uuid:newrandompart"));
-        when(cookieBuilder.buildSetCookie("uuid:newrandompart")).thenReturn(setRefreshTokenCookie("uuid:newrandompart"));
+        when(cookieUtil.buildSetCookie("uuid:newrandompart")).thenReturn(setRefreshTokenCookie("uuid:newrandompart"));
 
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "uuid:randompart")))
@@ -126,7 +126,7 @@ class AuthControllerTest {
 
     @Test
     void logout_returns204WithDeleteCookie() throws Exception {
-        when(cookieBuilder.buildDeleteCookie()).thenReturn(deleteRefreshTokenCookie());
+        when(cookieUtil.buildDeleteCookie()).thenReturn(deleteRefreshTokenCookie());
 
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isNoContent())
