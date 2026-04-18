@@ -123,6 +123,7 @@ public class AuthService {
         });
     }
 
+    // package-private for testing
     String generateAndSaveRefreshToken(User user) {
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
