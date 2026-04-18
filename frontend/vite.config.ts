@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
@@ -16,6 +16,16 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:8080',
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    reporters: ['default', 'html', 'junit'],
+    outputFile: {
+      html: './test-results/index.html',
+      junit: './test-results/junit.xml',
     },
   },
 })
