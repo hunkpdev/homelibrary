@@ -50,6 +50,21 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
+    void loadUserByUsername_inactiveUser_returnsDisabledUserDetails() {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setUsername("inactive");
+        user.setPasswordHash("$2a$12$hashedpassword");
+        user.setRole(Role.VISITOR);
+        user.setActive(false);
+        when(userRepository.findByUsername("inactive")).thenReturn(Optional.of(user));
+
+        UserDetails result = userDetailsService.loadUserByUsername("inactive");
+
+        assertThat(result.isEnabled()).isFalse();
+    }
+
+    @Test
     void loadUserByUsername_nonExistingUser_throwsUsernameNotFoundException() {
         when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
 
