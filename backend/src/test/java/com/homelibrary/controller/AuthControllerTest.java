@@ -39,6 +39,7 @@ class AuthControllerTest {
     @MockitoBean
     private RefreshTokenCookieBuilder cookieBuilder;
 
+    // Required by @WebMvcTest: SecurityConfig pulls in CorsProperties, JwtUtil and UserRepository
     @MockitoBean
     private CorsProperties corsProperties;
 
