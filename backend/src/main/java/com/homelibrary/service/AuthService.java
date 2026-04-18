@@ -9,6 +9,7 @@ import com.homelibrary.repository.UserRepository;
 import com.homelibrary.util.JwtUtil;
 import com.homelibrary.util.RefreshTokenCookie;
 import com.homelibrary.util.RefreshTokenCookieUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +21,7 @@ import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 
+@RequiredArgsConstructor
 @Service
 public class AuthService {
 
@@ -31,20 +33,6 @@ public class AuthService {
     private final RefreshTokenCookieUtil refreshTokenCookieUtil;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public AuthService(AuthenticationManager authenticationManager,
-                       UserRepository userRepository,
-                       JwtUtil jwtUtil,
-                       JwtProperties jwtProperties,
-                       PasswordEncoder passwordEncoder,
-                       RefreshTokenCookieUtil refreshTokenCookieUtil) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
-        this.jwtProperties = jwtProperties;
-        this.passwordEncoder = passwordEncoder;
-        this.refreshTokenCookieUtil = refreshTokenCookieUtil;
-    }
-
     @Transactional
     public LoginResult login(LoginRequest request) {
         authenticationManager.authenticate(
@@ -54,15 +42,8 @@ public class AuthService {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow();
 
-        String accessToken = jwtUtil.generateToken(user);
         String refreshToken = generateAndSaveRefreshToken(user);
-
-        LoginResponse loginResponse = new LoginResponse(
-                accessToken,
-                "Bearer",
-                jwtProperties.getAccessTokenExpirationMs() / 1000
-        );
-        return new LoginResult(loginResponse, refreshToken);
+        return buildLoginResult(user, refreshToken);
     }
 
     @Transactional
@@ -74,29 +55,8 @@ public class AuthService {
 
         validateRefreshToken(user, parsed.secureRandomPart());
 
-        String newAccessToken = jwtUtil.generateToken(user);
-        String newRefreshToken = generateAndSaveRefreshToken(user);
-
-        LoginResponse loginResponse = new LoginResponse(
-                newAccessToken,
-                "Bearer",
-                jwtProperties.getAccessTokenExpirationMs() / 1000
-        );
-        return new LoginResult(loginResponse, newRefreshToken);
-    }
-
-    private void validateRefreshToken(User user, String secureRandomPart) {
-        if (!user.isActive()) {
-            throw new BadCredentialsException("User is inactive");
-        }
-        if (user.getRefreshTokenExpiresAt() == null
-                || user.getRefreshTokenExpiresAt().isBefore(OffsetDateTime.now())) {
-            throw new BadCredentialsException("Refresh token expired");
-        }
-        if (user.getRefreshTokenHash() == null
-                || !passwordEncoder.matches(secureRandomPart, user.getRefreshTokenHash())) {
-            throw new BadCredentialsException("Invalid refresh token");
-        }
+        String refreshToken = generateAndSaveRefreshToken(user);
+        return buildLoginResult(user, refreshToken);
     }
 
     @Transactional
@@ -122,5 +82,28 @@ public class AuthService {
         ));
         userRepository.save(user);
         return refreshToken;
+    }
+
+    private void validateRefreshToken(User user, String secureRandomPart) {
+        if (!user.isActive()) {
+            throw new BadCredentialsException("User is inactive");
+        }
+        if (user.getRefreshTokenExpiresAt() == null
+                || user.getRefreshTokenExpiresAt().isBefore(OffsetDateTime.now())) {
+            throw new BadCredentialsException("Refresh token expired");
+        }
+        if (user.getRefreshTokenHash() == null
+                || !passwordEncoder.matches(secureRandomPart, user.getRefreshTokenHash())) {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
+    }
+
+    private LoginResult buildLoginResult(User user, String refreshToken) {
+        LoginResponse loginResponse = new LoginResponse(
+                jwtUtil.generateToken(user),
+                "Bearer",
+                jwtProperties.getAccessTokenExpirationMs() / 1000
+        );
+        return new LoginResult(loginResponse, refreshToken);
     }
 }

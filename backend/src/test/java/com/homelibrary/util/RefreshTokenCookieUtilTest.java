@@ -28,7 +28,6 @@ class RefreshTokenCookieUtilTest {
 
     @BeforeEach
     void setUp() {
-        when(jwtProperties.getRefreshTokenExpirationMs()).thenReturn(604_800_000L);
         cookieUtil = new RefreshTokenCookieUtil(cookieProperties, jwtProperties);
     }
 
@@ -64,6 +63,7 @@ class RefreshTokenCookieUtilTest {
     @Test
     void buildSetCookie_setsCorrectAttributes() {
         when(cookieProperties.isSecure()).thenReturn(false);
+        when(jwtProperties.getRefreshTokenExpirationMs()).thenReturn(604_800_000L);
 
         ResponseCookie cookie = cookieUtil.buildSetCookie("uuid:part");
 

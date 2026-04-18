@@ -9,22 +9,19 @@ import com.homelibrary.util.RefreshTokenCookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
     private final RefreshTokenCookieUtil cookieUtil;
-
-    public AuthController(AuthService authService, RefreshTokenCookieUtil cookieUtil) {
-        this.authService = authService;
-        this.cookieUtil = cookieUtil;
-    }
 
     @Operation(summary = "Login with username and password")
     @ApiResponse(responseCode = "200", description = "Successful login")

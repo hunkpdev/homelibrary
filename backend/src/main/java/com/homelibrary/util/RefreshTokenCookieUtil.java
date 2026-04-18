@@ -2,12 +2,14 @@ package com.homelibrary.util;
 
 import com.homelibrary.config.CookieProperties;
 import com.homelibrary.config.JwtProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Component
 public class RefreshTokenCookieUtil {
 
@@ -16,12 +18,7 @@ public class RefreshTokenCookieUtil {
     private static final String SAME_SITE = "Strict";
 
     private final CookieProperties cookieProperties;
-    private final long maxAgeSeconds;
-
-    public RefreshTokenCookieUtil(CookieProperties cookieProperties, JwtProperties jwtProperties) {
-        this.cookieProperties = cookieProperties;
-        this.maxAgeSeconds = jwtProperties.getRefreshTokenExpirationMs() / 1000;
-    }
+    private final JwtProperties jwtProperties;
 
     public RefreshTokenCookie parse(String cookieValue) {
         if (cookieValue == null) {
@@ -31,17 +28,16 @@ public class RefreshTokenCookieUtil {
         if (parts.length != 2) {
             throw new BadCredentialsException("Invalid refresh token format");
         }
-        UUID userId;
         try {
-            userId = UUID.fromString(parts[0]);
+            UUID userId = UUID.fromString(parts[0]);
+            return new RefreshTokenCookie(userId, parts[1]);
         } catch (IllegalArgumentException e) {
             throw new BadCredentialsException("Invalid refresh token format");
         }
-        return new RefreshTokenCookie(userId, parts[1]);
     }
 
     public ResponseCookie buildSetCookie(String value) {
-        return build(value, maxAgeSeconds);
+        return build(value, jwtProperties.getRefreshTokenExpirationMs() / 1000);
     }
 
     public ResponseCookie buildDeleteCookie() {

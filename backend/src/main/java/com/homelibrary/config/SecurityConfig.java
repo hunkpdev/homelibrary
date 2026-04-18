@@ -1,6 +1,7 @@
 package com.homelibrary.config;
 
 import com.homelibrary.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 @SuppressWarnings("java:S4502") // CSRF disabled intentionally: stateless JWT + SameSite=Strict cookie
@@ -32,11 +34,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsProperties corsProperties;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CorsProperties corsProperties) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.corsProperties = corsProperties;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
