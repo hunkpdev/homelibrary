@@ -1,5 +1,16 @@
 {
   "app": {
     "title": "Home Library"
+  },
+  "login": {
+    "title": "Sign in",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "error": {
+      "invalidCredentials": "Invalid username or password",
+      "unexpected": "An unexpected error occurred"
+    }
   }
 }
