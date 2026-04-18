@@ -3,6 +3,7 @@ package com.homelibrary.controller;
 import com.homelibrary.dto.LoginRequest;
 import com.homelibrary.dto.LoginResponse;
 import com.homelibrary.dto.LoginResult;
+import com.homelibrary.entity.User;
 import com.homelibrary.service.AuthService;
 import com.homelibrary.util.RefreshTokenCookieBuilder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,8 +40,8 @@ public class AuthController {
     @Operation(summary = "Logout and invalidate refresh token")
     @ApiResponse(responseCode = "204", description = "Logged out successfully")
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        authService.logout();
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal User user) {
+        authService.logout(user);
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, cookieBuilder.buildDeleteCookie().toString())
                 .build();

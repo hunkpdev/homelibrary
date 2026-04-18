@@ -16,12 +16,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,11 +45,6 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     private AuthService authService;
     private User user;
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
 
     @BeforeEach
     void setUp() {
@@ -210,10 +203,9 @@ class AuthServiceTest {
     void logout_authenticatedUser_clearsRefreshTokenFieldsInDb() {
         authService.generateAndSaveRefreshToken(user);
         clearInvocations(userRepository);
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(user, null, List.of()));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
-        authService.logout();
+        authService.logout(user);
 
         assertThat(user.getRefreshTokenHash()).isNull();
         assertThat(user.getRefreshTokenExpiresAt()).isNull();
@@ -221,10 +213,8 @@ class AuthServiceTest {
     }
 
     @Test
-    void logout_unauthenticatedUser_doesNotModifyDb() {
-        SecurityContextHolder.clearContext();
-
-        authService.logout();
+    void logout_nullPrincipal_doesNotModifyDb() {
+        authService.logout(null);
 
         verify(userRepository, never()).save(any());
     }
