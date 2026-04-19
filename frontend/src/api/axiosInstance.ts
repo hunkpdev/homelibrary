@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
       throw error
     }
 
-    if (original.url?.includes('/api/auth/refresh')) {
+    if (original.url === '/api/auth/refresh') {
       redirectToLogin()
       throw error
     }
