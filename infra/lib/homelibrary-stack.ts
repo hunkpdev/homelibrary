@@ -30,6 +30,17 @@ export class HomelibraryStack extends cdk.Stack {
 
     // --- S3 ---
 
+    const deploymentBucket = new s3.Bucket(this, 'DeploymentBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(7),
+        },
+      ],
+    });
+
     const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
@@ -143,6 +154,11 @@ export class HomelibraryStack extends cdk.Stack {
     }));
 
     githubActionsRole.addToPolicy(new iam.PolicyStatement({
+      actions:   ['s3:PutObject'],
+      resources: [`${deploymentBucket.bucketArn}/*`],
+    }));
+
+    githubActionsRole.addToPolicy(new iam.PolicyStatement({
       actions:   ['cloudfront:CreateInvalidation'],
       resources: [`arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`],
     }));
@@ -154,6 +170,10 @@ export class HomelibraryStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'GithubActionsRoleArn', {
       value: githubActionsRole.roleArn,
+    });
+
+    new cdk.CfnOutput(this, 'DeploymentBucketName', {
+      value: deploymentBucket.bucketName,
     });
   }
 }
