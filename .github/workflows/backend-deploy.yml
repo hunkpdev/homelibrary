@@ -85,6 +85,9 @@ jobs:
             --s3-key backend/homelibrary-${{ github.sha }}.jar \
             --no-cli-pager
 
+      - name: Wait for Lambda update
+        run: aws lambda wait function-updated --function-name homelibrary-backend --no-cli-pager
+
       - name: Publish Lambda version
         id: publish
         run: |
