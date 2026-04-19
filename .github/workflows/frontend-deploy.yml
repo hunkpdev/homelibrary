@@ -53,11 +53,7 @@ jobs:
           args: >
             -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_FRONTEND }}
             -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
-
-      - name: Quality Gate check
-        uses: SonarSource/sonarqube-quality-gate-check@v1
-        with:
-          scanMetadataReportFile: frontend/.scannerwork/report-task.txt
+            -Dsonar.qualitygate.wait=true
 
   deploy:
     needs: sonar
