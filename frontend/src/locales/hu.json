@@ -1,5 +1,34 @@
 {
   "app": {
     "title": "Otthoni Könyvtár"
+  },
+  "nav": {
+    "books": "Könyvek",
+    "locations": "Helyszínek",
+    "loans": "Kölcsönzések",
+    "users": "Felhasználók",
+    "profile": "Saját profil"
+  },
+  "sidebar": {
+    "logout": "Kijelentkezés"
+  },
+  "forbidden": {
+    "title": "403",
+    "message": "Nincs jogosultságod ehhez az oldalhoz.",
+    "backHome": "Vissza a főoldalra"
+  },
+  "common": {
+    "loading": "Betöltés..."
+  },
+  "login": {
+    "title": "Bejelentkezés",
+    "username": "Felhasználónév",
+    "password": "Jelszó",
+    "submit": "Bejelentkezés",
+    "submitting": "Bejelentkezés...",
+    "error": {
+      "invalidCredentials": "Hibás felhasználónév vagy jelszó",
+      "unexpected": "Váratlan hiba történt"
+    }
   }
 }
