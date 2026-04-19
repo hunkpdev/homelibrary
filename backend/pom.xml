@@ -24,6 +24,9 @@
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>3.0.2</springdoc.version>
         <byte-buddy-agent.version>1.17.8</byte-buddy-agent.version>
+        <sonar.projectKey>hunkpdev_homelibrary-backend</sonar.projectKey>
+        <sonar.organization>hunkpdev</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.coverage.exclusions>
             **/entity/**,
             **/dto/**,
