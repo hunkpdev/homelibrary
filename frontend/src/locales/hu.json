@@ -2,6 +2,14 @@
   "app": {
     "title": "Otthoni Könyvtár"
   },
+  "forbidden": {
+    "title": "403",
+    "message": "Nincs jogosultságod ehhez az oldalhoz.",
+    "backHome": "Vissza a főoldalra"
+  },
+  "common": {
+    "loading": "Betöltés..."
+  },
   "login": {
     "title": "Bejelentkezés",
     "username": "Felhasználónév",

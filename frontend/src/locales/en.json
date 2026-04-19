@@ -2,6 +2,14 @@
   "app": {
     "title": "Home Library"
   },
+  "forbidden": {
+    "title": "403",
+    "message": "You do not have permission to access this page.",
+    "backHome": "Back to home"
+  },
+  "common": {
+    "loading": "Loading..."
+  },
   "login": {
     "title": "Sign in",
     "username": "Username",
