@@ -41,7 +41,9 @@ export function AppSidebar() {
   const visibleItems = navItems.filter(item => user && item.roles.includes(user.role))
 
   async function handleLogout() {
-    await axiosInstance.post('/api/auth/logout').catch(() => {})
+    await axiosInstance.post('/api/auth/logout').catch((err: unknown) => {
+      console.warn('Logout request failed:', err instanceof Error ? err.message : err)
+    })
     clearAuth()
     navigate('/login')
   }
