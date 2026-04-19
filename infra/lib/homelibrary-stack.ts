@@ -144,7 +144,7 @@ export class HomelibraryStack extends cdk.Stack {
     });
 
     githubActionsRole.addToPolicy(new iam.PolicyStatement({
-      actions:   ['lambda:UpdateFunctionCode', 'lambda:PublishVersion', 'lambda:UpdateAlias'],
+      actions:   ['lambda:UpdateFunctionCode', 'lambda:PublishVersion', 'lambda:UpdateAlias', 'lambda:GetFunctionConfiguration'],
       resources: [backendFunction.functionArn],
     }));
 
