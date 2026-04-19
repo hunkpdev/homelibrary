@@ -154,7 +154,7 @@ export class HomelibraryStack extends cdk.Stack {
     }));
 
     githubActionsRole.addToPolicy(new iam.PolicyStatement({
-      actions:   ['s3:PutObject'],
+      actions:   ['s3:PutObject', 's3:GetObject'],
       resources: [`${deploymentBucket.bucketArn}/*`],
     }));
 
