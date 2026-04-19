@@ -2,6 +2,16 @@
   "app": {
     "title": "Otthoni Könyvtár"
   },
+  "nav": {
+    "books": "Könyvek",
+    "locations": "Helyszínek",
+    "loans": "Kölcsönzések",
+    "users": "Felhasználók",
+    "profile": "Saját profil"
+  },
+  "sidebar": {
+    "logout": "Kijelentkezés"
+  },
   "forbidden": {
     "title": "403",
     "message": "Nincs jogosultságod ehhez az oldalhoz.",

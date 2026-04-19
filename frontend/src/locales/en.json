@@ -2,6 +2,16 @@
   "app": {
     "title": "Home Library"
   },
+  "nav": {
+    "books": "Books",
+    "locations": "Locations",
+    "loans": "Loans",
+    "users": "Users",
+    "profile": "My profile"
+  },
+  "sidebar": {
+    "logout": "Sign out"
+  },
   "forbidden": {
     "title": "403",
     "message": "You do not have permission to access this page.",

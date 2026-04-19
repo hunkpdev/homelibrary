@@ -12,11 +12,16 @@ interface RefreshResponse {
   accessToken: string
 }
 
+let authInitStarted = false
+
 function App() {
   const themeValue = useThemeProvider()
   const { setAuth, clearAuth, setInitialized } = useAuthStore()
 
   useEffect(() => {
+    if (authInitStarted) return
+    authInitStarted = true
+
     axios
       .post<RefreshResponse>('/api/auth/refresh', {}, { withCredentials: true })
       .then(res => {
