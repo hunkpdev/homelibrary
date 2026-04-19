@@ -34,9 +34,6 @@ jobs:
       - name: Build, test and analyze
         run: |
           mvn -f backend/pom.xml clean verify sonar:sonar -P local \
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_BACKEND }} \
-            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }} \
-            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.qualitygate.wait=true
 
       - name: Publish test report
