@@ -12,6 +12,8 @@ interface RefreshResponse {
   accessToken: string
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+
 let authInitStarted = false
 
 function App() {
@@ -23,7 +25,7 @@ function App() {
     authInitStarted = true
 
     axios
-      .post<RefreshResponse>('/api/auth/refresh', {}, { withCredentials: true })
+      .post<RefreshResponse>(`${API_BASE}/api/auth/refresh`, {}, { withCredentials: true })
       .then(res => {
         const user = decodeAuthUser(res.data.accessToken)
         setAuth(res.data.accessToken, user)
