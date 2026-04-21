@@ -1,7 +1,6 @@
 package com.homelibrary.service;
 
 import com.homelibrary.entity.Location;
-import com.homelibrary.entity.Room;
 import com.homelibrary.exception.ResourceNotFoundException;
 import com.homelibrary.repository.LocationRepository;
 import com.homelibrary.repository.RoomRepository;
@@ -87,10 +86,11 @@ class LocationServiceTest {
     @Test
     void update_versionConflict_throwsObjectOptimisticLockingFailureException() {
         Location location = locationWithName("Left Shelf");
-        when(locationRepository.findById(location.getId())).thenReturn(Optional.of(location));
-        when(locationRepository.save(any())).thenThrow(new ObjectOptimisticLockingFailureException(Location.class, location.getId()));
+        UUID id = location.getId();
+        when(locationRepository.findById(id)).thenReturn(Optional.of(location));
+        when(locationRepository.save(any())).thenThrow(new ObjectOptimisticLockingFailureException(Location.class, id));
 
-        assertThatThrownBy(() -> locationService.update(location.getId(), "New Name", null, 0L))
+        assertThatThrownBy(() -> locationService.update(id, "New Name", null, 0L))
                 .isInstanceOf(ObjectOptimisticLockingFailureException.class);
     }
 

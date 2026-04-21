@@ -65,10 +65,11 @@ class RoomServiceTest {
     @Test
     void delete_roomWithActiveLocations_throwsActiveChildException() {
         Room room = roomWithName("Library");
-        when(roomRepository.findById(room.getId())).thenReturn(Optional.of(room));
+        UUID id = room.getId();
+        when(roomRepository.findById(id)).thenReturn(Optional.of(room));
         when(locationRepository.existsByRoomAndActiveTrue(room)).thenReturn(true);
 
-        assertThatThrownBy(() -> roomService.delete(room.getId()))
+        assertThatThrownBy(() -> roomService.delete(id))
                 .isInstanceOf(ActiveChildException.class);
 
         verify(roomRepository, never()).save(any());
@@ -86,10 +87,11 @@ class RoomServiceTest {
     @Test
     void update_versionConflict_throwsObjectOptimisticLockingFailureException() {
         Room room = roomWithName("Library");
-        when(roomRepository.findById(room.getId())).thenReturn(Optional.of(room));
-        when(roomRepository.save(any())).thenThrow(new ObjectOptimisticLockingFailureException(Room.class, room.getId()));
+        UUID id = room.getId();
+        when(roomRepository.findById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.save(any())).thenThrow(new ObjectOptimisticLockingFailureException(Room.class, id));
 
-        assertThatThrownBy(() -> roomService.update(room.getId(), "New Name", null, 0L))
+        assertThatThrownBy(() -> roomService.update(id, "New Name", null, 0L))
                 .isInstanceOf(ObjectOptimisticLockingFailureException.class);
     }
 
