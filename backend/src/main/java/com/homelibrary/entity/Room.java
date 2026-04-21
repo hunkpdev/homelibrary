@@ -4,18 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 @Getter
 @Setter
 @Entity
 @Table(name = "rooms")
-public class Room {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Room extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
@@ -25,23 +18,4 @@ public class Room {
 
     @Column(nullable = false)
     private boolean active;
-
-    @Version
-    private Long version;
-
-    @Column(updatable = false)
-    private OffsetDateTime createdAt;
-
-    private OffsetDateTime updatedAt;
-
-    @PrePersist
-    private void onCreate() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    private void onUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
 }
