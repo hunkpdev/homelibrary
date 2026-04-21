@@ -3,6 +3,7 @@ package com.homelibrary.exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -12,6 +13,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Void> handleBadCredentialsException() {
         return ResponseEntity.status(401).build();
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<Void> handleAuthorizationDeniedException() {
+        return ResponseEntity.status(403).build();
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
