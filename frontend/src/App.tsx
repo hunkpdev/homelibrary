@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage } from '@/pages/ForbiddenPage'
+import { LocationManagementPage } from '@/pages/LocationManagementPage'
 import { decodeAuthUser, useAuthStore } from '@/store/authStore'
 
 interface RefreshResponse {
@@ -51,7 +52,7 @@ function App() {
               <Route path="/profile" element={<div className="text-foreground">Saját profil</div>} />
               <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route path="/loans" element={<div className="text-foreground">Kölcsönzések</div>} />
-                <Route path="/locations" element={<div className="text-foreground">Helyszínek</div>} />
+                <Route path="/locations" element={<LocationManagementPage />} />
                 <Route path="/users" element={<div className="text-foreground">Felhasználók</div>} />
               </Route>
             </Route>

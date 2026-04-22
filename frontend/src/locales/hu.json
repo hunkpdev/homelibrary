@@ -20,6 +20,27 @@
   "common": {
     "loading": "Betöltés..."
   },
+  "locations": {
+    "pageTitle": "Helyszínek kezelése",
+    "rooms": {
+      "panelTitle": "Helyiségek",
+      "newRoom": "Új helyiség",
+      "editRoom": "Szerkesztés",
+      "deleteRoom": "Törlés",
+      "addLocation": "+ Helyszín",
+      "locationCount": "helyszín"
+    },
+    "grid": {
+      "colName": "Név",
+      "colDescription": "Leírás",
+      "colRoom": "Helyiség",
+      "colBookCount": "Könyvek",
+      "filterAllRooms": "Minden helyiség",
+      "filterAllLocations": "Minden helyszín",
+      "deleteLocation": "Törlés",
+      "editLocation": "Szerkesztés"
+    }
+  },
   "login": {
     "title": "Bejelentkezés",
     "username": "Felhasználónév",

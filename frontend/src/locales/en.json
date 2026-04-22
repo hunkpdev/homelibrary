@@ -20,6 +20,27 @@
   "common": {
     "loading": "Loading..."
   },
+  "locations": {
+    "pageTitle": "Location Management",
+    "rooms": {
+      "panelTitle": "Rooms",
+      "newRoom": "New room",
+      "editRoom": "Edit",
+      "deleteRoom": "Delete",
+      "addLocation": "+ Location",
+      "locationCount": "location"
+    },
+    "grid": {
+      "colName": "Name",
+      "colDescription": "Description",
+      "colRoom": "Room",
+      "colBookCount": "Books",
+      "filterAllRooms": "All rooms",
+      "filterAllLocations": "All locations",
+      "deleteLocation": "Delete",
+      "editLocation": "Edit"
+    }
+  },
   "login": {
     "title": "Sign in",
     "username": "Username",
