@@ -26,8 +26,8 @@ public class LocationService {
     private final RoomRepository roomRepository;
 
     @Transactional(readOnly = true)
-    public Page<LocationWithCount> list(String name, UUID roomId, Pageable pageable) {
-        Specification<Location> spec = buildSpec(name, roomId);
+    public Page<LocationWithCount> list(String name, UUID roomId, String description, Pageable pageable) {
+        Specification<Location> spec = buildSpec(name, roomId, description);
         return locationRepository.findAll(spec, pageable)
                 .map(location -> new LocationWithCount(location, 0));
     }
@@ -35,7 +35,7 @@ public class LocationService {
     @Transactional(readOnly = true)
     public List<LocationWithCount> findAll() {
         List<Location> locations =
-                locationRepository.findAll(buildSpec(null, null), Sort.by(Sort.Direction.ASC, "name"));
+                locationRepository.findAll(buildSpec(null, null, null), Sort.by(Sort.Direction.ASC, "name"));
         return locations.stream()
                 .map(location -> new LocationWithCount(location, 0))
                 .toList();
@@ -71,7 +71,7 @@ public class LocationService {
         locationRepository.save(location);
     }
 
-    private Specification<Location> buildSpec(String name, UUID roomId) {
+    private Specification<Location> buildSpec(String name, UUID roomId, String description) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isTrue(root.get("active")));
@@ -80,6 +80,9 @@ public class LocationService {
             }
             if (roomId != null) {
                 predicates.add(cb.equal(root.get("room").get("id"), roomId));
+            }
+            if (description != null && !description.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("description")), "%" + description.toLowerCase() + "%"));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };

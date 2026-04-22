@@ -1,5 +1,6 @@
 package com.homelibrary.exception;
 
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,6 +24,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Void> handleResourceNotFoundException() {
         return ResponseEntity.status(404).build();
+    }
+
+    @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
+    public ResponseEntity<Void> handleInvalidDataAccessResourceUsage() {
+        return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler({ActiveChildException.class, ObjectOptimisticLockingFailureException.class})

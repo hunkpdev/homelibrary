@@ -36,8 +36,9 @@ public class LocationController {
     public ResponseEntity<Page<LocationResponse>> list(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) UUID roomId,
+            @RequestParam(required = false) String description,
             @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(locationService.list(name, roomId, pageable).map(this::toResponse));
+        return ResponseEntity.ok(locationService.list(name, roomId, description, pageable).map(this::toResponse));
     }
 
     @Operation(summary = "List all active locations without pagination")

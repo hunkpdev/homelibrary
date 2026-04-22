@@ -57,7 +57,7 @@ class LocationControllerTest {
     @Test
     @WithMockUser(roles = "VISITOR")
     void list_visitorRole_returns200() throws Exception {
-        when(locationService.list(isNull(), isNull(), any(Pageable.class)))
+        when(locationService.list(isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
         mockMvc.perform(get("/api/locations"))

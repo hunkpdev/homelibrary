@@ -50,7 +50,7 @@ class LocationServiceTest {
 
         when(locationRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Page<LocationWithCount> result = locationService.list(null, null, pageable);
+        Page<LocationWithCount> result = locationService.list(null, null, null, pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).extracting(lwc -> lwc.location().getName())
@@ -68,7 +68,7 @@ class LocationServiceTest {
 
         when(locationRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Page<LocationWithCount> result = locationService.list(null, roomId, pageable);
+        Page<LocationWithCount> result = locationService.list(null, roomId, null, pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).location().getName()).isEqualTo("Left Shelf");
