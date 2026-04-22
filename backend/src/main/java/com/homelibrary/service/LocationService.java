@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,15 @@ public class LocationService {
         Specification<Location> spec = buildSpec(name, roomId);
         return locationRepository.findAll(spec, pageable)
                 .map(location -> new LocationWithCount(location, 0));
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocationWithCount> findAll() {
+        List<Location> locations =
+                locationRepository.findAll(buildSpec(null, null), Sort.by(Sort.Direction.ASC, "name"));
+        return locations.stream()
+                .map(location -> new LocationWithCount(location, 0))
+                .toList();
     }
 
     @Transactional

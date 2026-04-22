@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,21 @@ public class RoomService {
                 .toList();
 
         return new PageImpl<>(result, pageable, roomPage.getTotalElements());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoomWithCount> findAll() {
+        List<Room> rooms = roomRepository.findAll(buildSpec(null), Sort.by(Sort.Direction.ASC, "name"));
+        if (rooms.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> roomIds = rooms.stream().map(Room::getId).toList();
+        Map<UUID, Long> countByRoomId = locationRepository.countActiveLocationsByRoomIds(roomIds)
+                .stream()
+                .collect(Collectors.toMap(LocationCountProjection::getRoomId, LocationCountProjection::getCount));
+        return rooms.stream()
+                .map(room -> new RoomWithCount(room, countByRoomId.getOrDefault(room.getId(), 0L).intValue()))
+                .toList();
     }
 
     @Transactional

@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LocationController.class)
@@ -61,6 +62,16 @@ class LocationControllerTest {
 
         mockMvc.perform(get("/api/locations"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "VISITOR")
+    void listAll_visitorRole_returns200() throws Exception {
+        when(locationService.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/locations/all"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
     }
 
     @Test

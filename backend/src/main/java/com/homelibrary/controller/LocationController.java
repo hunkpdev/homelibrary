@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -37,6 +38,14 @@ public class LocationController {
             @RequestParam(required = false) UUID roomId,
             @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(locationService.list(name, roomId, pageable).map(this::toResponse));
+    }
+
+    @Operation(summary = "List all active locations without pagination")
+    @ApiResponse(responseCode = "200", description = "All locations returned successfully")
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('VISITOR')")
+    public ResponseEntity<List<LocationResponse>> listAll() {
+        return ResponseEntity.ok(locationService.findAll().stream().map(this::toResponse).toList());
     }
 
     @Operation(summary = "Create a new location")

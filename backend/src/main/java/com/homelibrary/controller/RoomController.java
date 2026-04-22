@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -34,6 +35,14 @@ public class RoomController {
             @RequestParam(required = false) String name,
             @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(roomService.list(name, pageable).map(this::toResponse));
+    }
+
+    @Operation(summary = "List all active rooms without pagination")
+    @ApiResponse(responseCode = "200", description = "All rooms returned successfully")
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('VISITOR')")
+    public ResponseEntity<List<RoomResponse>> listAll() {
+        return ResponseEntity.ok(roomService.findAll().stream().map(this::toResponse).toList());
     }
 
     @Operation(summary = "Create a new room")

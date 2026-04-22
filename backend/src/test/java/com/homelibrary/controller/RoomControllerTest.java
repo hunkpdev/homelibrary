@@ -100,6 +100,16 @@ class RoomControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "VISITOR")
+    void listAll_visitorRole_returns200() throws Exception {
+        when(roomService.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/rooms/all"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
     @WithMockUser(roles = "ADMIN")
     void create_validRequest_returns201() throws Exception {
         Room room = new Room();
