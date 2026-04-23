@@ -226,12 +226,17 @@ export function LocationManagementPage() {
           <div className="rounded-b-md border border-t-0 bg-card divide-y">
             {allRooms.map(room => (
               <div key={room.id} className="flex items-center justify-between px-4 py-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-card-foreground">{room.name}</span>
-                  <Badge variant="secondary">{room.locationCount} {t('locations.rooms.locationCount')}</Badge>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-card-foreground">{room.name}</span>
+                    <Badge variant="secondary">{room.locationCount} {t('locations.rooms.locationCount')}</Badge>
+                  </div>
+                  {room.description && (
+                    <span className="text-xs text-muted-foreground truncate">{room.description}</span>
+                  )}
                 </div>
                 {isAdmin && (
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('locations.rooms.editRoom')} onClick={() => handleOpenEditRoom(room)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
