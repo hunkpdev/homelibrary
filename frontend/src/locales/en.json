@@ -28,7 +28,29 @@
       "editRoom": "Edit",
       "deleteRoom": "Delete",
       "addLocation": "+ Location",
-      "locationCount": "location"
+      "locationCount": "location",
+      "form": {
+        "createTitle": "New room",
+        "editTitle": "Edit room",
+        "nameLabel": "Name",
+        "namePlaceholder": "E.g. Living room",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Optional note",
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "errorConflict": "This name change would cause a conflict",
+        "errorUnexpected": "An unexpected error occurred"
+      },
+      "delete": {
+        "title": "Delete room",
+        "confirm": "Are you sure you want to delete the room {{name}}?",
+        "delete": "Delete",
+        "deleting": "Deleting...",
+        "cancel": "Cancel",
+        "errorConflict": "This room has active storage locations",
+        "errorUnexpected": "An unexpected error occurred"
+      }
     },
     "grid": {
       "colName": "Name",

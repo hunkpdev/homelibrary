@@ -1,4 +1,5 @@
 import {
+  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -11,7 +12,7 @@ import type { ColDef, IDatasource, IGetRowsParams } from 'ag-grid-community'
 import { AllCommunityModule, ModuleRegistry, themeQuartz, colorSchemeDark, colorSchemeLight } from 'ag-grid-community'
 import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
 import { ChevronDown, ChevronUp, Pencil, Trash2, Plus } from 'lucide-react'
-import { fetchAllRooms, deleteRoom } from '@/api/roomApi'
+import { fetchAllRooms } from '@/api/roomApi'
 import { fetchAllLocations, fetchLocations, deleteLocation } from '@/api/locationApi'
 import type { LocationResponse, RoomResponse } from '@/api/types'
 import { useLocationStore } from '@/store/locationStore'
@@ -25,6 +26,8 @@ import { PassthroughFilter } from '@/components/grid/PassthroughFilter'
 import { SelectFloatingFilter } from '@/components/grid/SelectFloatingFilter'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { ActionCell } from '@/components/locations/ActionCell'
+import { RoomFormModal } from '@/components/rooms/RoomFormModal'
+import { RoomDeleteModal } from '@/components/rooms/RoomDeleteModal'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -46,6 +49,9 @@ export function LocationManagementPage() {
   const [allRooms, setAllRooms] = useState<RoomResponse[]>([])
   const [allLocations, setAllLocations] = useState<LocationResponse[]>([])
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
+  const [roomFormOpen, setRoomFormOpen] = useState(false)
+  const [editingRoom, setEditingRoom] = useState<RoomResponse | undefined>(undefined)
+  const [deleteRoomTarget, setDeleteRoomTarget] = useState<RoomResponse | undefined>(undefined)
 
   // ── Initial data load (rooms + locations for dropdowns) ──────────────────
   useEffect(() => {
@@ -108,10 +114,16 @@ export function LocationManagementPage() {
     gridRef.current?.api?.purgeInfiniteCache()
   }, [])
 
-  const handleDeleteRoom = useCallback(async (id: string) => {
-    await deleteRoom(id)
-    incrementRefreshTrigger()
-  }, [incrementRefreshTrigger])
+  const handleOpenCreateRoom = useCallback((e: MouseEvent) => {
+    e.stopPropagation()
+    setEditingRoom(undefined)
+    setRoomFormOpen(true)
+  }, [])
+
+  const handleOpenEditRoom = useCallback((room: RoomResponse) => {
+    setEditingRoom(room)
+    setRoomFormOpen(true)
+  }, [])
 
   const handleDeleteLocation = useCallback(async (id: string) => {
     await deleteLocation(id)
@@ -203,7 +215,7 @@ export function LocationManagementPage() {
               {t('locations.rooms.panelTitle')}
             </span>
             {isAdmin && (
-              <Button size="sm" variant="outline" onClick={e => e.stopPropagation()}>
+              <Button size="sm" variant="outline" onClick={handleOpenCreateRoom}>
                 <Plus className="h-4 w-4 mr-1" />
                 {t('locations.rooms.newRoom')}
               </Button>
@@ -220,7 +232,7 @@ export function LocationManagementPage() {
                 </div>
                 {isAdmin && (
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('locations.rooms.editRoom')}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('locations.rooms.editRoom')} onClick={() => handleOpenEditRoom(room)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
@@ -237,7 +249,7 @@ export function LocationManagementPage() {
                         size="icon"
                         className="h-7 w-7 text-destructive"
                         aria-label={t('locations.rooms.deleteRoom')}
-                        onClick={() => handleDeleteRoom(room.id)}
+                        onClick={() => setDeleteRoomTarget(room)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -267,6 +279,19 @@ export function LocationManagementPage() {
           localeText={gridLocaleText}
         />
       </div>
+
+      <RoomFormModal
+        open={roomFormOpen}
+        onClose={() => setRoomFormOpen(false)}
+        onSuccess={incrementRefreshTrigger}
+        room={editingRoom}
+      />
+      <RoomDeleteModal
+        open={deleteRoomTarget !== undefined}
+        onClose={() => setDeleteRoomTarget(undefined)}
+        onSuccess={incrementRefreshTrigger}
+        room={deleteRoomTarget}
+      />
     </div>
   )
 }

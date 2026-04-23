@@ -28,7 +28,29 @@
       "editRoom": "Szerkesztés",
       "deleteRoom": "Törlés",
       "addLocation": "+ Helyszín",
-      "locationCount": "helyszín"
+      "locationCount": "helyszín",
+      "form": {
+        "createTitle": "Új helyiség",
+        "editTitle": "Helyiség szerkesztése",
+        "nameLabel": "Név",
+        "namePlaceholder": "Pl. Nappali",
+        "descriptionLabel": "Leírás",
+        "descriptionPlaceholder": "Opcionális megjegyzés",
+        "save": "Mentés",
+        "saving": "Mentés...",
+        "cancel": "Mégse",
+        "errorConflict": "Ez a névváltoztatás ütközést okozna",
+        "errorUnexpected": "Váratlan hiba történt"
+      },
+      "delete": {
+        "title": "Helyiség törlése",
+        "confirm": "Biztosan törlöd a(z) {{name}} helyiséget?",
+        "delete": "Törlés",
+        "deleting": "Törlés...",
+        "cancel": "Mégse",
+        "errorConflict": "A helyiséghez aktív tárolási helyek tartoznak",
+        "errorUnexpected": "Váratlan hiba történt"
+      }
     },
     "grid": {
       "colName": "Név",
