@@ -5,16 +5,17 @@ import type { LocationResponse } from '@/api/types'
 export interface ActionCellParams {
   data?: LocationResponse
   isAdmin: boolean
-  onDelete: (id: string) => void
+  onEdit: (location: LocationResponse) => void
+  onDelete: (location: LocationResponse) => void
   deleteLabel: string
   editLabel: string
 }
 
-export function ActionCell({ data, isAdmin, onDelete, deleteLabel, editLabel }: Readonly<ActionCellParams>) {
+export function ActionCell({ data, isAdmin, onEdit, onDelete, deleteLabel, editLabel }: Readonly<ActionCellParams>) {
   if (!data || !isAdmin) return null
   return (
     <div className="flex gap-1 items-center h-full">
-      <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={editLabel}>
+      <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={editLabel} onClick={() => onEdit(data)}>
         <Pencil className="h-3.5 w-3.5" />
       </Button>
       {data.bookCount === 0 && (
@@ -23,7 +24,7 @@ export function ActionCell({ data, isAdmin, onDelete, deleteLabel, editLabel }: 
           size="icon"
           className="h-7 w-7 text-destructive"
           aria-label={deleteLabel}
-          onClick={() => onDelete(data.id)}
+          onClick={() => onDelete(data)}
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>

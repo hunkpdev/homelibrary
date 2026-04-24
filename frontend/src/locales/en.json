@@ -18,7 +18,11 @@
     "backHome": "Back to home"
   },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "errorUnexpected": "An unexpected error occurred"
   },
   "locations": {
     "pageTitle": "Location Management",
@@ -38,19 +42,31 @@
         "descriptionPlaceholder": "Optional note",
         "save": "Save",
         "saving": "Saving...",
-        "cancel": "Cancel",
-        "errorConflict": "This name change would cause a conflict",
-        "errorUnexpected": "An unexpected error occurred"
+        "errorConflict": "This name change would cause a conflict"
       },
       "delete": {
         "title": "Delete room",
         "confirm": "Are you sure you want to delete the room {{name}}?",
-        "delete": "Delete",
-        "deleting": "Deleting...",
-        "cancel": "Cancel",
-        "errorConflict": "This room has active storage locations",
-        "errorUnexpected": "An unexpected error occurred"
+        "errorConflict": "This room has active storage locations"
       }
+    },
+    "form": {
+      "createTitle": "New location",
+      "editTitle": "Edit location",
+      "nameLabel": "Name",
+      "namePlaceholder": "E.g. Top shelf",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional note",
+      "roomLabel": "Room",
+      "roomPlaceholder": "Select a room",
+      "save": "Save",
+      "saving": "Saving...",
+      "errorConflict": "This name change would cause a conflict"
+    },
+    "delete": {
+      "title": "Delete location",
+      "confirm": "Are you sure you want to delete the location {{name}}?",
+      "errorConflict": "This location has active books"
     },
     "grid": {
       "colName": "Name",

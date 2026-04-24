@@ -18,7 +18,11 @@
     "backHome": "Vissza a főoldalra"
   },
   "common": {
-    "loading": "Betöltés..."
+    "loading": "Betöltés...",
+    "cancel": "Mégse",
+    "delete": "Törlés",
+    "deleting": "Törlés...",
+    "errorUnexpected": "Váratlan hiba történt"
   },
   "locations": {
     "pageTitle": "Helyszínek kezelése",
@@ -38,19 +42,31 @@
         "descriptionPlaceholder": "Opcionális megjegyzés",
         "save": "Mentés",
         "saving": "Mentés...",
-        "cancel": "Mégse",
-        "errorConflict": "Ez a névváltoztatás ütközést okozna",
-        "errorUnexpected": "Váratlan hiba történt"
+        "errorConflict": "Ez a névváltoztatás ütközést okozna"
       },
       "delete": {
         "title": "Helyiség törlése",
         "confirm": "Biztosan törlöd a(z) {{name}} helyiséget?",
-        "delete": "Törlés",
-        "deleting": "Törlés...",
-        "cancel": "Mégse",
-        "errorConflict": "A helyiséghez aktív tárolási helyek tartoznak",
-        "errorUnexpected": "Váratlan hiba történt"
+        "errorConflict": "A helyiséghez aktív tárolási helyek tartoznak"
       }
+    },
+    "form": {
+      "createTitle": "Új helyszín",
+      "editTitle": "Helyszín szerkesztése",
+      "nameLabel": "Név",
+      "namePlaceholder": "Pl. Felső polc",
+      "descriptionLabel": "Leírás",
+      "descriptionPlaceholder": "Opcionális megjegyzés",
+      "roomLabel": "Helyiség",
+      "roomPlaceholder": "Válassz helyiséget",
+      "save": "Mentés",
+      "saving": "Mentés...",
+      "errorConflict": "Ez a névváltoztatás ütközést okozna"
+    },
+    "delete": {
+      "title": "Helyszín törlése",
+      "confirm": "Biztosan törlöd a(z) {{name}} helyszínt?",
+      "errorConflict": "A tárolási helyhez aktív könyvek tartoznak"
     },
     "grid": {
       "colName": "Név",

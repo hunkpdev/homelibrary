@@ -1,35 +1,35 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isAxiosError } from 'axios'
-import type { RoomResponse } from '@/api/types'
-import { deleteRoom } from '@/api/roomApi'
 import { BaseModal } from '@/components/ui/BaseModal'
 
 interface Props {
   open: boolean
   onClose: () => void
   onSuccess: () => void
-  room?: RoomResponse
+  onDelete: () => Promise<void>
+  title: string
+  description: string
+  errorConflictMessage?: string
 }
 
-export function RoomDeleteModal({ open, onClose, onSuccess, room }: Readonly<Props>) {
+export function DeleteModal({ open, onClose, onSuccess, onDelete, title, description, errorConflictMessage }: Readonly<Props>) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleDelete() {
-    if (!room) return
     setIsLoading(true)
     setError(null)
     try {
-      await deleteRoom(room.id)
+      await onDelete()
       onSuccess()
       onClose()
     } catch (err) {
-      if (isAxiosError(err) && err.response?.status === 409) {
-        setError(t('locations.rooms.delete.errorConflict'))
+      if (isAxiosError(err) && err.response?.status === 409 && errorConflictMessage) {
+        setError(errorConflictMessage)
       } else {
-        setError(t('locations.rooms.delete.errorUnexpected'))
+        setError(t('common.errorUnexpected'))
       }
     } finally {
       setIsLoading(false)
@@ -45,13 +45,13 @@ export function RoomDeleteModal({ open, onClose, onSuccess, room }: Readonly<Pro
     <BaseModal
       open={open}
       onClose={handleClose}
-      title={t('locations.rooms.delete.title')}
-      description={t('locations.rooms.delete.confirm', { name: room?.name ?? '' })}
+      title={title}
+      description={description}
       error={error}
       isLoading={isLoading}
-      cancelLabel={t('locations.rooms.delete.cancel')}
-      confirmLabel={t('locations.rooms.delete.delete')}
-      loadingLabel={t('locations.rooms.delete.deleting')}
+      cancelLabel={t('common.cancel')}
+      confirmLabel={t('common.delete')}
+      loadingLabel={t('common.deleting')}
       confirmVariant="destructive"
       onConfirm={handleDelete}
     />

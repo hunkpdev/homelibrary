@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isAxiosError } from 'axios'
 import type { RoomResponse } from '@/api/types'
 import { createRoom, updateRoom } from '@/api/roomApi'
+import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { Input } from '@/components/ui/input'
 import { BaseModal } from '@/components/ui/BaseModal'
 
@@ -19,44 +19,27 @@ export function RoomFormModal({ open, onClose, onSuccess, room }: Readonly<Props
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (open) {
       setName(room?.name ?? '')
       setDescription(room?.description ?? '')
-      setError(null)
     }
   }, [open, room])
 
-  function onSubmit(e: { preventDefault(): void }) {
-    e.preventDefault()
-    void handleSubmit()
-  }
-
-  async function handleSubmit() {
-    if (!name.trim()) return
-    setIsLoading(true)
-    setError(null)
-    try {
+  const { isLoading, error, onSubmit } = useFormSubmit({
+    open,
+    conflictErrorKey: 'locations.rooms.form.errorConflict',
+    onSuccess,
+    onClose,
+    submitFn: async () => {
       if (room) {
         await updateRoom(room.id, { name: name.trim(), description: description.trim() || undefined, version: room.version })
       } else {
         await createRoom({ name: name.trim(), description: description.trim() || undefined })
       }
-      onSuccess()
-      onClose()
-    } catch (err) {
-      if (isAxiosError(err) && err.response?.status === 409) {
-        setError(t('locations.rooms.form.errorConflict'))
-      } else {
-        setError(t('locations.rooms.form.errorUnexpected'))
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    },
+  })
 
   return (
     <BaseModal
@@ -65,7 +48,7 @@ export function RoomFormModal({ open, onClose, onSuccess, room }: Readonly<Props
       title={room ? t('locations.rooms.form.editTitle') : t('locations.rooms.form.createTitle')}
       error={error}
       isLoading={isLoading}
-      cancelLabel={t('locations.rooms.form.cancel')}
+      cancelLabel={t('common.cancel')}
       confirmLabel={t('locations.rooms.form.save')}
       loadingLabel={t('locations.rooms.form.saving')}
       confirmDisabled={!name.trim()}

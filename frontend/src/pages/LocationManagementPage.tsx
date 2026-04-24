@@ -13,7 +13,7 @@ import { AllCommunityModule, ModuleRegistry, themeQuartz, colorSchemeDark, color
 import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
 import { ChevronDown, ChevronUp, Pencil, Trash2, Plus } from 'lucide-react'
 import { fetchAllRooms } from '@/api/roomApi'
-import { fetchAllLocations, fetchLocations, deleteLocation } from '@/api/locationApi'
+import { fetchAllLocations, fetchLocations } from '@/api/locationApi'
 import type { LocationResponse, RoomResponse } from '@/api/types'
 import { useLocationStore } from '@/store/locationStore'
 import { useAuthStore } from '@/store/authStore'
@@ -26,8 +26,11 @@ import { PassthroughFilter } from '@/components/grid/PassthroughFilter'
 import { SelectFloatingFilter } from '@/components/grid/SelectFloatingFilter'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { ActionCell } from '@/components/locations/ActionCell'
+import { LocationFormModal } from '@/components/locations/LocationFormModal'
 import { RoomFormModal } from '@/components/rooms/RoomFormModal'
-import { RoomDeleteModal } from '@/components/rooms/RoomDeleteModal'
+import { DeleteModal } from '@/components/ui/DeleteModal'
+import { deleteRoom } from '@/api/roomApi'
+import { deleteLocation } from '@/api/locationApi'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -52,6 +55,10 @@ export function LocationManagementPage() {
   const [roomFormOpen, setRoomFormOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<RoomResponse | undefined>(undefined)
   const [deleteRoomTarget, setDeleteRoomTarget] = useState<RoomResponse | undefined>(undefined)
+  const [locationFormOpen, setLocationFormOpen] = useState(false)
+  const [editingLocation, setEditingLocation] = useState<LocationResponse | undefined>(undefined)
+  const [defaultRoomId, setDefaultRoomId] = useState<string | undefined>(undefined)
+  const [deleteLocationTarget, setDeleteLocationTarget] = useState<LocationResponse | undefined>(undefined)
 
   // ── Initial data load (rooms + locations for dropdowns) ──────────────────
   useEffect(() => {
@@ -125,10 +132,21 @@ export function LocationManagementPage() {
     setRoomFormOpen(true)
   }, [])
 
-  const handleDeleteLocation = useCallback(async (id: string) => {
-    await deleteLocation(id)
-    incrementRefreshTrigger()
-  }, [incrementRefreshTrigger])
+  const handleOpenCreateLocation = useCallback((roomId: string) => {
+    setEditingLocation(undefined)
+    setDefaultRoomId(roomId)
+    setLocationFormOpen(true)
+  }, [])
+
+  const handleOpenEditLocation = useCallback((location: LocationResponse) => {
+    setEditingLocation(location)
+    setDefaultRoomId(undefined)
+    setLocationFormOpen(true)
+  }, [])
+
+  const handleOpenDeleteLocation = useCallback((location: LocationResponse) => {
+    setDeleteLocationTarget(location)
+  }, [])
 
   // ── Column definitions ────────────────────────────────────────────────────
   const colDefs = useMemo<ColDef<LocationResponse>[]>(() => {
@@ -141,7 +159,8 @@ export function LocationManagementPage() {
       cellRenderer: ActionCell,
       cellRendererParams: {
         isAdmin,
-        onDelete: handleDeleteLocation,
+        onEdit: handleOpenEditLocation,
+        onDelete: handleOpenDeleteLocation,
         deleteLabel: t('locations.grid.deleteLocation'),
         editLabel: t('locations.grid.editLocation'),
       },
@@ -190,7 +209,7 @@ export function LocationManagementPage() {
       },
       ...(isAdmin ? [actionCol] : []),
     ]
-  }, [isAdmin, roomOptions, locationOptions, t, handleDeleteLocation, handleNameFilterChange, handleRoomFilterChange])
+  }, [isAdmin, roomOptions, locationOptions, t, handleOpenEditLocation, handleOpenDeleteLocation, handleNameFilterChange, handleRoomFilterChange])
 
   const gridTheme = useMemo(
     () => themeQuartz.withPart(theme === 'dark' ? colorSchemeDark : colorSchemeLight),
@@ -245,6 +264,7 @@ export function LocationManagementPage() {
                       size="icon"
                       className="h-7 w-7"
                       aria-label={t('locations.rooms.addLocation')}
+                      onClick={() => handleOpenCreateLocation(room.id)}
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </Button>
@@ -291,11 +311,31 @@ export function LocationManagementPage() {
         onSuccess={incrementRefreshTrigger}
         room={editingRoom}
       />
-      <RoomDeleteModal
+      <DeleteModal
         open={deleteRoomTarget !== undefined}
         onClose={() => setDeleteRoomTarget(undefined)}
         onSuccess={incrementRefreshTrigger}
-        room={deleteRoomTarget}
+        onDelete={() => deleteRoom(deleteRoomTarget!.id)}
+        title={t('locations.rooms.delete.title')}
+        description={t('locations.rooms.delete.confirm', { name: deleteRoomTarget?.name ?? '' })}
+        errorConflictMessage={t('locations.rooms.delete.errorConflict')}
+      />
+      <LocationFormModal
+        open={locationFormOpen}
+        onClose={() => setLocationFormOpen(false)}
+        onSuccess={incrementRefreshTrigger}
+        location={editingLocation}
+        rooms={allRooms}
+        defaultRoomId={defaultRoomId}
+      />
+      <DeleteModal
+        open={deleteLocationTarget !== undefined}
+        onClose={() => setDeleteLocationTarget(undefined)}
+        onSuccess={incrementRefreshTrigger}
+        onDelete={() => deleteLocation(deleteLocationTarget!.id)}
+        title={t('locations.delete.title')}
+        description={t('locations.delete.confirm', { name: deleteLocationTarget?.name ?? '' })}
+        errorConflictMessage={t('locations.delete.errorConflict')}
       />
     </div>
   )
