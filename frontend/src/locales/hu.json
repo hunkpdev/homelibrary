@@ -18,7 +18,66 @@
     "backHome": "Vissza a főoldalra"
   },
   "common": {
-    "loading": "Betöltés..."
+    "loading": "Betöltés...",
+    "cancel": "Mégse",
+    "delete": "Törlés",
+    "deleting": "Törlés...",
+    "errorUnexpected": "Váratlan hiba történt"
+  },
+  "locations": {
+    "pageTitle": "Helyszínek kezelése",
+    "rooms": {
+      "panelTitle": "Helyiségek",
+      "newRoom": "Új helyiség",
+      "editRoom": "Szerkesztés",
+      "deleteRoom": "Törlés",
+      "addLocation": "+ Helyszín",
+      "locationCount": "helyszín",
+      "form": {
+        "createTitle": "Új helyiség",
+        "editTitle": "Helyiség szerkesztése",
+        "nameLabel": "Név",
+        "namePlaceholder": "Pl. Nappali",
+        "descriptionLabel": "Leírás",
+        "descriptionPlaceholder": "Opcionális megjegyzés",
+        "save": "Mentés",
+        "saving": "Mentés...",
+        "errorConflict": "Ez a névváltoztatás ütközést okozna"
+      },
+      "delete": {
+        "title": "Helyiség törlése",
+        "confirm": "Biztosan törlöd a(z) {{name}} helyiséget?",
+        "errorConflict": "A helyiséghez aktív tárolási helyek tartoznak"
+      }
+    },
+    "form": {
+      "createTitle": "Új helyszín",
+      "editTitle": "Helyszín szerkesztése",
+      "nameLabel": "Név",
+      "namePlaceholder": "Pl. Felső polc",
+      "descriptionLabel": "Leírás",
+      "descriptionPlaceholder": "Opcionális megjegyzés",
+      "roomLabel": "Helyiség",
+      "roomPlaceholder": "Válassz helyiséget",
+      "save": "Mentés",
+      "saving": "Mentés...",
+      "errorConflict": "Ez a névváltoztatás ütközést okozna"
+    },
+    "delete": {
+      "title": "Helyszín törlése",
+      "confirm": "Biztosan törlöd a(z) {{name}} helyszínt?",
+      "errorConflict": "A tárolási helyhez aktív könyvek tartoznak"
+    },
+    "grid": {
+      "colName": "Név",
+      "colDescription": "Leírás",
+      "colRoom": "Helyiség",
+      "colBookCount": "Könyvek",
+      "filterAllRooms": "Minden helyiség",
+      "filterAllLocations": "Minden helyszín",
+      "deleteLocation": "Törlés",
+      "editLocation": "Szerkesztés"
+    }
   },
   "login": {
     "title": "Bejelentkezés",

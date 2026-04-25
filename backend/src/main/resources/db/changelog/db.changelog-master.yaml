@@ -5,3 +5,9 @@ databaseChangeLog:
   - include:
       file: changes/002-seed-admin-user.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/003-create-rooms.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/004-create-locations.yaml
+      relativeToChangelogFile: true

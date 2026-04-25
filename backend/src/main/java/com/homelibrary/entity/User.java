@@ -6,17 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "users")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -40,23 +35,4 @@ public class User {
     private String refreshTokenHash;
 
     private OffsetDateTime refreshTokenExpiresAt;
-
-    @Version
-    private Long version;
-
-    @Column(updatable = false)
-    private OffsetDateTime createdAt;
-
-    private OffsetDateTime updatedAt;
-
-    @PrePersist
-    private void onCreate() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    private void onUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
 }
