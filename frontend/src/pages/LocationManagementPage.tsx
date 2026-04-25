@@ -59,13 +59,17 @@ export function LocationManagementPage() {
   const [editingLocation, setEditingLocation] = useState<LocationResponse | undefined>(undefined)
   const [defaultRoomId, setDefaultRoomId] = useState<string | undefined>(undefined)
   const [deleteLocationTarget, setDeleteLocationTarget] = useState<LocationResponse | undefined>(undefined)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   // ── Initial data load (rooms + locations for dropdowns) ──────────────────
   useEffect(() => {
-    Promise.all([fetchAllRooms(), fetchAllLocations()]).then(([rooms, locations]) => {
-      setAllRooms(rooms)
-      setAllLocations(locations)
-    })
+    setLoadError(null)
+    Promise.all([fetchAllRooms(), fetchAllLocations()])
+      .then(([rooms, locations]) => {
+        setAllRooms(rooms)
+        setAllLocations(locations)
+      })
+      .catch(() => setLoadError(t('common.errorUnexpected')))
   }, [locationsRefreshTrigger])
 
   // ── Refresh grid when trigger increments ─────────────────────────────────
@@ -224,6 +228,7 @@ export function LocationManagementPage() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">{t('locations.pageTitle')}</h1>
+      {loadError && <p className="text-sm text-destructive">{loadError}</p>}
 
       {/* ── Rooms panel ── */}
       <Collapsible open={panelOpen} onOpenChange={setPanelOpen}>
