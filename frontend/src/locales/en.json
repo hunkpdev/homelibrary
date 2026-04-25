@@ -32,7 +32,8 @@
       "editRoom": "Edit",
       "deleteRoom": "Delete",
       "addLocation": "+ Location",
-      "locationCount": "location",
+      "locationCount_one": "location",
+      "locationCount_other": "locations",
       "form": {
         "createTitle": "New room",
         "editTitle": "Edit room",

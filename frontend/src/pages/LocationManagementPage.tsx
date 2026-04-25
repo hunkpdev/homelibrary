@@ -253,7 +253,7 @@ export function LocationManagementPage() {
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-card-foreground">{room.name}</span>
-                    <Badge variant="secondary">{room.locationCount} {t('locations.rooms.locationCount')}</Badge>
+                    <Badge variant="secondary">{room.locationCount} {t('locations.rooms.locationCount', { count: room.locationCount })}</Badge>
                   </div>
                   {room.description && (
                     <span className="text-xs text-muted-foreground truncate">{room.description}</span>
