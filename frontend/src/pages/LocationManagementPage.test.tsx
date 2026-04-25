@@ -92,22 +92,20 @@ describe('LocationManagementPage — VISITOR grid', () => {
   })
 })
 
-describe('LocationManagementPage — room filter cascade', () => {
-  it('room dropdown contains all active rooms', async () => {
+describe('LocationManagementPage — data loading', () => {
+  it('rooms panel lists all active rooms', async () => {
     useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
     renderPage()
 
     await screen.findByText('Living Room')
-    // Both rooms appear in the rooms panel (which acts as visible room list)
     expect(screen.getByText('Bedroom')).toBeInTheDocument()
   })
 
-  it('location dropdown shows all locations when no room is selected', async () => {
+  it('fetches all locations from API on load', async () => {
     useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
     renderPage()
 
     await screen.findByText('Living Room')
-    // Both locations are loaded from /api/locations/all
     expect(mock.history.get.some(r => r.url === '/api/locations/all')).toBe(true)
   })
 })
