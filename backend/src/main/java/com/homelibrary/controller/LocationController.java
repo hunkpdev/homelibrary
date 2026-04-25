@@ -68,7 +68,7 @@ public class LocationController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LocationResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateLocationRequest request) {
-        Location location = locationService.update(id, request.getName(), request.getDescription(), request.getVersion());
+        Location location = locationService.update(id, request.name(), request.description(), request.version());
         return ResponseEntity.ok(toResponse(location, 0));
     }
 
