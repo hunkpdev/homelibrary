@@ -2,7 +2,8 @@ package com.homelibrary.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.homelibrary.config.CorsProperties;
-import com.homelibrary.dto.RoomRequest;
+import com.homelibrary.dto.CreateRoomRequest;
+import com.homelibrary.dto.UpdateRoomRequest;
 import com.homelibrary.entity.Room;
 import com.homelibrary.exception.ActiveChildException;
 import com.homelibrary.repository.UserRepository;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,7 +77,7 @@ class RoomControllerTest {
     void create_visitorRole_returns403() throws Exception {
         mockMvc.perform(post("/api/rooms")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new RoomRequest("Library", null, null))))
+                        .content(objectMapper.writeValueAsString(new CreateRoomRequest("Library", null))))
                 .andExpect(status().isForbidden());
     }
 
@@ -111,6 +113,16 @@ class RoomControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void update_nullVersion_returns400() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(put("/api/rooms/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateRoomRequest("Library", null, null))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void create_validRequest_returns201() throws Exception {
         Room room = new Room();
         room.setId(UUID.randomUUID());
@@ -120,7 +132,7 @@ class RoomControllerTest {
 
         mockMvc.perform(post("/api/rooms")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new RoomRequest("Library", null, null))))
+                        .content(objectMapper.writeValueAsString(new CreateRoomRequest("Library", null))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Library"));
     }

@@ -1,7 +1,8 @@
 package com.homelibrary.controller;
 
-import com.homelibrary.dto.RoomRequest;
+import com.homelibrary.dto.CreateRoomRequest;
 import com.homelibrary.dto.RoomResponse;
+import com.homelibrary.dto.UpdateRoomRequest;
 import com.homelibrary.entity.Room;
 import com.homelibrary.service.RoomService;
 import com.homelibrary.service.RoomWithCount;
@@ -50,7 +51,7 @@ public class RoomController {
     @ApiResponse(responseCode = "400", description = "Validation error")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RoomResponse> create(@Valid @RequestBody RoomRequest request) {
+    public ResponseEntity<RoomResponse> create(@Valid @RequestBody CreateRoomRequest request) {
         Room room = roomService.create(request.name(), request.description());
         return ResponseEntity.status(201).body(toResponse(room, 0));
     }
@@ -61,7 +62,7 @@ public class RoomController {
     @ApiResponse(responseCode = "409", description = "Optimistic locking conflict")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RoomResponse> update(@PathVariable UUID id, @Valid @RequestBody RoomRequest request) {
+    public ResponseEntity<RoomResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateRoomRequest request) {
         Room room = roomService.update(id, request.name(), request.description(), request.version());
         return ResponseEntity.ok(toResponse(room, 0));
     }
