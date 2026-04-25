@@ -1,5 +1,6 @@
 package com.homelibrary.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -8,6 +9,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -27,7 +29,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
-    public ResponseEntity<Void> handleInvalidDataAccessResourceUsage() {
+    public ResponseEntity<Void> handleInvalidDataAccessResourceUsage(InvalidDataAccessResourceUsageException ex) {
+        log.warn("Invalid DB resource usage (likely bad sort param): {}", ex.getMessage());
         return ResponseEntity.badRequest().build();
     }
 
