@@ -16,18 +16,18 @@ import { DarkModeToggle } from '@/components/layout/DarkModeToggle'
 import { useAuthStore } from '@/store/authStore'
 import type { AuthUser } from '@/store/authStore'
 import axiosInstance from '@/api/axiosInstance'
-import React from "react";
+import type { ElementType } from 'react'
 
 type NavItem = {
   labelKey: string
-  icon: React.ElementType
+  icon: ElementType
   to: string
   roles: AuthUser['role'][]
 }
 
 const navItems: NavItem[] = [
   { labelKey: 'nav.books',     icon: BookOpen,   to: '/books',     roles: ['ADMIN', 'VISITOR'] },
-  { labelKey: 'nav.locations', icon: MapPin,      to: '/locations', roles: ['ADMIN'] },
+  { labelKey: 'nav.locations', icon: MapPin,      to: '/locations', roles: ['ADMIN', 'VISITOR'] },
   { labelKey: 'nav.loans',     icon: BookMarked,  to: '/loans',     roles: ['ADMIN'] },
   { labelKey: 'nav.users',     icon: Users,       to: '/users',     roles: ['ADMIN'] },
   { labelKey: 'nav.profile',   icon: User,        to: '/profile',   roles: ['ADMIN', 'VISITOR'] },

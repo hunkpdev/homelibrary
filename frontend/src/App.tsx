@@ -50,9 +50,9 @@ function App() {
               <Route path="/" element={<div className="text-foreground">Üdvözlünk a Homelibraryban!</div>} />
               <Route path="/books" element={<div className="text-foreground">Könyvek</div>} />
               <Route path="/profile" element={<div className="text-foreground">Saját profil</div>} />
+              <Route path="/locations" element={<LocationManagementPage />} />
               <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route path="/loans" element={<div className="text-foreground">Kölcsönzések</div>} />
-                <Route path="/locations" element={<LocationManagementPage />} />
                 <Route path="/users" element={<div className="text-foreground">Felhasználók</div>} />
               </Route>
             </Route>
