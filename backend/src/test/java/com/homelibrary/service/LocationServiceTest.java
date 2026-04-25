@@ -1,6 +1,7 @@
 package com.homelibrary.service;
 
 import com.homelibrary.entity.Location;
+import com.homelibrary.entity.Room;
 import com.homelibrary.exception.ResourceNotFoundException;
 import com.homelibrary.repository.LocationRepository;
 import com.homelibrary.repository.RoomRepository;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
@@ -74,6 +76,40 @@ class LocationServiceTest {
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).location().getName()).isEqualTo("Left Shelf");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void findAll_returnsAllActiveLocations() {
+        Location loc = locationWithName("Left Shelf");
+
+        when(locationRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of(loc));
+
+        List<LocationWithCount> result = locationService.findAll();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).location().getName()).isEqualTo("Left Shelf");
+        assertThat(result.get(0).bookCount()).isEqualTo(0);
+    }
+
+    @Test
+    void create_validRequest_savesAndReturnsLocation() {
+        UUID roomId = UUID.randomUUID();
+        Room room = new Room();
+        room.setId(roomId);
+        room.setName("Library");
+        room.setActive(true);
+
+        Location saved = locationWithName("Left Shelf");
+        saved.setRoom(room);
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+        when(locationRepository.save(any())).thenReturn(saved);
+
+        Location result = locationService.create("Left Shelf", roomId, null);
+
+        assertThat(result.getName()).isEqualTo("Left Shelf");
+        assertThat(result.getRoom().getId()).isEqualTo(roomId);
     }
 
     @Test

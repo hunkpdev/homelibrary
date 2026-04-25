@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
@@ -60,6 +61,24 @@ class RoomServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).extracting(rwc -> rwc.room().getName())
                 .containsExactly("Library", "Office");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void findAll_returnsAllActiveRoomsWithCounts() {
+        Room room = roomWithName("Library");
+        LocationCountProjection projection = new LocationCountProjection() {
+            public UUID getRoomId() { return room.getId(); }
+            public Long getCount() { return 2L; }
+        };
+
+        when(roomRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of(room));
+        when(locationRepository.countActiveLocationsByRoomIds(List.of(room.getId()))).thenReturn(List.of(projection));
+
+        List<RoomWithCount> result = roomService.findAll();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).locationCount()).isEqualTo(2);
     }
 
     @Test

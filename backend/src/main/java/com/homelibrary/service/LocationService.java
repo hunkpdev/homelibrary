@@ -85,6 +85,7 @@ public class LocationService {
                 predicates.add(cb.equal(root.get("room").get("id"), roomId));
             }
             if (description != null && !description.isBlank()) {
+                // LOWER() on TEXT is acceptable at household scale; at high volume consider GIN index + pg_trgm
                 predicates.add(cb.like(cb.lower(root.get("description")), "%" + description.toLowerCase() + "%"));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
