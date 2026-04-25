@@ -49,6 +49,7 @@ export function LocationManagementPage() {
   const nameFilterRef = useRef<string | undefined>(undefined)
   const roomIdFilterRef = useRef<string | undefined>(undefined)
   const [panelOpen, setPanelOpen] = useState(!isMobile)
+  useEffect(() => setPanelOpen(!isMobile), [isMobile])
   const [allRooms, setAllRooms] = useState<RoomResponse[]>([])
   const [allLocations, setAllLocations] = useState<LocationResponse[]>([])
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
