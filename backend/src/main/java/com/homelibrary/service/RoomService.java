@@ -78,6 +78,9 @@ public class RoomService {
     public Room update(UUID id, String name, String description, Long version) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found: " + id));
+        if (!room.isActive()) {
+            throw new ResourceNotFoundException("Room not found: " + id);
+        }
         room.setName(name);
         room.setDescription(description);
         room.setVersion(version);

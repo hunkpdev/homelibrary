@@ -57,6 +57,9 @@ public class LocationService {
     public Location update(UUID id, String name, String description, Long version) {
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location not found: " + id));
+        if (!location.isActive()) {
+            throw new ResourceNotFoundException("Location not found: " + id);
+        }
         location.setName(name);
         location.setDescription(description);
         location.setVersion(version);

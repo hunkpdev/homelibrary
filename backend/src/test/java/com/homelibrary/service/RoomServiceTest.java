@@ -85,6 +85,19 @@ class RoomServiceTest {
     }
 
     @Test
+    void update_inactiveRoom_throwsResourceNotFoundException() {
+        Room room = roomWithName("Library");
+        room.setActive(false);
+        UUID id = room.getId();
+        when(roomRepository.findById(id)).thenReturn(Optional.of(room));
+
+        assertThatThrownBy(() -> roomService.update(id, "New Name", null, 0L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
     void update_versionConflict_throwsObjectOptimisticLockingFailureException() {
         Room room = roomWithName("Library");
         UUID id = room.getId();

@@ -23,6 +23,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,6 +83,19 @@ class LocationServiceTest {
 
         assertThatThrownBy(() -> locationService.create("Left Shelf", roomId, null))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void update_inactiveLocation_throwsResourceNotFoundException() {
+        Location location = locationWithName("Left Shelf");
+        location.setActive(false);
+        UUID id = location.getId();
+        when(locationRepository.findById(id)).thenReturn(Optional.of(location));
+
+        assertThatThrownBy(() -> locationService.update(id, "New Name", null, 0L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(locationRepository, never()).save(any());
     }
 
     @Test
