@@ -6,7 +6,7 @@ public record LocationResponse(
         UUID id,
         String name,
         String description,
-        RoomResponse room,
+        EmbeddedRoomSummary room,
         int bookCount,
         Long version
 ) {}

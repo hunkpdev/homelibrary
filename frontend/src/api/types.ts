@@ -6,11 +6,16 @@ export interface RoomResponse {
   version: number
 }
 
+export interface EmbeddedRoomSummary {
+  id: string
+  name: string
+}
+
 export interface LocationResponse {
   id: string
   name: string
   description: string | null
-  room: RoomResponse
+  room: EmbeddedRoomSummary
   bookCount: number
   version: number
 }

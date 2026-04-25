@@ -53,7 +53,7 @@ public class RoomController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RoomResponse> create(@Valid @RequestBody CreateRoomRequest request) {
         Room room = roomService.create(request.name(), request.description());
-        return ResponseEntity.status(201).body(toResponse(room, 0));
+        return ResponseEntity.status(201).body(toResponseAfterMutation(room));
     }
 
     @Operation(summary = "Update an existing room")
@@ -64,7 +64,7 @@ public class RoomController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RoomResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateRoomRequest request) {
         Room room = roomService.update(id, request.name(), request.description(), request.version());
-        return ResponseEntity.ok(toResponse(room, 0));
+        return ResponseEntity.ok(toResponseAfterMutation(room));
     }
 
     @Operation(summary = "Soft delete a room")
@@ -84,5 +84,9 @@ public class RoomController {
 
     private RoomResponse toResponse(Room room, int locationCount) {
         return new RoomResponse(room.getId(), room.getName(), room.getDescription(), locationCount, room.getVersion());
+    }
+
+    private RoomResponse toResponseAfterMutation(Room room) {
+        return toResponse(room, 0);
     }
 }

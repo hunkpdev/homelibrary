@@ -1,8 +1,8 @@
 package com.homelibrary.controller;
 
 import com.homelibrary.dto.CreateLocationRequest;
+import com.homelibrary.dto.EmbeddedRoomSummary;
 import com.homelibrary.dto.LocationResponse;
-import com.homelibrary.dto.RoomResponse;
 import com.homelibrary.dto.UpdateLocationRequest;
 import com.homelibrary.entity.Location;
 import com.homelibrary.service.LocationService;
@@ -87,12 +87,9 @@ public class LocationController {
     }
 
     private LocationResponse toResponse(Location location, int bookCount) {
-        RoomResponse room = new RoomResponse(
+        EmbeddedRoomSummary room = new EmbeddedRoomSummary(
                 location.getRoom().getId(),
-                location.getRoom().getName(),
-                location.getRoom().getDescription(),
-                0,
-                location.getRoom().getVersion()
+                location.getRoom().getName()
         );
         return new LocationResponse(location.getId(), location.getName(), location.getDescription(), room, bookCount, location.getVersion());
     }
