@@ -145,6 +145,53 @@ class LocationServiceTest {
                 .isInstanceOf(ObjectOptimisticLockingFailureException.class);
     }
 
+    @Test
+    void update_validRequest_updatesAndReturnsLocation() {
+        Location location = locationWithName("Left Shelf");
+        UUID id = location.getId();
+        when(locationRepository.findById(id)).thenReturn(Optional.of(location));
+        when(locationRepository.save(any())).thenReturn(location);
+
+        Location result = locationService.update(id, "New Name", "New Desc", 0L);
+
+        assertThat(result.getName()).isEqualTo("New Name");
+        verify(locationRepository).save(location);
+    }
+
+    @Test
+    void update_nonExistentLocation_throwsResourceNotFoundException() {
+        UUID id = UUID.randomUUID();
+        when(locationRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> locationService.update(id, "New Name", null, 0L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(locationRepository, never()).save(any());
+    }
+
+    @Test
+    void delete_validId_deactivatesLocation() {
+        Location location = locationWithName("Left Shelf");
+        UUID id = location.getId();
+        when(locationRepository.findById(id)).thenReturn(Optional.of(location));
+
+        locationService.delete(id);
+
+        assertThat(location.isActive()).isFalse();
+        verify(locationRepository).save(location);
+    }
+
+    @Test
+    void delete_nonExistentId_throwsResourceNotFoundException() {
+        UUID id = UUID.randomUUID();
+        when(locationRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> locationService.delete(id))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(locationRepository, never()).save(any());
+    }
+
     private Location locationWithName(String name) {
         Location location = new Location();
         location.setId(UUID.randomUUID());

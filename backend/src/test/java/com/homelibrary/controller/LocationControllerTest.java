@@ -125,6 +125,48 @@ class LocationControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void create_adminRole_returns201() throws Exception {
+        UUID roomId = UUID.randomUUID();
+        Room room = new Room();
+        room.setId(roomId);
+        room.setName("Library");
+        room.setVersion(0L);
+
+        Location location = new Location();
+        location.setId(UUID.randomUUID());
+        location.setName("Left Shelf");
+        location.setRoom(room);
+        location.setVersion(0L);
+        location.setActive(true);
+
+        when(locationService.create(any(), any(), any())).thenReturn(location);
+
+        mockMvc.perform(post("/api/locations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new CreateLocationRequest("Left Shelf", roomId, null))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Left Shelf"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void delete_adminRole_returns204() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(delete("/api/locations/{id}", id))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = "VISITOR")
+    void delete_visitorRole_returns403() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(delete("/api/locations/{id}", id))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void update_withRoomIdInBody_returns400() throws Exception {
         UUID id = UUID.randomUUID();
         String body = "{\"name\":\"Left Shelf\",\"version\":0,\"roomId\":\"" + UUID.randomUUID() + "\"}";
