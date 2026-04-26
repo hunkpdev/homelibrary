@@ -23,9 +23,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.mockito.ArgumentCaptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -191,6 +200,61 @@ class RoomServiceTest {
 
         assertThat(room.isActive()).isFalse();
         verify(roomRepository).save(room);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buildSpec_noFilter_onlyChecksActive() {
+        Root<Room> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Path<Boolean> activePath = mock(Path.class);
+        Predicate activePredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        doReturn(activePath).when(root).get("active");
+        when(cb.isTrue(activePath)).thenReturn(activePredicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        ArgumentCaptor<Specification<Room>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        when(roomRepository.findAll(specCaptor.capture(), any(Sort.class))).thenReturn(List.of());
+
+        roomService.findAll();
+
+        Predicate result = specCaptor.getValue().toPredicate(root, query, cb);
+        assertThat(result).isEqualTo(andPredicate);
+        verify(cb).isTrue(activePath);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buildSpec_withNameFilter_addsNameLikePredicate() {
+        Root<Room> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Path<Boolean> activePath = mock(Path.class);
+        Path<String> namePath = mock(Path.class);
+        jakarta.persistence.criteria.Expression<String> lowerExpr = mock(jakarta.persistence.criteria.Expression.class);
+        Predicate activePredicate = mock(Predicate.class);
+        Predicate namePredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        doReturn(activePath).when(root).get("active");
+        doReturn(namePath).when(root).get("name");
+        when(cb.isTrue(activePath)).thenReturn(activePredicate);
+        when(cb.lower(namePath)).thenReturn(lowerExpr);
+        when(cb.like(lowerExpr, "%library%")).thenReturn(namePredicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        ArgumentCaptor<Specification<Room>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        Pageable pageable = PageRequest.of(0, 20);
+        when(roomRepository.findAll(specCaptor.capture(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        roomService.list("Library", pageable);
+
+        specCaptor.getValue().toPredicate(root, query, cb);
+        verify(cb).like(lowerExpr, "%library%");
     }
 
     private Room roomWithName(String name) {

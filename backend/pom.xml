@@ -34,7 +34,9 @@
             **/config/**,
             **/repository/**,
             **/exception/**,
-            **/health/**
+            **/health/**,
+            **/HomelibraryApplication.java,
+            **/StreamLambdaHandler.java
         </sonar.coverage.exclusions>
     </properties>
 
