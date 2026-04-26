@@ -123,6 +123,31 @@ class RoomControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void update_validRequest_returns200() throws Exception {
+        UUID id = UUID.randomUUID();
+        Room room = new Room();
+        room.setId(id);
+        room.setName("Library");
+        room.setVersion(1L);
+        when(roomService.update(any(), any(), any(), any())).thenReturn(room);
+
+        mockMvc.perform(put("/api/rooms/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateRoomRequest("Library", null, 0L))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Library"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void delete_adminRole_returns204() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(delete("/api/rooms/{id}", id))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void create_validRequest_returns201() throws Exception {
         Room room = new Room();
         room.setId(UUID.randomUUID());

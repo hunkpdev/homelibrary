@@ -147,6 +147,52 @@ class RoomServiceTest {
         assertThat(result.getContent().get(0).locationCount()).isEqualTo(3);
     }
 
+    @Test
+    void create_validRequest_savesAndReturnsRoom() {
+        Room room = roomWithName("Library");
+        when(roomRepository.save(any())).thenReturn(room);
+
+        Room result = roomService.create("Library", null);
+
+        assertThat(result.getName()).isEqualTo("Library");
+        verify(roomRepository).save(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void findAll_empty_returnsEmptyList() {
+        when(roomRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of());
+
+        List<RoomWithCount> result = roomService.findAll();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void list_emptyPage_returnsEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Room> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        when(roomRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<RoomWithCount> result = roomService.list(null, pageable);
+
+        assertThat(result.getTotalElements()).isZero();
+    }
+
+    @Test
+    void delete_success_deactivatesRoom() {
+        Room room = roomWithName("Library");
+        UUID id = room.getId();
+        when(roomRepository.findById(id)).thenReturn(Optional.of(room));
+        when(locationRepository.existsByRoomAndActiveTrue(room)).thenReturn(false);
+
+        roomService.delete(id);
+
+        assertThat(room.isActive()).isFalse();
+        verify(roomRepository).save(room);
+    }
+
     private Room roomWithName(String name) {
         Room room = new Room();
         room.setId(UUID.randomUUID());
