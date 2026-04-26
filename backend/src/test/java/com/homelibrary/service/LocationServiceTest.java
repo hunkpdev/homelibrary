@@ -22,9 +22,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.mockito.ArgumentCaptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,7 +99,7 @@ class LocationServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).location().getName()).isEqualTo("Left Shelf");
-        assertThat(result.get(0).bookCount()).isEqualTo(0);
+        assertThat(result.get(0).bookCount()).isZero();
     }
 
     @Test
@@ -190,6 +200,124 @@ class LocationServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(locationRepository, never()).save(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buildSpec_noFilters_onlyChecksActive() {
+        Root<Location> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Path<Boolean> activePath = mock(Path.class);
+        Predicate activePredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        doReturn(activePath).when(root).get("active");
+        when(cb.isTrue(activePath)).thenReturn(activePredicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        ArgumentCaptor<Specification<Location>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        when(locationRepository.findAll(specCaptor.capture(), any(Sort.class))).thenReturn(List.of());
+
+        locationService.findAll();
+
+        Predicate result = specCaptor.getValue().toPredicate(root, query, cb);
+        assertThat(result).isEqualTo(andPredicate);
+        verify(cb).isTrue(activePath);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buildSpec_withNameFilter_addsNameLikePredicate() {
+        Root<Location> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Path<Boolean> activePath = mock(Path.class);
+        Path<String> namePath = mock(Path.class);
+        Expression<String> lowerExpr = mock(Expression.class);
+        Predicate activePredicate = mock(Predicate.class);
+        Predicate namePredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        doReturn(activePath).when(root).get("active");
+        doReturn(namePath).when(root).get("name");
+        when(cb.isTrue(activePath)).thenReturn(activePredicate);
+        when(cb.lower(namePath)).thenReturn(lowerExpr);
+        when(cb.like(lowerExpr, "%shelf%")).thenReturn(namePredicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        ArgumentCaptor<Specification<Location>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        Pageable pageable = PageRequest.of(0, 20);
+        when(locationRepository.findAll(specCaptor.capture(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        locationService.list("Shelf", null, null, pageable);
+
+        specCaptor.getValue().toPredicate(root, query, cb);
+        verify(cb).like(lowerExpr, "%shelf%");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buildSpec_withDescriptionFilter_addsDescriptionLikePredicate() {
+        Root<Location> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Path<Boolean> activePath = mock(Path.class);
+        Path<String> descPath = mock(Path.class);
+        Expression<String> lowerExpr = mock(Expression.class);
+        Predicate activePredicate = mock(Predicate.class);
+        Predicate descPredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        doReturn(activePath).when(root).get("active");
+        doReturn(descPath).when(root).get("description");
+        when(cb.isTrue(activePath)).thenReturn(activePredicate);
+        when(cb.lower(descPath)).thenReturn(lowerExpr);
+        when(cb.like(lowerExpr, "%wooden%")).thenReturn(descPredicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        ArgumentCaptor<Specification<Location>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        Pageable pageable = PageRequest.of(0, 20);
+        when(locationRepository.findAll(specCaptor.capture(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        locationService.list(null, null, "wooden", pageable);
+
+        specCaptor.getValue().toPredicate(root, query, cb);
+        verify(cb).like(lowerExpr, "%wooden%");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buildSpec_withRoomIdFilter_addsRoomIdEqualPredicate() {
+        Root<Location> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Path<Boolean> activePath = mock(Path.class);
+        Path<Object> roomPath = mock(Path.class);
+        Path<Object> roomIdPath = mock(Path.class);
+        Predicate activePredicate = mock(Predicate.class);
+        Predicate roomPredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        UUID roomId = UUID.randomUUID();
+        doReturn(activePath).when(root).get("active");
+        doReturn(roomPath).when(root).get("room");
+        doReturn(roomIdPath).when(roomPath).get("id");
+        when(cb.isTrue(activePath)).thenReturn(activePredicate);
+        when(cb.equal(roomIdPath, roomId)).thenReturn(roomPredicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        ArgumentCaptor<Specification<Location>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        Pageable pageable = PageRequest.of(0, 20);
+        when(locationRepository.findAll(specCaptor.capture(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        locationService.list(null, roomId, null, pageable);
+
+        specCaptor.getValue().toPredicate(root, query, cb);
+        verify(cb).equal(roomIdPath, roomId);
     }
 
     private Location locationWithName(String name) {
