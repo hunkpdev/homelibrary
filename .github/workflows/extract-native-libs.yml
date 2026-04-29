@@ -1,0 +1,32 @@
+name: Extract Native Libraries
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract-libyaz:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Extract libyaz.so.5 from Lambda Java 21 image
+        run: |
+          mkdir -p backend/src/main/resources/native/linux-x86_64
+          docker run --rm \
+            -v "${{ github.workspace }}/backend/src/main/resources/native/linux-x86_64:/output" \
+            public.ecr.aws/lambda/java:21 \
+            sh -c "dnf install -y yaz > /dev/null 2>&1 && find / -name 'libyaz.so.5' 2>/dev/null | head -1 | xargs -I{} cp {} /output/libyaz.so.5"
+
+      - name: Commit libyaz.so.5
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/src/main/resources/native/linux-x86_64/libyaz.so.5
+          git diff --staged --quiet || git commit -m "chore: add libyaz.so.5 native library extracted from Lambda Java 21 image"
+          git push

@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-test.properties")
+@org.junit.jupiter.api.Tag("integration")
 class AuthIntegrationTest {
 
     private static final String ADMIN_USERNAME = "admin";
