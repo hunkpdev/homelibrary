@@ -27,7 +27,6 @@
         <yaz4j.version>1.7.0-SNAPSHOT</yaz4j.version>
         <marc4j.version>2.9.5</marc4j.version>
         <native-lib-loader.version>2.4.0</native-lib-loader.version>
-        <modelmapper.version>3.2.2</modelmapper.version>
         <sonar.projectKey>hunkpdev_homelibrary-backend</sonar.projectKey>
         <sonar.organization>hunkpdev</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -141,13 +140,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <!-- Object mapping -->
-        <dependency>
-            <groupId>org.modelmapper</groupId>
-            <artifactId>modelmapper</artifactId>
-            <version>${modelmapper.version}</version>
         </dependency>
 
         <!-- ISBN lookup: Z39.50, MARC21, native library loading -->

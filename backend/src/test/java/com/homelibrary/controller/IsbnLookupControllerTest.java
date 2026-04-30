@@ -1,8 +1,7 @@
 package com.homelibrary.controller;
 
 import com.homelibrary.config.CorsProperties;
-import com.homelibrary.config.MapperConfig;
-import com.homelibrary.dto.IsbnLookupResult;
+import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.exception.DemoRateLimitExceededException;
 import com.homelibrary.exception.InvalidIsbnException;
 import com.homelibrary.model.IsbnSource;
@@ -29,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(IsbnLookupController.class)
-@Import({IsbnLookupControllerTest.MethodSecurityTestConfig.class, MapperConfig.class})
+@Import({IsbnLookupControllerTest.MethodSecurityTestConfig.class})
 class IsbnLookupControllerTest {
 
     @TestConfiguration
@@ -56,29 +55,25 @@ class IsbnLookupControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void lookup_adminRole_found_returns200WithBody() throws Exception {
-        IsbnLookupResult result = new IsbnLookupResult(
+        IsbnLookupResponse result = new IsbnLookupResponse(
                 ISBN, "Test Book", null, List.of("Author"), "Publisher", 2020, 300, "hu", IsbnSource.OSZK
         );
-        when(isbnLookupService.lookup(ISBN)).thenReturn(Optional.of(result));
+        when(isbnLookupService.lookup(ISBN)).thenReturn(Optional.<IsbnLookupResponse>of(result));
 
         mockMvc.perform(get("/api/books/isbn/{isbn}", ISBN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isbn").value(ISBN))
                 .andExpect(jsonPath("$.title").value("Test Book"))
-                .andExpect(jsonPath("$.found").value(true))
                 .andExpect(jsonPath("$.source").value("OSZK"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void lookup_adminRole_notFound_returns200WithFoundFalse() throws Exception {
+    void lookup_adminRole_notFound_returns204() throws Exception {
         when(isbnLookupService.lookup(ISBN)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/books/isbn/{isbn}", ISBN))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isbn").value(ISBN))
-                .andExpect(jsonPath("$.found").value(false))
-                .andExpect(jsonPath("$.title").doesNotExist());
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -95,8 +90,7 @@ class IsbnLookupControllerTest {
 
         mockMvc.perform(get("/api/books/isbn/{isbn}", ISBN))
                 .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.found").value(false))
-                .andExpect(jsonPath("$.rateLimitExceeded").value(true));
+                .andExpect(jsonPath("$.reason").value("DEMO_RATE_LIMIT_EXCEEDED"));
     }
 
     @Test

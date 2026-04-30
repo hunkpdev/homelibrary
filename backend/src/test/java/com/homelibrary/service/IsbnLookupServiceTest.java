@@ -1,6 +1,6 @@
 package com.homelibrary.service;
 
-import com.homelibrary.dto.IsbnLookupResult;
+import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.entity.User;
 import com.homelibrary.exception.InvalidIsbnException;
 import com.homelibrary.isbn.OszkNektarClient;
@@ -68,10 +68,10 @@ class IsbnLookupServiceTest {
     @Test
     void lookup_validIsbn_adminRole_skipsRateLimit_returnsResult() {
         setUpAuth(Role.ADMIN);
-        IsbnLookupResult expected = buildResult();
+        IsbnLookupResponse expected = buildResult();
         when(oszkNektarClient.lookup(VALID_ISBN_NORMALIZED)).thenReturn(Optional.of(expected));
 
-        Optional<IsbnLookupResult> result = service.lookup(VALID_ISBN_RAW);
+        Optional<IsbnLookupResponse> result = service.lookup(VALID_ISBN_RAW);
 
         assertThat(result).contains(expected);
         verifyNoInteractions(rateLimitService);
@@ -142,8 +142,8 @@ class IsbnLookupServiceTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
-    private IsbnLookupResult buildResult() {
-        return new IsbnLookupResult(
+    private IsbnLookupResponse buildResult() {
+        return new IsbnLookupResponse(
                 VALID_ISBN_NORMALIZED, "Test Title", null,
                 List.of("Author"), "Publisher", 2020, 300, "hu", IsbnSource.OSZK
         );

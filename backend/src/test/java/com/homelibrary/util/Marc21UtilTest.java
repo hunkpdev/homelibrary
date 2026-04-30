@@ -1,12 +1,11 @@
-package com.homelibrary.isbn;
+package com.homelibrary.util;
 
-import com.homelibrary.dto.IsbnLookupResult;
+import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.model.IsbnSource;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.marc4j.MarcStreamWriter;
-import org.marc4j.marc.MarcFactory;
 import org.marc4j.marc.DataField;
+import org.marc4j.marc.MarcFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
@@ -14,17 +13,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OszkNektarClientTest {
-
-    private OszkNektarClient client;
-
-    @BeforeEach
-    void setUp() {
-        client = new OszkNektarClient();
-    }
+class Marc21UtilTest {
 
     @Test
-    void parseMarc_fullRecord_returnsAllMappedFields() throws Exception {
+    void parseMarc_fullRecord_returnsAllMappedFields() {
         byte[] marc = buildMarc(Map.of(
                 "020", Map.of('a', "978-963-609-199-6"),
                 "100", Map.of('a', "Steigervald Krisztián"),
@@ -34,10 +26,10 @@ class OszkNektarClientTest {
                 "041", Map.of('a', "hun")
         ));
 
-        Optional<IsbnLookupResult> result = client.parseMarc(marc, "9789636091996");
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9789636091996");
 
         assertThat(result).isPresent();
-        IsbnLookupResult r = result.get();
+        IsbnLookupResponse r = result.get();
         assertThat(r.isbn()).isEqualTo("9789636091996");
         assertThat(r.title()).isEqualTo("Szülői generációk harca");
         assertThat(r.subtitle()).isEqualTo("hogyan értsük meg magunkat?");
@@ -50,56 +42,56 @@ class OszkNektarClientTest {
     }
 
     @Test
-    void parseMarc_missingTitle_returnsEmpty() throws Exception {
+    void parseMarc_missingTitle_returnsEmpty() {
         byte[] marc = buildMarc(Map.of(
                 "100", Map.of('a', "Szerző Neve")
         ));
 
-        assertThat(client.parseMarc(marc, "9780000000000")).isEmpty();
+        assertThat(Marc21Util.parseMarc(marc, "9780000000000")).isEmpty();
     }
 
     @Test
-    void parseMarc_blankTitle_returnsEmpty() throws Exception {
+    void parseMarc_blankTitle_returnsEmpty() {
         byte[] marc = buildMarc(Map.of(
                 "100", Map.of('a', "Szerző Neve"),
                 "245", Map.of('a', "   /")
         ));
 
-        assertThat(client.parseMarc(marc, "9780000000000")).isEmpty();
+        assertThat(Marc21Util.parseMarc(marc, "9780000000000")).isEmpty();
     }
 
     @Test
-    void parseMarc_missingAuthor_returnsEmpty() throws Exception {
+    void parseMarc_missingAuthor_returnsEmpty() {
         byte[] marc = buildMarc(Map.of(
                 "245", Map.of('a', "Valamilyen cím")
         ));
 
-        assertThat(client.parseMarc(marc, "9780000000000")).isEmpty();
+        assertThat(Marc21Util.parseMarc(marc, "9780000000000")).isEmpty();
     }
 
     @Test
-    void parseMarc_multipleAuthors_includesAll() throws Exception {
+    void parseMarc_multipleAuthors_includesAll() {
         MarcFactory factory = MarcFactory.newInstance();
-        org.marc4j.marc.Record record = factory.newRecord();
+        org.marc4j.marc.Record marcRecord = factory.newRecord();
 
         DataField field245 = factory.newDataField("245", ' ', ' ');
         field245.addSubfield(factory.newSubfield('a', "Közös könyv"));
-        record.addVariableField(field245);
+        marcRecord.addVariableField(field245);
 
         DataField field100 = factory.newDataField("100", ' ', ' ');
         field100.addSubfield(factory.newSubfield('a', "Első Szerző"));
         field100.addSubfield(factory.newSubfield('j', "szerk."));
-        record.addVariableField(field100);
+        marcRecord.addVariableField(field100);
 
         DataField field700a = factory.newDataField("700", ' ', ' ');
         field700a.addSubfield(factory.newSubfield('a', "Második Szerző"));
-        record.addVariableField(field700a);
+        marcRecord.addVariableField(field700a);
 
         DataField field700b = factory.newDataField("700", ' ', ' ');
         field700b.addSubfield(factory.newSubfield('a', "Harmadik Szerző"));
-        record.addVariableField(field700b);
+        marcRecord.addVariableField(field700b);
 
-        Optional<IsbnLookupResult> result = client.parseMarc(toBytes(record), "9780000000001");
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(toBytes(marcRecord), "9780000000001");
 
         assertThat(result).isPresent();
         assertThat(result.get().authors()).containsExactly(
@@ -110,14 +102,14 @@ class OszkNektarClientTest {
     }
 
     @Test
-    void parseMarc_hungarianAccentedIsbn_parsedCorrectly() throws Exception {
+    void parseMarc_hungarianAccentedIsbn_parsedCorrectly() {
         byte[] marc = buildMarc(Map.of(
                 "020", Map.of('a', "978-963-609-199-6"),
                 "100", Map.of('a', "Tóth Árpád"),
                 "245", Map.of('a', "Árvácska /")
         ));
 
-        Optional<IsbnLookupResult> result = client.parseMarc(marc, "9789636091996");
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9789636091996");
 
         assertThat(result).isPresent();
         assertThat(result.get().authors()).containsExactly("Tóth Árpád");
@@ -126,26 +118,26 @@ class OszkNektarClientTest {
     }
 
     @Test
-    void parseMarc_isbnFallsBackToInputWhenFieldMissing() throws Exception {
+    void parseMarc_isbnFallsBackToInputWhenFieldMissing() {
         byte[] marc = buildMarc(Map.of(
                 "100", Map.of('a', "Szerző"),
                 "245", Map.of('a', "Cím")
         ));
 
-        Optional<IsbnLookupResult> result = client.parseMarc(marc, "9780000000002");
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9780000000002");
 
         assertThat(result).isPresent();
         assertThat(result.get().isbn()).isEqualTo("9780000000002");
     }
 
     @Test
-    void parseMarc_optionalFieldsMissing_returnsResultWithNulls() throws Exception {
+    void parseMarc_optionalFieldsMissing_returnsResultWithNulls() {
         byte[] marc = buildMarc(Map.of(
                 "100", Map.of('a', "Szerző"),
                 "245", Map.of('a', "Cím")
         ));
 
-        Optional<IsbnLookupResult> result = client.parseMarc(marc, "9780000000003");
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9780000000003");
 
         assertThat(result).isPresent();
         assertThat(result.get().subtitle()).isNull();
@@ -157,23 +149,23 @@ class OszkNektarClientTest {
 
     // --- helpers ---
 
-    private byte[] buildMarc(Map<String, Map<Character, String>> fields) throws Exception {
+    private byte[] buildMarc(Map<String, Map<Character, String>> fields) {
         MarcFactory factory = MarcFactory.newInstance();
-        org.marc4j.marc.Record record = factory.newRecord();
+        org.marc4j.marc.Record marcRecord = factory.newRecord();
         for (Map.Entry<String, Map<Character, String>> entry : fields.entrySet()) {
             DataField df = factory.newDataField(entry.getKey(), ' ', ' ');
             for (Map.Entry<Character, String> sf : entry.getValue().entrySet()) {
                 df.addSubfield(factory.newSubfield(sf.getKey(), sf.getValue()));
             }
-            record.addVariableField(df);
+            marcRecord.addVariableField(df);
         }
-        return toBytes(record);
+        return toBytes(marcRecord);
     }
 
-    private byte[] toBytes(org.marc4j.marc.Record record) throws Exception {
+    private byte[] toBytes(org.marc4j.marc.Record marcRecord) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         MarcStreamWriter writer = new MarcStreamWriter(baos, "UTF-8");
-        writer.write(record);
+        writer.write(marcRecord);
         writer.close();
         return baos.toByteArray();
     }

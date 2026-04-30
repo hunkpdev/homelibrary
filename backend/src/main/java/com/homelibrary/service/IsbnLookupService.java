@@ -1,6 +1,6 @@
 package com.homelibrary.service;
 
-import com.homelibrary.dto.IsbnLookupResult;
+import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.entity.User;
 import com.homelibrary.isbn.OszkNektarClient;
 import com.homelibrary.model.Role;
@@ -23,7 +23,7 @@ public class IsbnLookupService {
     private final DemoIsbnRateLimitService rateLimitService;
     private final JwtUtil jwtUtil;
 
-    public Optional<IsbnLookupResult> lookup(String isbn) {
+    public Optional<IsbnLookupResponse> lookup(String isbn) {
         String normalized = IsbnUtils.normalize(isbn);
         if (isDemo()) {
             return lookupAsDemo(normalized);
@@ -38,10 +38,10 @@ public class IsbnLookupService {
                 && user.getRole() == Role.DEMO;
     }
 
-    private Optional<IsbnLookupResult> lookupAsDemo(String normalized) {
+    private Optional<IsbnLookupResponse> lookupAsDemo(String normalized) {
         String jti = jwtUtil.currentJti();
         rateLimitService.checkLimits(jti);
-        Optional<IsbnLookupResult> result = oszkNektarClient.lookup(normalized);
+        Optional<IsbnLookupResponse> result = oszkNektarClient.lookup(normalized);
         if (result.isPresent()) {
             rateLimitService.incrementCounters(jti);
         }
