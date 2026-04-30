@@ -38,4 +38,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleConflict() {
         return ResponseEntity.status(409).build();
     }
+
+    @ExceptionHandler(DemoRateLimitExceededException.class)
+    public ResponseEntity<Void> handleDemoRateLimitExceeded() {
+        return ResponseEntity.status(429).build();
+    }
+
+    @ExceptionHandler(InvalidIsbnException.class)
+    public ResponseEntity<Void> handleInvalidIsbn() {
+        return ResponseEntity.status(422).build();
+    }
 }

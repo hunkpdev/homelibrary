@@ -1,5 +1,7 @@
 package com.homelibrary.isbn;
 
+import com.homelibrary.dto.IsbnLookupResult;
+import com.homelibrary.model.IsbnSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.marc4j.MarcStreamWriter;

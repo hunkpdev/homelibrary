@@ -1,4 +1,6 @@
-package com.homelibrary.isbn;
+package com.homelibrary.dto;
+
+import com.homelibrary.model.IsbnSource;
 
 import java.util.List;
 

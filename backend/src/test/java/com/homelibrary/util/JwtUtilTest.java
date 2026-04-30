@@ -47,6 +47,21 @@ class JwtUtilTest {
     }
 
     @Test
+    void generateToken_thenExtractJti_returnsNonBlankString() {
+        String token = jwtUtil.generateToken(user);
+
+        assertThat(jwtUtil.extractJti(token)).isNotBlank();
+    }
+
+    @Test
+    void generateToken_calledTwice_producesDifferentJtis() {
+        String jti1 = jwtUtil.extractJti(jwtUtil.generateToken(user));
+        String jti2 = jwtUtil.extractJti(jwtUtil.generateToken(user));
+
+        assertThat(jti1).isNotEqualTo(jti2);
+    }
+
+    @Test
     void extractUserId_withExpiredToken_throwsException() {
         JwtProperties expiredProperties = new JwtProperties();
         expiredProperties.setSecret("test-secret-key-for-unit-tests-min32chars!!");

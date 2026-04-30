@@ -1,4 +1,4 @@
-package com.homelibrary.isbn;
+package com.homelibrary.model;
 
 public enum IsbnSource {
     OSZK,

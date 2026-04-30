@@ -1,5 +1,7 @@
 package com.homelibrary.isbn;
 
+import com.homelibrary.dto.IsbnLookupResult;
+import com.homelibrary.model.IsbnSource;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
