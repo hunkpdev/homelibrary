@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-test.properties")
-class AuthIntegrationTest {
+class AuthIT {
 
     private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_PASSWORD = "password";
@@ -108,7 +108,7 @@ class AuthIntegrationTest {
 
     private JsonNode decodeJwtPayload(String jwt) throws Exception {
         String[] parts = jwt.split("\\.");
-        String padded = parts[1] + "=".repeat((4 - parts[1].length() % 4) % 4);
+        String padded = parts[1] + "=".repeat((4 - parts[1].length() % 4) % 4) ;
         String decoded = new String(Base64.getUrlDecoder().decode(padded));
         return objectMapper.readTree(decoded);
     }

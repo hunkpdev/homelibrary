@@ -80,6 +80,16 @@
       "editLocation": "Edit"
     }
   },
+  "isbnLookup": {
+    "connecting": "Connecting to database…",
+    "notFound": "Not found in the database, please fill in manually",
+    "rateLimit": "You have reached the daily DEMO search limit, try again tomorrow",
+    "retry": "Try again"
+  },
+  "isbnScanner": {
+    "placeholder": "ISBN number",
+    "search": "Search"
+  },
   "login": {
     "title": "Sign in",
     "username": "Username",

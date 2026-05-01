@@ -49,15 +49,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void authenticateFromToken(String token) {
         try {
             UUID userId = jwtUtil.extractUserId(token);
+            String jti = jwtUtil.extractJti(token);
             userRepository.findById(userId).ifPresent(user -> {
                 if (user.isActive()) {
-                    SecurityContextHolder.getContext().setAuthentication(
-                            new UsernamePasswordAuthenticationToken(
-                                    user,
-                                    null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-                            )
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                     );
+                    authentication.setDetails(jti);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             });
         } catch (Exception e) {

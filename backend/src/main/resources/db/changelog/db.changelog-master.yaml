@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: changes/004-create-locations.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/008-create-demo-isbn-daily-stats.yaml
+      relativeToChangelogFile: true
