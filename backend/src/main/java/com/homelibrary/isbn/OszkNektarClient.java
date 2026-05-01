@@ -126,7 +126,7 @@ public class OszkNektarClient {
         }
     }
 
-    private void initConnection() {
+    void initConnection() {
         try {
             connection = new Connection(HOST, PORT);
             connection.connect();
