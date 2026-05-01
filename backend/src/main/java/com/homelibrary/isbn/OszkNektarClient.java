@@ -2,6 +2,7 @@ package com.homelibrary.isbn;
 
 import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.util.Marc21Util;
+import io.swagger.v3.core.util.Json;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -36,7 +41,6 @@ public class OszkNektarClient {
     @PostConstruct
     void init() {
         loadNativeLibrary();
-        initConnection();
     }
 
     @PreDestroy
@@ -45,6 +49,7 @@ public class OszkNektarClient {
     }
 
     public Optional<IsbnLookupResponse> lookup(String isbn) {
+        initConnection();
         if (connection == null) {
             log.warn("Z39.50 connection not available, lookup skipped");
             return Optional.empty();
@@ -52,6 +57,7 @@ public class OszkNektarClient {
         int retries = 0;
         while (retries <= RETRY_COUNT) {
             try {
+                log.debug("trying to lookup... retry number #{}", retries);
                 return performLookup(isbn);
             } catch (ConnectionUnavailableException | ConnectionTimeoutException e) {
                 if (++retries <= RETRY_COUNT) {
@@ -67,12 +73,16 @@ public class OszkNektarClient {
 
     private Optional<IsbnLookupResponse> performLookup(String isbn) throws ZoomException {
         ResultSet rs = connection.search(new PrefixQuery("@attr 1=7 " + isbn));
-        if (rs.getHitCount() == 0) {
-            return Optional.empty();
+        for (int i = 0; i < rs.getHitCount(); i++) {
+            Record rec = rs.getRecord(i);
+            byte[] rawData = rec.get("raw");
+            log.debug("Record {}: syntax={}, rawBytes={}", i, rec.getSyntax(), rawData != null ? rawData.length : "null");
+            Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(rawData, isbn);
+            if (result.isPresent()) {
+                return result;
+            }
         }
-        Record rec = rs.getRecord(0);
-        byte[] rawMarc = rec.get(USMARC_SYNTAX);
-        return Marc21Util.parseMarc(rawMarc, isbn);
+        return Optional.empty();
     }
 
     private void reconnect(String isbn, Exception cause) {
@@ -93,7 +103,9 @@ public class OszkNektarClient {
                 log.warn("Native yaz library not found in classpath at {}", resourcePath);
                 return;
             }
-            Path tempFile = Files.createTempFile("yaz_native_", tempSuffix);
+            Path tempDir = createSecureTempDir();
+            tempDir.toFile().deleteOnExit();
+            Path tempFile = Files.createTempFile(tempDir, "yaz_native_", tempSuffix);
             tempFile.toFile().deleteOnExit();
             Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
             System.load(tempFile.toAbsolutePath().toString());
@@ -103,12 +115,24 @@ public class OszkNektarClient {
         }
     }
 
+    @SuppressWarnings("java:S5443")
+    private static Path createSecureTempDir() throws IOException {
+        try {
+            FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
+                    PosixFilePermissions.fromString("rwx------"));
+            return Files.createTempDirectory("homelibrary_", attr);
+        } catch (UnsupportedOperationException e) {
+            return Files.createTempDirectory("homelibrary_");
+        }
+    }
+
     private void initConnection() {
         try {
             connection = new Connection(HOST, PORT);
             connection.connect();
             connection.setDatabaseName(DATABASE);
             connection.option("preferredRecordSyntax", USMARC_SYNTAX);
+            connection.option("elementSetName", "F");
             log.info("Z39.50 connection established to {}:{}", HOST, PORT);
         } catch (Exception | Error e) {
             log.warn("Z39.50 connection initialization failed: {}", e.getMessage());
