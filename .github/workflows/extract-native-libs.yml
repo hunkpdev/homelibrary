@@ -19,9 +19,10 @@ jobs:
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
           docker run --rm \
+            --entrypoint sh \
             -v "${{ github.workspace }}/backend/src/main/resources/native/linux-x86_64:/output" \
             public.ecr.aws/lambda/java:21 \
-            sh -c "dnf install -y yaz > /dev/null 2>&1 && find / -name 'libyaz.so.5' 2>/dev/null | head -1 | xargs -I{} cp {} /output/libyaz.so.5"
+            -c "dnf install -y yaz > /dev/null 2>&1 && find / -name 'libyaz.so.5' 2>/dev/null | head -1 | xargs -I{} cp {} /output/libyaz.so.5"
 
       - name: Commit libyaz.so.5
         run: |
