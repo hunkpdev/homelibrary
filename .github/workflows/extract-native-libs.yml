@@ -15,18 +15,29 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Extract libyaz.so.5 from Lambda Java 21 image
+      - name: Extract libyaz.so.5 and libyaz4j.so via Index Data APT
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
+          mkdir -p backend/src/main/resources/native/Linux/amd64
           docker run --rm \
-            -v "${{ github.workspace }}/backend/src/main/resources/native/linux-x86_64:/output" \
+            -v "${{ github.workspace }}/backend/src/main/resources/native:/output" \
             ubuntu:20.04 \
-            bash -c "apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y libyaz5 && cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/libyaz.so.5"
+            bash -c "
+              apt-get update -qq &&
+              DEBIAN_FRONTEND=noninteractive apt-get install -y wget gnupg &&
+              wget -q https://ftp.indexdata.com/pub/ubuntu/indexdata.gpg -O /etc/apt/trusted.gpg.d/indexdata.gpg &&
+              echo 'deb https://ftp.indexdata.com/pub/ubuntu focal main' > /etc/apt/sources.list.d/indexdata.list &&
+              apt-get update -qq &&
+              DEBIAN_FRONTEND=noninteractive apt-get install -y libyaz4j &&
+              find /usr -name 'libyaz.so.5' | head -1 | xargs -I{} cp {} /output/linux-x86_64/libyaz.so.5 &&
+              find /usr -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so
+            "
 
-      - name: Commit libyaz.so.5
+      - name: Commit native libraries
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add backend/src/main/resources/native/linux-x86_64/libyaz.so.5
-          git diff --staged --quiet || git commit -m "chore: add libyaz.so.5 native library extracted from Lambda Java 21 image"
+          git add backend/src/main/resources/native/Linux/amd64/libyaz4j.so
+          git diff --staged --quiet || git commit -m "chore: add libyaz.so.5 and libyaz4j.so native libraries from Index Data APT"
           git push
