@@ -39,7 +39,8 @@
             **/exception/**,
             **/health/**,
             **/HomelibraryApplication.java,
-            **/StreamLambdaHandler.java
+            **/StreamLambdaHandler.java,
+            **/isbn/OszkNektarClient.java
         </sonar.coverage.exclusions>
     </properties>
 
