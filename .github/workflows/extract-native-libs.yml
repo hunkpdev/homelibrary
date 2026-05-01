@@ -15,18 +15,28 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Extract libyaz.so.5 from Lambda Java 21 image
+      - name: Build libyaz4j.so from source and extract libyaz.so.5
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
+          mkdir -p backend/src/main/resources/native/Linux/amd64
           docker run --rm \
-            -v "${{ github.workspace }}/backend/src/main/resources/native/linux-x86_64:/output" \
+            -v "${{ github.workspace }}/backend/src/main/resources/native:/output" \
             ubuntu:20.04 \
-            bash -c "apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y libyaz5 && cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/libyaz.so.5"
+            bash -c "
+              apt-get update -qq &&
+              DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libyaz-dev default-jdk-headless maven swig git pkg-config &&
+              git clone --depth 1 https://github.com/indexdata/yaz4j.git &&
+              cd yaz4j &&
+              mvn package -DskipTests -q &&
+              find target/native -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so &&
+              cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/linux-x86_64/libyaz.so.5
+            "
 
-      - name: Commit libyaz.so.5
+      - name: Commit native libraries
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add backend/src/main/resources/native/linux-x86_64/libyaz.so.5
-          git diff --staged --quiet || git commit -m "chore: add libyaz.so.5 native library extracted from Lambda Java 21 image"
+          git add backend/src/main/resources/native/Linux/amd64/libyaz4j.so
+          git diff --staged --quiet || git commit -m "chore: add libyaz.so.5 and libyaz4j.so native libraries from Index Data APT"
           git push
