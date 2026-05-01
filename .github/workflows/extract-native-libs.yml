@@ -15,7 +15,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Extract libyaz.so.5 and libyaz4j.so via Index Data APT
+      - name: Build libyaz4j.so from source and extract libyaz.so.5
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
           mkdir -p backend/src/main/resources/native/Linux/amd64
@@ -24,13 +24,12 @@ jobs:
             ubuntu:20.04 \
             bash -c "
               apt-get update -qq &&
-              DEBIAN_FRONTEND=noninteractive apt-get install -y wget gnupg &&
-              wget -q https://ftp.indexdata.com/pub/ubuntu/indexdata.gpg -O /etc/apt/trusted.gpg.d/indexdata.gpg &&
-              echo 'deb https://ftp.indexdata.com/pub/ubuntu focal main' > /etc/apt/sources.list.d/indexdata.list &&
-              apt-get update -qq &&
-              DEBIAN_FRONTEND=noninteractive apt-get install -y libyaz4j &&
-              find /usr -name 'libyaz.so.5' | head -1 | xargs -I{} cp {} /output/linux-x86_64/libyaz.so.5 &&
-              find /usr -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so
+              DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libyaz-dev default-jdk-headless maven swig git pkg-config &&
+              git clone --depth 1 https://github.com/indexdata/yaz4j.git &&
+              cd yaz4j &&
+              mvn package -DskipTests -q &&
+              find target/native -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so &&
+              cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/linux-x86_64/libyaz.so.5
             "
 
       - name: Commit native libraries
