@@ -79,6 +79,10 @@
       "editLocation": "Szerkesztés"
     }
   },
+  "isbnScanner": {
+    "placeholder": "ISBN szám",
+    "search": "Keresés"
+  },
   "login": {
     "title": "Bejelentkezés",
     "username": "Felhasználónév",

@@ -80,6 +80,10 @@
       "editLocation": "Edit"
     }
   },
+  "isbnScanner": {
+    "placeholder": "ISBN number",
+    "search": "Search"
+  },
   "login": {
     "title": "Sign in",
     "username": "Username",
