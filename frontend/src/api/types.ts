@@ -20,6 +20,20 @@ export interface LocationResponse {
   version: number
 }
 
+export type IsbnSource = 'OSZK' | 'MANUAL'
+
+export interface IsbnLookupResult {
+  isbn: string
+  title: string | null
+  subtitle: string | null
+  authors: string[] | null
+  publisher: string | null
+  publishYear: number | null
+  pageCount: number | null
+  language: string | null
+  source: IsbnSource | null
+}
+
 export interface Page<T> {
   content: T[]
   page: {

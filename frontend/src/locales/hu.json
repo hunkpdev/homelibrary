@@ -79,6 +79,12 @@
       "editLocation": "Szerkesztés"
     }
   },
+  "isbnLookup": {
+    "connecting": "Adatbázishoz csatlakozás…",
+    "notFound": "Nem találtuk az adatbázisban, töltsd ki kézzel",
+    "rateLimit": "Elérted a napi DEMO keresési limitet, holnap újra próbálhatod",
+    "retry": "Újrapróbálkozás"
+  },
   "isbnScanner": {
     "placeholder": "ISBN szám",
     "search": "Keresés"
