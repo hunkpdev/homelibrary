@@ -30,7 +30,10 @@ public final class Marc21Util {
             org.marc4j.marc.Record marcRecord = reader.next();
 
             String title = extractSubfield(marcRecord, "245", 'a');
-            if (title != null) title = title.replaceAll("\\s+/$", "").strip();
+            if (title != null) {
+                if (title.endsWith("/")) title = title.substring(0, title.length() - 1);
+                title = title.strip();
+            }
 
             String subtitle = extractSubfield(marcRecord, "245", 'b');
 

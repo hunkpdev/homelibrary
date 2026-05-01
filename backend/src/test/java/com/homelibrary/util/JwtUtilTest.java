@@ -3,9 +3,14 @@ package com.homelibrary.util;
 import com.homelibrary.config.JwtProperties;
 import com.homelibrary.entity.User;
 import com.homelibrary.model.Role;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +64,38 @@ class JwtUtilTest {
         String jti2 = jwtUtil.extractJti(jwtUtil.generateToken(user));
 
         assertThat(jti1).isNotEqualTo(jti2);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void currentJti_whenAuthPresentWithStringDetails_returnsJti() {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                user, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        auth.setDetails("test-jti-value");
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        assertThat(jwtUtil.currentJti()).isEqualTo("test-jti-value");
+    }
+
+    @Test
+    void currentJti_whenNoAuthentication_throwsIllegalStateException() {
+        assertThatThrownBy(() -> jwtUtil.currentJti())
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void currentJti_whenDetailsNotString_throwsIllegalStateException() {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                user, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        auth.setDetails(42);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        assertThatThrownBy(() -> jwtUtil.currentJti())
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
