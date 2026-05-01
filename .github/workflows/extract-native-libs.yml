@@ -20,8 +20,8 @@ jobs:
           mkdir -p backend/src/main/resources/native/linux-x86_64
           docker run --rm \
             -v "${{ github.workspace }}/backend/src/main/resources/native/linux-x86_64:/output" \
-            public.ecr.aws/lambda/java:21 \
-            sh -c "dnf install -y yaz > /dev/null 2>&1 && find / -name 'libyaz.so.5' 2>/dev/null | head -1 | xargs -I{} cp {} /output/libyaz.so.5"
+            ubuntu:20.04 \
+            bash -c "apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y libyaz5 && cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/libyaz.so.5"
 
       - name: Commit libyaz.so.5
         run: |
