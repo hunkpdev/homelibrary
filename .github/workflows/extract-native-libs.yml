@@ -19,10 +19,9 @@ jobs:
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
           docker run --rm \
-            --entrypoint sh \
             -v "${{ github.workspace }}/backend/src/main/resources/native/linux-x86_64:/output" \
-            fedora:40 \
-            -c "dnf install -y yaz-libs && cp /usr/lib64/libyaz.so.5 /output/libyaz.so.5"
+            ubuntu:20.04 \
+            bash -c "apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y libyaz5 && cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/libyaz.so.5"
 
       - name: Commit libyaz.so.5
         run: |
