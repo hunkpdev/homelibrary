@@ -27,5 +27,21 @@ export default defineConfig({
       html: './test-results/index.html',
       junit: './test-results/junit.xml',
     },
+    coverage: {
+      provider: 'v8',
+      reporter: ['lcov', 'text'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/components/ui/**',
+        'src/lib/**',
+        'src/api/model/**',
+        'src/main.tsx',
+        'src/i18n/**',
+        'src/test/**',
+        'src/**/*.test.ts',
+        'src/**/*.test.tsx',
+      ],
+    },
   },
 })
