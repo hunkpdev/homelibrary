@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import MockAdapter from 'axios-mock-adapter'
 import axiosInstance from '@/api/axiosInstance'
@@ -89,6 +89,27 @@ describe('LocationManagementPage — VISITOR grid', () => {
     await screen.findByText('Living Room')
     // AG Grid is mocked — verify no edit/delete buttons are rendered
     expect(screen.queryByLabelText('Szerkesztés')).not.toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — ADMIN interactions', () => {
+  beforeEach(() => {
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+  })
+
+  it('clicking "Új helyiség" button opens room form modal', async () => {
+    renderPage()
+    const newRoomBtn = await screen.findByText('Új helyiség')
+    fireEvent.click(newRoomBtn)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('clicking edit room button opens room form modal', async () => {
+    renderPage()
+    await screen.findByText('Living Room')
+    const editBtns = screen.getAllByLabelText('Szerkesztés')
+    fireEvent.click(editBtns[0])
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })
 
