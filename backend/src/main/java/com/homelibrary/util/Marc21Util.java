@@ -76,7 +76,7 @@ public final class Marc21Util {
 
     private static Integer extractNumber(String value) {
         if (value == null) return null;
-        String digits = value.replaceAll("[^0-9]", "");
+        String digits = value.replaceAll("\\D", "");
         if (digits.isEmpty()) return null;
         try {
             return Integer.parseInt(digits);
