@@ -11,6 +11,7 @@ frontend/dist/
 frontend/.env.local
 frontend/test-results/
 frontend/src/local/
+frontend/coverage/
 
 # Infra
 infra/node_modules/
