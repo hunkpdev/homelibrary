@@ -147,6 +147,48 @@ class Marc21UtilTest {
         assertThat(result.get().language()).isNull();
     }
 
+    @Test
+    void parseMarc_pageCountWithExtraInfo_extractsFirstNumber() {
+        byte[] marc = buildMarc(Map.of(
+                "100", Map.of('a', "Szerző"),
+                "245", Map.of('a', "Cím"),
+                "300", Map.of('a', "311 p. : ill. ; 24 cm")
+        ));
+
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9780000000004");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().pageCount()).isEqualTo(311);
+    }
+
+    @Test
+    void parseMarc_publishYearRange_extractsFirstYear() {
+        byte[] marc = buildMarc(Map.of(
+                "100", Map.of('a', "Szerző"),
+                "245", Map.of('a', "Cím"),
+                "260", Map.of('c', "1999-2000")
+        ));
+
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9780000000005");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().publishYear()).isEqualTo(1999);
+    }
+
+    @Test
+    void parseMarc_isbnFromField020_takesPrecedenceOverInput() {
+        byte[] marc = buildMarc(Map.of(
+                "020", Map.of('a', "978-963-609-199-6"),
+                "100", Map.of('a', "Szerző"),
+                "245", Map.of('a', "Cím")
+        ));
+
+        Optional<IsbnLookupResponse> result = Marc21Util.parseMarc(marc, "9636091994");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().isbn()).isEqualTo("9789636091996");
+    }
+
     // --- helpers ---
 
     private byte[] buildMarc(Map<String, Map<Character, String>> fields) {

@@ -14,9 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public final class Marc21Util {
+
+    private static final Pattern FIRST_NUMBER = Pattern.compile("\\d+");
 
     private Marc21Util() {}
 
@@ -30,8 +34,10 @@ public final class Marc21Util {
 
             String title = extractSubfield(marcRecord, "245", 'a');
             if (title != null) {
-                if (title.endsWith("/")) title = title.substring(0, title.length() - 1);
                 title = title.strip();
+                if (title.endsWith("/")) {
+                    title = title.substring(0, title.length() - 1).strip();
+                }
             }
 
             String subtitle = extractSubfield(marcRecord, "245", 'b');
@@ -45,8 +51,11 @@ public final class Marc21Util {
             Integer pageCount = extractNumber(extractSubfield(marcRecord, "300", 'a'));
             String language = extractSubfield(marcRecord, "041", 'a');
 
+            String isbnFromMarc = extractSubfield(marcRecord, "020", 'a');
+            String resolvedIsbn = isbnFromMarc != null ? isbnFromMarc.replaceAll("[\\s-]", "") : isbn;
+
             IsbnLookupResponse result = new IsbnLookupResponse(
-                    isbn,
+                    resolvedIsbn,
                     title,
                     subtitle,
                     authors,
@@ -75,10 +84,10 @@ public final class Marc21Util {
 
     private static Integer extractNumber(String value) {
         if (value == null) return null;
-        String digits = value.replaceAll("\\D", "");
-        if (digits.isEmpty()) return null;
+        Matcher m = FIRST_NUMBER.matcher(value);
+        if (!m.find()) return null;
         try {
-            return Integer.parseInt(digits);
+            return Integer.parseInt(m.group());
         } catch (NumberFormatException e) {
             return null;
         }
