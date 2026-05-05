@@ -2,7 +2,7 @@ package com.homelibrary.isbn;
 
 import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.util.Marc21Util;
-import io.swagger.v3.core.util.Json;
+import com.homelibrary.util.NativeLibraryLoader;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +15,7 @@ import org.yaz4j.exception.ConnectionTimeoutException;
 import org.yaz4j.exception.ConnectionUnavailableException;
 import org.yaz4j.exception.ZoomException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Optional;
-import java.util.Set;
 
 @Component
 @Slf4j
@@ -36,11 +27,19 @@ public class OszkNektarClient {
     private static final String USMARC_SYNTAX = "usmarc";
     private static final int RETRY_COUNT = 1;
 
+    private final NativeLibraryLoader nativeLibraryLoader;
     private Connection connection;
+
+    public OszkNektarClient(NativeLibraryLoader nativeLibraryLoader) {
+        this.nativeLibraryLoader = nativeLibraryLoader;
+    }
 
     @PostConstruct
     void init() {
-        loadNativeLibrary();
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+        String resourcePath = isWindows ? "native/win32-x86_64/yaz5.dll" : "native/linux-x86_64/libyaz.so.5";
+        String tempSuffix = isWindows ? ".dll" : ".so";
+        nativeLibraryLoader.load(resourcePath, tempSuffix);
     }
 
     @PreDestroy
@@ -89,41 +88,6 @@ public class OszkNektarClient {
         log.warn("Z39.50 stale connection for ISBN {}, reconnecting: {}", isbn, cause.getMessage());
         closeConnection();
         initConnection();
-    }
-
-    private void loadNativeLibrary() {
-        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
-        String resourcePath = isWindows
-                ? "native/win32-x86_64/yaz5.dll"
-                : "native/linux-x86_64/libyaz.so.5";
-        String tempSuffix = isWindows ? ".dll" : ".so";
-
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-            if (is == null) {
-                log.warn("Native yaz library not found in classpath at {}", resourcePath);
-                return;
-            }
-            Path tempDir = createSecureTempDir();
-            tempDir.toFile().deleteOnExit();
-            Path tempFile = Files.createTempFile(tempDir, "yaz_native_", tempSuffix);
-            tempFile.toFile().deleteOnExit();
-            Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            System.load(tempFile.toAbsolutePath().toString());
-            log.info("Loaded native yaz library from classpath: {}", resourcePath);
-        } catch (IOException | UnsatisfiedLinkError e) {
-            log.warn("Failed to load native yaz library: {}", e.getMessage());
-        }
-    }
-
-    @SuppressWarnings("java:S5443")
-    private static Path createSecureTempDir() throws IOException {
-        try {
-            FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
-                    PosixFilePermissions.fromString("rwx------"));
-            return Files.createTempDirectory("homelibrary_", attr);
-        } catch (UnsupportedOperationException e) {
-            return Files.createTempDirectory("homelibrary_");
-        }
     }
 
     private void initConnection() {
