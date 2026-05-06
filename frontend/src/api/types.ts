@@ -35,7 +35,7 @@ export interface IsbnLookupResult {
   publishYear: number | null
   pageCount: number | null
   language: string | null
-  source: IsbnSource | null
+  source: IsbnSource
 }
 
 export interface Page<T> {
