@@ -49,23 +49,6 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 ---
 
-## native-lib-loader
-
-**Copyright:** SciJava contributors  
-**License:** BSD 2-Clause  
-**Source:** https://github.com/scijava/native-lib-loader
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
----
-
 ## react-zxing
 
 **License:** MIT  
