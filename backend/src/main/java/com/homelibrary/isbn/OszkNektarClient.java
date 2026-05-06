@@ -2,10 +2,11 @@ package com.homelibrary.isbn;
 
 import com.homelibrary.dto.IsbnLookupResponse;
 import com.homelibrary.util.Marc21Util;
-import io.swagger.v3.core.util.Json;
+import com.homelibrary.util.NativeLibraryLoader;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaz4j.Connection;
 import org.yaz4j.PrefixQuery;
@@ -15,17 +16,20 @@ import org.yaz4j.exception.ConnectionTimeoutException;
 import org.yaz4j.exception.ConnectionUnavailableException;
 import org.yaz4j.exception.ZoomException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Supplier;
 
+/**
+ * Z39.50 client for the OSZK NEKTÁR service.
+ *
+ * <p><b>Thread-safety:</b> this class is not thread-safe on its own due to {@link Connection}.
+ * The underlying yaz4j {@code ZOOM_connection} is single-threaded at the native level.
+ * Designed for the AWS Lambda single-request-per-container model; the {@code synchronized}
+ * on {@code lookup()} is defensive futurproofing for other deployment targets.
+ */
 @Component
 @Slf4j
 public class OszkNektarClient {
@@ -35,12 +39,32 @@ public class OszkNektarClient {
     private static final String DATABASE = "B1";
     private static final String USMARC_SYNTAX = "usmarc";
     private static final int RETRY_COUNT = 1;
+    private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(1);
+
+    private final NativeLibraryLoader nativeLibraryLoader;
+    private final Supplier<Connection> connectionFactory;
+    private final Clock clock;
 
     private Connection connection;
+    private Instant lastUsed;
+
+    @Autowired
+    public OszkNektarClient(NativeLibraryLoader nativeLibraryLoader) {
+        this(nativeLibraryLoader, () -> new Connection(HOST, PORT), Clock.systemUTC());
+    }
+
+    OszkNektarClient(NativeLibraryLoader nativeLibraryLoader, Supplier<Connection> connectionFactory, Clock clock) {
+        this.nativeLibraryLoader = nativeLibraryLoader;
+        this.connectionFactory = connectionFactory;
+        this.clock = clock;
+    }
 
     @PostConstruct
     void init() {
-        loadNativeLibrary();
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+        String resourcePath = isWindows ? "native/win32-x86_64/yaz5.dll" : "native/linux-x86_64/libyaz.so.5";
+        String tempSuffix = isWindows ? ".dll" : ".so";
+        nativeLibraryLoader.load(resourcePath, tempSuffix);
     }
 
     @PreDestroy
@@ -48,8 +72,8 @@ public class OszkNektarClient {
         closeConnection();
     }
 
-    public Optional<IsbnLookupResponse> lookup(String isbn) {
-        initConnection();
+    public synchronized Optional<IsbnLookupResponse> lookup(String isbn) {
+        ensureFreshConnection();
         if (connection == null) {
             log.warn("Z39.50 connection not available, lookup skipped");
             return Optional.empty();
@@ -57,8 +81,10 @@ public class OszkNektarClient {
         int retries = 0;
         while (retries <= RETRY_COUNT) {
             try {
-                log.debug("trying to lookup... retry number #{}", retries);
-                return performLookup(isbn);
+                log.debug("Z39.50 lookup attempt #{} for ISBN {}", retries, isbn);
+                Optional<IsbnLookupResponse> result = performLookup(isbn);
+                lastUsed = Instant.now(clock);
+                return result;
             } catch (ConnectionUnavailableException | ConnectionTimeoutException e) {
                 if (++retries <= RETRY_COUNT) {
                     reconnect(isbn, e);
@@ -68,7 +94,22 @@ public class OszkNektarClient {
                 return Optional.empty();
             }
         }
+        log.warn("Z39.50 lookup failed after {} retries for ISBN {}", RETRY_COUNT, isbn);
         return Optional.empty();
+    }
+
+    // Lazy eviction: the connection is closed on the next lookup after IDLE_TIMEOUT, not proactively.
+    // On Lambda, the JVM is frozen between requests — a background scheduler would not fire during
+    // the freeze anyway, so lazy eviction on the next incoming request is the correct approach.
+    private void ensureFreshConnection() {
+        if (connection != null && lastUsed != null
+                && Duration.between(lastUsed, Instant.now(clock)).compareTo(IDLE_TIMEOUT) > 0) {
+            log.debug("Z39.50 connection idle > {}, closing", IDLE_TIMEOUT);
+            closeConnection();
+        }
+        if (connection == null) {
+            initConnection();
+        }
     }
 
     private Optional<IsbnLookupResponse> performLookup(String isbn) throws ZoomException {
@@ -91,44 +132,9 @@ public class OszkNektarClient {
         initConnection();
     }
 
-    private void loadNativeLibrary() {
-        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
-        String resourcePath = isWindows
-                ? "native/win32-x86_64/yaz5.dll"
-                : "native/linux-x86_64/libyaz.so.5";
-        String tempSuffix = isWindows ? ".dll" : ".so";
-
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-            if (is == null) {
-                log.warn("Native yaz library not found in classpath at {}", resourcePath);
-                return;
-            }
-            Path tempDir = createSecureTempDir();
-            tempDir.toFile().deleteOnExit();
-            Path tempFile = Files.createTempFile(tempDir, "yaz_native_", tempSuffix);
-            tempFile.toFile().deleteOnExit();
-            Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            System.load(tempFile.toAbsolutePath().toString());
-            log.info("Loaded native yaz library from classpath: {}", resourcePath);
-        } catch (IOException | UnsatisfiedLinkError e) {
-            log.warn("Failed to load native yaz library: {}", e.getMessage());
-        }
-    }
-
-    @SuppressWarnings("java:S5443")
-    private static Path createSecureTempDir() throws IOException {
-        try {
-            FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
-                    PosixFilePermissions.fromString("rwx------"));
-            return Files.createTempDirectory("homelibrary_", attr);
-        } catch (UnsupportedOperationException e) {
-            return Files.createTempDirectory("homelibrary_");
-        }
-    }
-
     private void initConnection() {
         try {
-            connection = new Connection(HOST, PORT);
+            connection = connectionFactory.get();
             connection.connect();
             connection.setDatabaseName(DATABASE);
             connection.option("preferredRecordSyntax", USMARC_SYNTAX);

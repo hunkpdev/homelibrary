@@ -1,5 +1,6 @@
 package com.homelibrary.exception;
 
+import com.homelibrary.dto.RateLimitExceededResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.ResponseEntity;
@@ -40,8 +41,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DemoRateLimitExceededException.class)
-    public ResponseEntity<Void> handleDemoRateLimitExceeded() {
-        return ResponseEntity.status(429).build();
+    public ResponseEntity<RateLimitExceededResponse> handleDemoRateLimitExceeded(DemoRateLimitExceededException ex) {
+        String reason = "session".equals(ex.getLimitType()) ? "DEMO_SESSION_LIMIT_EXCEEDED" : "DEMO_DAILY_LIMIT_EXCEEDED";
+        return ResponseEntity.status(429).body(new RateLimitExceededResponse(reason));
     }
 
     @ExceptionHandler(InvalidIsbnException.class)

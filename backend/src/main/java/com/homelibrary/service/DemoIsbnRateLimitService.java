@@ -5,6 +5,7 @@ import com.homelibrary.exception.DemoRateLimitExceededException;
 import com.homelibrary.repository.DemoIsbnDailyStatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +45,7 @@ public class DemoIsbnRateLimitService {
 
     private void checkDailyLimit() {
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
-        int count = dailyStatsRepository.findAll().stream().findFirst()
+        int count = dailyStatsRepository.findSingleton()
                 .filter(s -> s.getLookupDate().equals(today))
                 .map(DemoIsbnDailyStats::getLookupCount)
                 .orElse(0);
@@ -54,7 +55,7 @@ public class DemoIsbnRateLimitService {
     }
 
     private void incrementSession(String jti) {
-        cacheManager.getCache(CACHE_NAME).put(jti, getSessionCount(jti) + 1);
+        resolveCache().put(jti, getSessionCount(jti) + 1);
     }
 
     private void incrementDaily() {
@@ -65,12 +66,20 @@ public class DemoIsbnRateLimitService {
     }
 
     private int getSessionCount(String jti) {
-        Integer count = cacheManager.getCache(CACHE_NAME).get(jti, Integer.class);
+        Integer count = resolveCache().get(jti, Integer.class);
         return count != null ? count : 0;
     }
 
+    private Cache resolveCache() {
+        Cache c = cacheManager.getCache(CACHE_NAME);
+        if (c == null) {
+            throw new IllegalStateException("Cache not found: " + CACHE_NAME);
+        }
+        return c;
+    }
+
     private DemoIsbnDailyStats resolveStats(LocalDate today) {
-        return dailyStatsRepository.findAll().stream().findFirst()
+        return dailyStatsRepository.findSingleton()
                 .map(stats -> {
                     if (!stats.getLookupDate().equals(today)) {
                         stats.setLookupDate(today);

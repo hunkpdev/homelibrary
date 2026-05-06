@@ -14,7 +14,7 @@ import org.springframework.cache.CacheManager;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,14 +55,14 @@ class DemoIsbnRateLimitServiceTest {
         assertThatThrownBy(() -> service.checkLimits(JTI))
                 .isInstanceOf(DemoRateLimitExceededException.class);
 
-        verify(dailyStatsRepository, never()).findAll();
+        verify(dailyStatsRepository, never()).findSingleton();
     }
 
     @Test
     void checkLimits_dailyLimitReached_throws() {
         when(cache.get(JTI, Integer.class)).thenReturn(null);
-        when(dailyStatsRepository.findAll())
-                .thenReturn(List.of(statsWithCount(TODAY, DemoIsbnRateLimitService.DAILY_LIMIT)));
+        when(dailyStatsRepository.findSingleton())
+                .thenReturn(Optional.of(statsWithCount(TODAY, DemoIsbnRateLimitService.DAILY_LIMIT)));
 
         assertThatThrownBy(() -> service.checkLimits(JTI))
                 .isInstanceOf(DemoRateLimitExceededException.class);
@@ -71,7 +71,7 @@ class DemoIsbnRateLimitServiceTest {
     @Test
     void checkLimits_bothLimitsOk_doesNotThrow() {
         when(cache.get(JTI, Integer.class)).thenReturn(2);
-        when(dailyStatsRepository.findAll()).thenReturn(List.of(statsWithCount(TODAY, 10)));
+        when(dailyStatsRepository.findSingleton()).thenReturn(Optional.of(statsWithCount(TODAY, 10)));
 
         service.checkLimits(JTI);
     }
@@ -79,10 +79,18 @@ class DemoIsbnRateLimitServiceTest {
     @Test
     void checkLimits_differentDay_treatedAsZeroCount_doesNotThrow() {
         when(cache.get(JTI, Integer.class)).thenReturn(null);
-        when(dailyStatsRepository.findAll())
-                .thenReturn(List.of(statsWithCount(TODAY.minusDays(1), DemoIsbnRateLimitService.DAILY_LIMIT)));
+        when(dailyStatsRepository.findSingleton())
+                .thenReturn(Optional.of(statsWithCount(TODAY.minusDays(1), DemoIsbnRateLimitService.DAILY_LIMIT)));
 
         service.checkLimits(JTI);
+    }
+
+    @Test
+    void checkLimits_cacheNull_throwsIllegalState() {
+        when(cacheManager.getCache(DemoIsbnRateLimitService.CACHE_NAME)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.checkLimits(JTI))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     // --- incrementCounters ---
@@ -91,7 +99,7 @@ class DemoIsbnRateLimitServiceTest {
     void incrementCounters_incrementsSessionAndDaily() {
         when(cache.get(JTI, Integer.class)).thenReturn(2);
         DemoIsbnDailyStats stats = statsWithCount(TODAY, 10);
-        when(dailyStatsRepository.findAll()).thenReturn(List.of(stats));
+        when(dailyStatsRepository.findSingleton()).thenReturn(Optional.of(stats));
         when(dailyStatsRepository.save(any())).thenReturn(stats);
 
         service.incrementCounters(JTI);
@@ -104,7 +112,7 @@ class DemoIsbnRateLimitServiceTest {
     @Test
     void incrementCounters_firstSession_setsSessionCountToOne() {
         when(cache.get(JTI, Integer.class)).thenReturn(null);
-        when(dailyStatsRepository.findAll()).thenReturn(List.of(statsWithCount(TODAY, 0)));
+        when(dailyStatsRepository.findSingleton()).thenReturn(Optional.of(statsWithCount(TODAY, 0)));
         when(dailyStatsRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         service.incrementCounters(JTI);
@@ -116,7 +124,7 @@ class DemoIsbnRateLimitServiceTest {
     void incrementCounters_differentDay_resetsCount() {
         when(cache.get(JTI, Integer.class)).thenReturn(null);
         DemoIsbnDailyStats stats = statsWithCount(TODAY.minusDays(1), 49);
-        when(dailyStatsRepository.findAll()).thenReturn(List.of(stats));
+        when(dailyStatsRepository.findSingleton()).thenReturn(Optional.of(stats));
         when(dailyStatsRepository.save(any())).thenReturn(stats);
 
         service.incrementCounters(JTI);
@@ -128,7 +136,7 @@ class DemoIsbnRateLimitServiceTest {
     @Test
     void incrementCounters_noStatsRow_createsNewRow() {
         when(cache.get(JTI, Integer.class)).thenReturn(null);
-        when(dailyStatsRepository.findAll()).thenReturn(List.of());
+        when(dailyStatsRepository.findSingleton()).thenReturn(Optional.empty());
         ArgumentCaptor<DemoIsbnDailyStats> captor = ArgumentCaptor.forClass(DemoIsbnDailyStats.class);
         when(dailyStatsRepository.save(captor.capture())).thenAnswer(i -> i.getArgument(0));
 
@@ -137,6 +145,14 @@ class DemoIsbnRateLimitServiceTest {
         DemoIsbnDailyStats saved = captor.getValue();
         assertThat(saved.getLookupDate()).isEqualTo(TODAY);
         assertThat(saved.getLookupCount()).isEqualTo(1);
+    }
+
+    @Test
+    void incrementCounters_cacheNull_throwsIllegalState() {
+        when(cacheManager.getCache(DemoIsbnRateLimitService.CACHE_NAME)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.incrementCounters(JTI))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     private DemoIsbnDailyStats statsWithCount(LocalDate date, int count) {

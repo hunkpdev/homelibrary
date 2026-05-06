@@ -1,15 +1,12 @@
 package com.homelibrary.controller;
 
 import com.homelibrary.dto.IsbnLookupResponse;
-import com.homelibrary.dto.RateLimitExceededResponse;
-import com.homelibrary.exception.DemoRateLimitExceededException;
 import com.homelibrary.service.IsbnLookupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +25,7 @@ public class IsbnLookupController {
     @ApiResponse(responseCode = "200", description = "Book found")
     @ApiResponse(responseCode = "204", description = "Book not found")
     @ApiResponse(responseCode = "403", description = "VISITOR role not permitted")
+    @ApiResponse(responseCode = "422", description = "Invalid ISBN format")
     @ApiResponse(responseCode = "429", description = "Demo rate limit exceeded")
     @GetMapping("/isbn/{isbn}")
     @PreAuthorize("hasAnyRole('ADMIN', 'DEMO')")
@@ -37,8 +35,4 @@ public class IsbnLookupController {
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
-    @ExceptionHandler(DemoRateLimitExceededException.class)
-    public ResponseEntity<RateLimitExceededResponse> handleRateLimit() {
-        return ResponseEntity.status(429).body(new RateLimitExceededResponse("DEMO_RATE_LIMIT_EXCEEDED"));
-    }
 }

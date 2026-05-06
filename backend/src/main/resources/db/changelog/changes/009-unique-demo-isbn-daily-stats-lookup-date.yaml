@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-unique-demo-isbn-daily-stats-lookup-date
+      author: homelibrary
+      changes:
+        - addUniqueConstraint:
+            tableName: demo_isbn_daily_stats
+            columnNames: lookup_date
+            constraintName: uq_demo_isbn_daily_stats_lookup_date

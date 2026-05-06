@@ -15,13 +15,18 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Build libyaz4j.so from source and extract libyaz.so.5
+      - name: Build libyaz4j.so from source and extract libyaz.so.5 (Ubuntu)
+        # tech-debt: libyaz.so.5 itt Ubuntu 24.04-ből származik, nem a Lambda Java 21 image-ből.
+        # Az AL2023-alapú Lambda image-ből való kinyerés (ADR-010 eredeti szándéka) nem kivitelezhető,
+        # mert a 'yaz' csomag nem érhető el az AL2023 alapértelmezett repóiból.
+        # Feature 5-nél verifikálandó CloudWatch-ban, hogy az Ubuntu-ból származó libyaz.so.5
+        # glibc-kompatibilis-e a Lambda futtatókörnyezettel (dlopen failure → minden lookup Optional.empty()).
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
           mkdir -p backend/src/main/resources/native/Linux/amd64
           docker run --rm \
             -v "${{ github.workspace }}/backend/src/main/resources/native:/output" \
-            ubuntu:20.04 \
+            ubuntu:24.04 \
             bash -c "
               apt-get update -qq &&
               DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libyaz-dev default-jdk-headless maven swig git pkg-config &&

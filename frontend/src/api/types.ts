@@ -22,6 +22,10 @@ export interface LocationResponse {
 
 export type IsbnSource = 'OSZK' | 'MANUAL'
 
+export interface RateLimitExceededResponse {
+  reason: 'DEMO_SESSION_LIMIT_EXCEEDED' | 'DEMO_DAILY_LIMIT_EXCEEDED'
+}
+
 export interface IsbnLookupResult {
   isbn: string
   title: string | null
