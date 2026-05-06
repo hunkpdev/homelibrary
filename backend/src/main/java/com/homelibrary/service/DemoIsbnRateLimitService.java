@@ -5,6 +5,7 @@ import com.homelibrary.exception.DemoRateLimitExceededException;
 import com.homelibrary.repository.DemoIsbnDailyStatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +55,7 @@ public class DemoIsbnRateLimitService {
     }
 
     private void incrementSession(String jti) {
-        cacheManager.getCache(CACHE_NAME).put(jti, getSessionCount(jti) + 1);
+        resolveCache().put(jti, getSessionCount(jti) + 1);
     }
 
     private void incrementDaily() {
@@ -65,8 +66,16 @@ public class DemoIsbnRateLimitService {
     }
 
     private int getSessionCount(String jti) {
-        Integer count = cacheManager.getCache(CACHE_NAME).get(jti, Integer.class);
+        Integer count = resolveCache().get(jti, Integer.class);
         return count != null ? count : 0;
+    }
+
+    private Cache resolveCache() {
+        Cache c = cacheManager.getCache(CACHE_NAME);
+        if (c == null) {
+            throw new IllegalStateException("Cache not found: " + CACHE_NAME);
+        }
+        return c;
     }
 
     private DemoIsbnDailyStats resolveStats(LocalDate today) {

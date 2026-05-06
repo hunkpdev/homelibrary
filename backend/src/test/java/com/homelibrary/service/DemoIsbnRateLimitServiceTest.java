@@ -85,6 +85,14 @@ class DemoIsbnRateLimitServiceTest {
         service.checkLimits(JTI);
     }
 
+    @Test
+    void checkLimits_cacheNull_throwsIllegalState() {
+        when(cacheManager.getCache(DemoIsbnRateLimitService.CACHE_NAME)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.checkLimits(JTI))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
     // --- incrementCounters ---
 
     @Test
@@ -137,6 +145,14 @@ class DemoIsbnRateLimitServiceTest {
         DemoIsbnDailyStats saved = captor.getValue();
         assertThat(saved.getLookupDate()).isEqualTo(TODAY);
         assertThat(saved.getLookupCount()).isEqualTo(1);
+    }
+
+    @Test
+    void incrementCounters_cacheNull_throwsIllegalState() {
+        when(cacheManager.getCache(DemoIsbnRateLimitService.CACHE_NAME)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.incrementCounters(JTI))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     private DemoIsbnDailyStats statsWithCount(LocalDate date, int count) {
