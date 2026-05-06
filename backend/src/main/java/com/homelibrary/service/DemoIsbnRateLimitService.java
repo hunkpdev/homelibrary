@@ -44,7 +44,7 @@ public class DemoIsbnRateLimitService {
 
     private void checkDailyLimit() {
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
-        int count = dailyStatsRepository.findAll().stream().findFirst()
+        int count = dailyStatsRepository.findSingleton()
                 .filter(s -> s.getLookupDate().equals(today))
                 .map(DemoIsbnDailyStats::getLookupCount)
                 .orElse(0);
@@ -70,7 +70,7 @@ public class DemoIsbnRateLimitService {
     }
 
     private DemoIsbnDailyStats resolveStats(LocalDate today) {
-        return dailyStatsRepository.findAll().stream().findFirst()
+        return dailyStatsRepository.findSingleton()
                 .map(stats -> {
                     if (!stats.getLookupDate().equals(today)) {
                         stats.setLookupDate(today);
