@@ -15,22 +15,28 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Build libyaz4j.so from source and extract libyaz.so.5
+      - name: Build libyaz4j.so from source (Ubuntu)
         run: |
-          mkdir -p backend/src/main/resources/native/linux-x86_64
           mkdir -p backend/src/main/resources/native/Linux/amd64
           docker run --rm \
             -v "${{ github.workspace }}/backend/src/main/resources/native:/output" \
-            ubuntu:20.04 \
+            ubuntu:24.04 \
             bash -c "
               apt-get update -qq &&
               DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libyaz-dev default-jdk-headless maven swig git pkg-config &&
               git clone --depth 1 https://github.com/indexdata/yaz4j.git &&
               cd yaz4j &&
               mvn package -DskipTests -q &&
-              find target/native -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so &&
-              cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/linux-x86_64/libyaz.so.5
+              find target/native -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so
             "
+
+      - name: Extract libyaz.so.5 from Lambda Java 21 image
+        run: |
+          mkdir -p backend/src/main/resources/native/linux-x86_64
+          docker run --rm \
+            -v "${{ github.workspace }}/backend/src/main/resources/native:/output" \
+            public.ecr.aws/lambda/java:21 \
+            sh -c "dnf install -y yaz && cp /usr/lib64/libyaz.so.5 /output/linux-x86_64/libyaz.so.5"
 
       - name: Commit native libraries
         run: |
