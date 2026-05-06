@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { isAxiosError } from 'axios'
 import { IsbnScannerInput } from './IsbnScannerInput'
 import { lookupIsbn } from '@/api/isbnApi'
-import type { IsbnLookupResult } from '@/api/types'
+import type { IsbnLookupResult, RateLimitExceededResponse } from '@/api/types'
 import { Button } from '@/components/ui/button'
 
 interface Props {
   onResult: (result: IsbnLookupResult | null, isbn: string) => void
 }
 
-type PanelState = 'idle' | 'loading' | 'found' | 'not-found' | 'rate-limited' | 'error'
+type PanelState = 'idle' | 'loading' | 'found' | 'not-found' | 'rate-limited-session' | 'rate-limited-daily' | 'error'
 
 export function IsbnLookupPanel({ onResult }: Readonly<Props>) {
   const { t } = useTranslation()
@@ -24,7 +24,12 @@ export function IsbnLookupPanel({ onResult }: Readonly<Props>) {
       setState(result === null ? 'not-found' : 'found')
       onResult(result, isbn)
     } catch (err) {
-      setState(isAxiosError(err) && err.response?.status === 429 ? 'rate-limited' : 'error')
+      if (isAxiosError(err) && err.response?.status === 429) {
+        const data = err.response.data as RateLimitExceededResponse
+        setState(data?.reason === 'DEMO_SESSION_LIMIT_EXCEEDED' ? 'rate-limited-session' : 'rate-limited-daily')
+      } else {
+        setState('error')
+      }
     }
   }
 
@@ -51,8 +56,11 @@ export function IsbnLookupPanel({ onResult }: Readonly<Props>) {
           </Button>
         </div>
       )}
-      {state === 'rate-limited' && (
-        <p className="text-sm text-destructive">{t('isbnLookup.rateLimit')}</p>
+      {state === 'rate-limited-daily' && (
+        <p className="text-sm text-destructive">{t('isbnLookup.rateLimit.daily')}</p>
+      )}
+      {state === 'rate-limited-session' && (
+        <p className="text-sm text-destructive">{t('isbnLookup.rateLimit.session')}</p>
       )}
       {state === 'error' && (
         <div className="flex flex-col gap-2">

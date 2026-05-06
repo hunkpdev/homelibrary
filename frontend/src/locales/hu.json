@@ -82,7 +82,10 @@
   "isbnLookup": {
     "connecting": "Adatbázishoz csatlakozás…",
     "notFound": "Nem találtuk az adatbázisban, töltsd ki kézzel",
-    "rateLimit": "Elérted a napi DEMO keresési limitet, holnap újra próbálhatod",
+    "rateLimit": {
+      "daily": "Elérted a napi DEMO keresési limitet, holnap újra próbálhatod",
+      "session": "Elérted a DEMO keresési limitet"
+    },
     "retry": "Újrapróbálkozás"
   },
   "isbnScanner": {

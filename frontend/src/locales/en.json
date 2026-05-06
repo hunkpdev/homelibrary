@@ -83,7 +83,10 @@
   "isbnLookup": {
     "connecting": "Connecting to database…",
     "notFound": "Not found in the database, please fill in manually",
-    "rateLimit": "You have reached the daily DEMO search limit, try again tomorrow",
+    "rateLimit": {
+      "daily": "You have reached the daily DEMO search limit, try again tomorrow",
+      "session": "You have reached the DEMO search limit"
+    },
     "retry": "Try again"
   },
   "isbnScanner": {

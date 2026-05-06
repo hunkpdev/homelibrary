@@ -85,12 +85,22 @@ class IsbnLookupControllerTest {
 
     @Test
     @WithMockUser(roles = "DEMO")
-    void lookup_demoRole_rateLimitExceeded_returns429WithBody() throws Exception {
+    void lookup_demoRole_sessionLimitExceeded_returns429WithBody() throws Exception {
         when(isbnLookupService.lookup(any())).thenThrow(new DemoRateLimitExceededException("session"));
 
         mockMvc.perform(get("/api/books/isbn/{isbn}", ISBN))
                 .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.reason").value("DEMO_RATE_LIMIT_EXCEEDED"));
+                .andExpect(jsonPath("$.reason").value("DEMO_SESSION_LIMIT_EXCEEDED"));
+    }
+
+    @Test
+    @WithMockUser(roles = "DEMO")
+    void lookup_demoRole_dailyLimitExceeded_returns429WithBody() throws Exception {
+        when(isbnLookupService.lookup(any())).thenThrow(new DemoRateLimitExceededException("daily"));
+
+        mockMvc.perform(get("/api/books/isbn/{isbn}", ISBN))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.reason").value("DEMO_DAILY_LIMIT_EXCEEDED"));
     }
 
     @Test

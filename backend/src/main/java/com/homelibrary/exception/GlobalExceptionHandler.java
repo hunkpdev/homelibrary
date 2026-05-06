@@ -41,8 +41,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DemoRateLimitExceededException.class)
-    public ResponseEntity<RateLimitExceededResponse> handleDemoRateLimitExceeded() {
-        return ResponseEntity.status(429).body(new RateLimitExceededResponse("DEMO_RATE_LIMIT_EXCEEDED"));
+    public ResponseEntity<RateLimitExceededResponse> handleDemoRateLimitExceeded(DemoRateLimitExceededException ex) {
+        String reason = "session".equals(ex.getLimitType()) ? "DEMO_SESSION_LIMIT_EXCEEDED" : "DEMO_DAILY_LIMIT_EXCEEDED";
+        return ResponseEntity.status(429).body(new RateLimitExceededResponse(reason));
     }
 
     @ExceptionHandler(InvalidIsbnException.class)
