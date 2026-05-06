@@ -25,6 +25,7 @@ public class IsbnLookupController {
     @ApiResponse(responseCode = "200", description = "Book found")
     @ApiResponse(responseCode = "204", description = "Book not found")
     @ApiResponse(responseCode = "403", description = "VISITOR role not permitted")
+    @ApiResponse(responseCode = "422", description = "Invalid ISBN format")
     @ApiResponse(responseCode = "429", description = "Demo rate limit exceeded")
     @GetMapping("/isbn/{isbn}")
     @PreAuthorize("hasAnyRole('ADMIN', 'DEMO')")
