@@ -10,6 +10,7 @@ import com.homelibrary.entity.User;
 import com.homelibrary.model.BookStatus;
 import com.homelibrary.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class BookController {
     @GetMapping
     @PreAuthorize("hasAnyRole('VISITOR', 'DEMO')")
     public ResponseEntity<Page<BookResponse>> search(
+            @Parameter(description = "Full-text search across title and author fields. Performs partial (contains) matching.")
             @RequestParam(required = false) String search,
             @RequestParam(required = false) BookStatus status,
             @RequestParam(required = false) UUID locationId,
