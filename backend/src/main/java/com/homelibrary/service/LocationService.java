@@ -2,12 +2,17 @@ package com.homelibrary.service;
 
 import com.homelibrary.entity.Location;
 import com.homelibrary.entity.Room;
+import com.homelibrary.exception.ActiveChildException;
 import com.homelibrary.exception.ResourceNotFoundException;
+import com.homelibrary.model.BookStatus;
+import com.homelibrary.repository.BookRepository;
 import com.homelibrary.repository.LocationRepository;
 import com.homelibrary.repository.RoomRepository;
+import com.homelibrary.repository.projection.BookCountProjection;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -16,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -24,20 +31,47 @@ public class LocationService {
 
     private final LocationRepository locationRepository;
     private final RoomRepository roomRepository;
+    private final BookRepository bookRepository;
 
     @Transactional(readOnly = true)
     public Page<LocationWithCount> list(String name, UUID roomId, String description, Pageable pageable) {
         Specification<Location> spec = buildSpec(name, roomId, description);
-        return locationRepository.findAll(spec, pageable)
-                .map(location -> new LocationWithCount(location, 0));
+        Page<Location> locationPage = locationRepository.findAll(spec, pageable);
+
+        if (locationPage.isEmpty()) {
+            return locationPage.map(location -> new LocationWithCount(location, 0));
+        }
+
+        List<UUID> locationIds = locationPage.stream().map(Location::getId).toList();
+        Map<UUID, Long> countByLocationId = bookRepository.countActiveBooksByLocationIds(locationIds)
+                .stream()
+                .collect(Collectors.toMap(BookCountProjection::getLocationId, BookCountProjection::getCount));
+
+        List<LocationWithCount> result = locationPage.stream()
+                .map(location -> new LocationWithCount(location,
+                        countByLocationId.getOrDefault(location.getId(), 0L).intValue()))
+                .toList();
+
+        return new PageImpl<>(result, pageable, locationPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public List<LocationWithCount> findAll() {
         List<Location> locations =
                 locationRepository.findAll(buildSpec(null, null, null), Sort.by(Sort.Direction.ASC, "name"));
+
+        if (locations.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> locationIds = locations.stream().map(Location::getId).toList();
+        Map<UUID, Long> countByLocationId = bookRepository.countActiveBooksByLocationIds(locationIds)
+                .stream()
+                .collect(Collectors.toMap(BookCountProjection::getLocationId, BookCountProjection::getCount));
+
         return locations.stream()
-                .map(location -> new LocationWithCount(location, 0))
+                .map(location -> new LocationWithCount(location,
+                        countByLocationId.getOrDefault(location.getId(), 0L).intValue()))
                 .toList();
     }
 
@@ -70,6 +104,9 @@ public class LocationService {
     public void delete(UUID id) {
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location not found: " + id));
+        if (bookRepository.existsByLocationAndStatusNot(location, BookStatus.DELETED)) {
+            throw new ActiveChildException("Location has active books: " + id);
+        }
         location.setActive(false);
         locationRepository.save(location);
     }

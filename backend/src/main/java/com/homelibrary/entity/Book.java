@@ -5,8 +5,11 @@ import com.homelibrary.model.BookStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,8 +26,9 @@ public class Book extends BaseEntity {
     @Column(length = 500)
     private String subtitle;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(length = 1000)
-    private String authors;
+    private List<String> authors;
 
     @Column(length = 255)
     private String publisher;
@@ -36,8 +40,9 @@ public class Book extends BaseEntity {
     @Column(length = 10)
     private String language;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(length = 500)
-    private String categories;
+    private List<String> categories;
 
     @Column(columnDefinition = "TEXT")
     private String description;
