@@ -31,7 +31,7 @@ public class RoomController {
     @Operation(summary = "List rooms with optional name filter")
     @ApiResponse(responseCode = "200", description = "Rooms returned successfully")
     @GetMapping
-    @PreAuthorize("hasRole('VISITOR')")
+    @PreAuthorize("hasAnyRole('VISITOR', 'DEMO')")
     public ResponseEntity<Page<RoomResponse>> list(
             @RequestParam(required = false) String name,
             @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -41,7 +41,7 @@ public class RoomController {
     @Operation(summary = "List all active rooms without pagination")
     @ApiResponse(responseCode = "200", description = "All rooms returned successfully")
     @GetMapping("/all")
-    @PreAuthorize("hasRole('VISITOR')")
+    @PreAuthorize("hasAnyRole('VISITOR', 'DEMO')")
     public ResponseEntity<List<RoomResponse>> listAll() {
         return ResponseEntity.ok(roomService.findAll().stream().map(this::toResponse).toList());
     }
