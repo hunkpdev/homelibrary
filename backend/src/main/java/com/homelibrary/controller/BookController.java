@@ -1,8 +1,10 @@
 package com.homelibrary.controller;
 
 import com.homelibrary.dto.BookCreateRequest;
+import com.homelibrary.dto.BookLocationRequest;
 import com.homelibrary.dto.BookResponse;
 import com.homelibrary.dto.BookSearchParams;
+import com.homelibrary.dto.BookStatusRequest;
 import com.homelibrary.dto.BookUpdateRequest;
 import com.homelibrary.entity.User;
 import com.homelibrary.model.BookStatus;
@@ -80,6 +82,32 @@ public class BookController {
             @PathVariable UUID id,
             @Valid @RequestBody BookUpdateRequest request) {
         return ResponseEntity.ok(bookService.update(id, request));
+    }
+
+    @Operation(summary = "Update book status (AT_HOME or LOANED only — use DELETE for soft delete)")
+    @ApiResponse(responseCode = "200", description = "Status updated successfully")
+    @ApiResponse(responseCode = "400", description = "DELETED status not allowed on this endpoint")
+    @ApiResponse(responseCode = "404", description = "Book not found")
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookResponse> updateStatus(
+            @PathVariable UUID id,
+            @Valid @RequestBody BookStatusRequest request) {
+        if (request.status() == BookStatus.DELETED) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(bookService.updateStatus(id, request.status()));
+    }
+
+    @Operation(summary = "Move book to a different location")
+    @ApiResponse(responseCode = "200", description = "Location updated successfully")
+    @ApiResponse(responseCode = "404", description = "Book or location not found")
+    @PutMapping("/{id}/location")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookResponse> updateLocation(
+            @PathVariable UUID id,
+            @Valid @RequestBody BookLocationRequest request) {
+        return ResponseEntity.ok(bookService.updateLocation(id, request.locationId()));
     }
 
     @Operation(summary = "Soft delete a book")

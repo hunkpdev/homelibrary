@@ -323,6 +323,67 @@ class BookServiceTest {
         assertThat(result.categories()).containsExactly("Software Engineering");
     }
 
+    @Test
+    void updateStatus_found_updatesStatus() {
+        Book book = bookWithTitle("Clean Code");
+        UUID id = book.getId();
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(bookRepository.save(any())).thenReturn(book);
+
+        BookResponse result = bookService.updateStatus(id, BookStatus.LOANED);
+
+        ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+        verify(bookRepository).save(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(BookStatus.LOANED);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void updateStatus_notFound_throwsResourceNotFoundException() {
+        UUID id = UUID.randomUUID();
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.updateStatus(id, BookStatus.LOANED))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    void updateLocation_found_setsNewLocation() {
+        UUID locationId = UUID.randomUUID();
+        Location location = activeLocation("New Shelf");
+        location.setId(locationId);
+
+        Book book = bookWithTitle("Clean Code");
+        UUID id = book.getId();
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(locationRepository.findById(locationId)).thenReturn(Optional.of(location));
+        when(bookRepository.save(any())).thenReturn(book);
+
+        bookService.updateLocation(id, locationId);
+
+        ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+        verify(bookRepository).save(captor.capture());
+        assertThat(captor.getValue().getLocation()).isEqualTo(location);
+    }
+
+    @Test
+    void updateLocation_locationNotFound_throwsResourceNotFoundException() {
+        UUID locationId = UUID.randomUUID();
+        Book book = bookWithTitle("Clean Code");
+        UUID id = book.getId();
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(locationRepository.findById(locationId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.updateLocation(id, locationId))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(bookRepository, never()).save(any());
+    }
+
     private Book bookWithTitle(String title) {
         Book book = new Book();
         book.setId(UUID.randomUUID());

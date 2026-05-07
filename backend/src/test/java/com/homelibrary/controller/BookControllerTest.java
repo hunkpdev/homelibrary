@@ -3,7 +3,9 @@ package com.homelibrary.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.homelibrary.config.CorsProperties;
 import com.homelibrary.dto.BookCreateRequest;
+import com.homelibrary.dto.BookLocationRequest;
 import com.homelibrary.dto.BookResponse;
+import com.homelibrary.dto.BookStatusRequest;
 import com.homelibrary.dto.BookUpdateRequest;
 import com.homelibrary.entity.User;
 import com.homelibrary.model.BookStatus;
@@ -171,6 +173,64 @@ class BookControllerTest {
     void delete_visitorRole_returns403() throws Exception {
         UUID id = UUID.randomUUID();
         mockMvc.perform(delete("/api/books/{id}", id))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateStatus_adminRole_returns200() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(bookService.updateStatus(any(), any())).thenReturn(bookResponse(id));
+
+        mockMvc.perform(put("/api/books/{id}/status", id)
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(adminAuthentication()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"LOANED\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateStatus_deletedStatus_returns400() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        mockMvc.perform(put("/api/books/{id}/status", id)
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(adminAuthentication()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"DELETED\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "VISITOR")
+    void updateStatus_visitorRole_returns403() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(put("/api/books/{id}/status", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"LOANED\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateLocation_adminRole_returns200() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(bookService.updateLocation(any(), any())).thenReturn(bookResponse(id));
+
+        mockMvc.perform(put("/api/books/{id}/location", id)
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(adminAuthentication()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new BookLocationRequest(UUID.randomUUID()))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "VISITOR")
+    void updateLocation_visitorRole_returns403() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(put("/api/books/{id}/location", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new BookLocationRequest(UUID.randomUUID()))))
                 .andExpect(status().isForbidden());
     }
 

@@ -80,6 +80,22 @@ public class BookService {
         bookRepository.save(book);
     }
 
+    @Transactional
+    public BookResponse updateStatus(UUID id, BookStatus status) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(BOOK_NOT_FOUND + id));
+        book.setStatus(status);
+        return toResponse(bookRepository.save(book));
+    }
+
+    @Transactional
+    public BookResponse updateLocation(UUID id, UUID locationId) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(BOOK_NOT_FOUND + id));
+        book.setLocation(getLocation(locationId));
+        return toResponse(bookRepository.save(book));
+    }
+
     private Location getLocation(UUID locationId) {
         return locationRepository.findById(locationId)
                 .filter(Location::isActive)
