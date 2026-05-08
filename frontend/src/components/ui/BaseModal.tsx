@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { MutationButton } from '@/components/common/MutationButton'
 import {
   Dialog,
   DialogContent,
@@ -44,7 +45,7 @@ export function BaseModal({
           <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
             {cancelLabel}
           </Button>
-          <Button
+          <MutationButton
             type={formId ? 'submit' : 'button'}
             form={formId}
             variant={confirmVariant}
@@ -52,7 +53,7 @@ export function BaseModal({
             disabled={isLoading || confirmDisabled}
           >
             {isLoading ? loadingLabel : confirmLabel}
-          </Button>
+          </MutationButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -26,11 +26,11 @@ type NavItem = {
 }
 
 const navItems: NavItem[] = [
-  { labelKey: 'nav.books',     icon: BookOpen,   to: '/books',     roles: ['ADMIN', 'VISITOR'] },
-  { labelKey: 'nav.locations', icon: MapPin,      to: '/locations', roles: ['ADMIN', 'VISITOR'] },
+  { labelKey: 'nav.books',     icon: BookOpen,   to: '/books',     roles: ['ADMIN', 'VISITOR', 'DEMO'] },
+  { labelKey: 'nav.locations', icon: MapPin,      to: '/locations', roles: ['ADMIN', 'VISITOR', 'DEMO'] },
   { labelKey: 'nav.loans',     icon: BookMarked,  to: '/loans',     roles: ['ADMIN'] },
   { labelKey: 'nav.users',     icon: Users,       to: '/users',     roles: ['ADMIN'] },
-  { labelKey: 'nav.profile',   icon: User,        to: '/profile',   roles: ['ADMIN', 'VISITOR'] },
+  { labelKey: 'nav.profile',   icon: User,        to: '/profile',   roles: ['ADMIN', 'VISITOR', 'DEMO'] },
 ]
 
 export function AppSidebar() {

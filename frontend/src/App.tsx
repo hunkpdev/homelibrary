@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import axios from 'axios'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeContext, useThemeProvider } from '@/hooks/useTheme'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage } from '@/pages/LoginPage'
@@ -41,24 +42,26 @@ function App() {
 
   return (
     <ThemeContext.Provider value={themeValue}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/403" element={<ForbiddenPage />} />
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'VISITOR']} />}>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<div className="text-foreground">Üdvözlünk a Homelibraryban!</div>} />
-              <Route path="/books" element={<div className="text-foreground">Könyvek</div>} />
-              <Route path="/profile" element={<div className="text-foreground">Saját profil</div>} />
-              <Route path="/locations" element={<LocationManagementPage />} />
-              <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                <Route path="/loans" element={<div className="text-foreground">Kölcsönzések</div>} />
-                <Route path="/users" element={<div className="text-foreground">Felhasználók</div>} />
+      <TooltipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/403" element={<ForbiddenPage />} />
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'VISITOR', 'DEMO']} />}>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<div className="text-foreground">Üdvözlünk a Homelibraryban!</div>} />
+                <Route path="/books" element={<div className="text-foreground">Könyvek</div>} />
+                <Route path="/profile" element={<div className="text-foreground">Saját profil</div>} />
+                <Route path="/locations" element={<LocationManagementPage />} />
+                <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                  <Route path="/loans" element={<div className="text-foreground">Kölcsönzések</div>} />
+                  <Route path="/users" element={<div className="text-foreground">Felhasználók</div>} />
+                </Route>
               </Route>
             </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </ThemeContext.Provider>
   )
 }

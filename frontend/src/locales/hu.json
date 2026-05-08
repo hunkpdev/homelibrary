@@ -22,7 +22,8 @@
     "cancel": "Mégse",
     "delete": "Törlés",
     "deleting": "Törlés...",
-    "errorUnexpected": "Váratlan hiba történt"
+    "errorUnexpected": "Váratlan hiba történt",
+    "demoTooltip": "Demo módban ez a művelet nem elérhető"
   },
   "locations": {
     "pageTitle": "Helyszínek kezelése",

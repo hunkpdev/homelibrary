@@ -22,7 +22,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "deleting": "Deleting...",
-    "errorUnexpected": "An unexpected error occurred"
+    "errorUnexpected": "An unexpected error occurred",
+    "demoTooltip": "This action is not available in demo mode"
   },
   "locations": {
     "pageTitle": "Location Management",
