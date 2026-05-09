@@ -114,6 +114,26 @@
       "createdAt": "Létrehozva",
       "edit": "Szerkesztés"
     },
+    "add": {
+      "title": "Új könyv",
+      "newBook": "Új könyv",
+      "manualEntry": "Kézi bevitel",
+      "titleLabel": "Cím",
+      "subtitleLabel": "Alcím",
+      "isbnLabel": "ISBN",
+      "authorsLabel": "Szerző(k)",
+      "publisherLabel": "Kiadó",
+      "publishYearLabel": "Kiadási év",
+      "pageCountLabel": "Oldalszám",
+      "languageLabel": "Nyelv",
+      "categoriesLabel": "Kategóriák",
+      "locationLabel": "Helyszín",
+      "locationPlaceholder": "Válassz helyszínt",
+      "descriptionLabel": "Leírás",
+      "commaSeparated": "Vesszővel elválasztva",
+      "save": "Mentés",
+      "saving": "Mentés..."
+    },
     "delete": {
       "title": "Könyv törlése",
       "confirm": "Biztosan törlöd a(z) \"{{title}}\" könyvet?"

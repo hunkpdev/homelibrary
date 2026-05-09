@@ -73,6 +73,21 @@ export interface IsbnLookupResult {
   source: IsbnSource
 }
 
+export interface BookCreateRequest {
+  isbn?: string
+  title: string
+  subtitle?: string
+  authors?: string[]
+  publisher?: string
+  publishYear?: number
+  pageCount?: number
+  language?: string
+  categories?: string[]
+  description?: string
+  locationId?: string
+  source: BookSource
+}
+
 export interface Page<T> {
   content: T[]
   page: {

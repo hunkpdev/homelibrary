@@ -11,8 +11,10 @@ import { useAuthStore } from '@/store/authStore'
 import { useTheme } from '@/hooks/useTheme'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { BookActionCell } from '@/components/books/BookActionCell'
+import { BookAddModal } from '@/components/books/BookAddModal'
 import { BookDetailPanel } from '@/components/books/BookDetailPanel'
 import { DeleteModal } from '@/components/ui/DeleteModal'
+import { Button } from '@/components/ui/button'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -26,6 +28,7 @@ export function BookListPage() {
   const { booksRefreshTrigger, incrementRefreshTrigger } = useBookStore()
 
   const gridRef = useRef<AgGridReact<BookResponse>>(null)
+  const [addModalOpen, setAddModalOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState<BookResponse | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<BookResponse | undefined>(undefined)
 
@@ -139,7 +142,12 @@ export function BookListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold text-foreground">{t('books.pageTitle')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-foreground">{t('books.pageTitle')}</h1>
+        {(isAdmin || isDemo) && (
+          <Button onClick={() => setAddModalOpen(true)}>{t('books.add.newBook')}</Button>
+        )}
+      </div>
       <div className="w-full" style={{ height: 500 }}>
         <AgGridReact<BookResponse>
           theme={gridTheme}
@@ -168,6 +176,12 @@ export function BookListPage() {
           }}
         />
       </div>
+
+      <BookAddModal
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSuccess={incrementRefreshTrigger}
+      />
 
       <BookDetailPanel
         book={selectedBook}

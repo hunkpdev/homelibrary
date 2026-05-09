@@ -115,6 +115,26 @@
       "createdAt": "Created",
       "edit": "Edit"
     },
+    "add": {
+      "title": "New book",
+      "newBook": "New book",
+      "manualEntry": "Manual entry",
+      "titleLabel": "Title",
+      "subtitleLabel": "Subtitle",
+      "isbnLabel": "ISBN",
+      "authorsLabel": "Author(s)",
+      "publisherLabel": "Publisher",
+      "publishYearLabel": "Publication year",
+      "pageCountLabel": "Page count",
+      "languageLabel": "Language",
+      "categoriesLabel": "Categories",
+      "locationLabel": "Location",
+      "locationPlaceholder": "Select a location",
+      "descriptionLabel": "Description",
+      "commaSeparated": "Comma-separated",
+      "save": "Save",
+      "saving": "Saving..."
+    },
     "delete": {
       "title": "Delete book",
       "confirm": "Are you sure you want to delete \"{{title}}\"?"

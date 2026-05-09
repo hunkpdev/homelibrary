@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance'
-import type { BookResponse, Page } from './types'
+import type { BookCreateRequest, BookResponse, Page } from './types'
 
 export function fetchBooks(params: {
   page: number
@@ -12,6 +12,10 @@ export function fetchBooks(params: {
   publishYear?: string
 }): Promise<Page<BookResponse>> {
   return axiosInstance.get<Page<BookResponse>>('/api/books', { params }).then(r => r.data)
+}
+
+export function createBook(data: BookCreateRequest): Promise<BookResponse> {
+  return axiosInstance.post<BookResponse>('/api/books', data).then(r => r.data)
 }
 
 export function deleteBook(id: string): Promise<void> {

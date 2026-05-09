@@ -40,6 +40,7 @@ public class BookService {
     @Transactional
     public BookResponse create(BookCreateRequest request, UUID addedByUserId) {
         Book book = modelMapper.map(request, Book.class);
+        book.setId(null);
         book.setStatus(BookStatus.AT_HOME);
         if (request.locationId() != null) {
             book.setLocation(getLocation(request.locationId()));
@@ -66,6 +67,7 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(BOOK_NOT_FOUND + id));
         modelMapper.map(request, book);
+        book.setId(id);
         book.setVersion(request.version());
         book.setLocation(request.locationId() != null ? getLocation(request.locationId()) : null);
         return toResponse(bookRepository.save(book));
