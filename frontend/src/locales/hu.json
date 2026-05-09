@@ -91,6 +91,29 @@
       "editBook": "Szerkesztés",
       "deleteBook": "Törlés"
     },
+    "status": {
+      "AT_HOME": "Itthon",
+      "LOANED": "Kölcsönadva",
+      "DELETED": "Törölt"
+    },
+    "source": {
+      "OSZK": "OSZK",
+      "MANUAL": "Kézi"
+    },
+    "detail": {
+      "isbn": "ISBN",
+      "subtitle": "Alcím",
+      "publisher": "Kiadó",
+      "publishYear": "Kiadási év",
+      "pageCount": "Oldalszám",
+      "language": "Nyelv",
+      "categories": "Kategóriák",
+      "source": "Forrás",
+      "location": "Helyszín",
+      "description": "Leírás",
+      "createdAt": "Létrehozva",
+      "edit": "Szerkesztés"
+    },
     "delete": {
       "title": "Könyv törlése",
       "confirm": "Biztosan törlöd a(z) \"{{title}}\" könyvet?"

@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useTheme } from '@/hooks/useTheme'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { BookActionCell } from '@/components/books/BookActionCell'
+import { BookDetailPanel } from '@/components/books/BookDetailPanel'
 import { DeleteModal } from '@/components/ui/DeleteModal'
 
 ModuleRegistry.registerModules([AllCommunityModule])
@@ -25,6 +26,7 @@ export function BookListPage() {
   const { booksRefreshTrigger, incrementRefreshTrigger } = useBookStore()
 
   const gridRef = useRef<AgGridReact<BookResponse>>(null)
+  const [selectedBook, setSelectedBook] = useState<BookResponse | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<BookResponse | undefined>(undefined)
 
   useEffect(() => {
@@ -56,6 +58,11 @@ export function BookListPage() {
     setDeleteTarget(book)
   }, [])
 
+  const handleDeleteSuccess = useCallback(() => {
+    incrementRefreshTrigger()
+    setSelectedBook(null)
+  }, [incrementRefreshTrigger])
+
   const colDefs = useMemo<ColDef<BookResponse>[]>(() => {
     const textFilterProps = {
       filter: 'agTextColumnFilter',
@@ -65,6 +72,7 @@ export function BookListPage() {
     }
 
     const actionCol: ColDef<BookResponse> = {
+      colId: 'actions',
       headerName: '',
       field: 'id',
       width: 100,
@@ -153,13 +161,25 @@ export function BookListPage() {
           paginationPageSize={PAGE_SIZE}
           paginationPageSizeSelector={[5, 10, 20]}
           localeText={gridLocaleText}
+          onCellClicked={params => {
+            if (params.column.getColId() !== 'actions' && params.data) {
+              setSelectedBook(params.data)
+            }
+          }}
         />
       </div>
+
+      <BookDetailPanel
+        book={selectedBook}
+        open={selectedBook !== null}
+        onClose={() => setSelectedBook(null)}
+        onDelete={handleOpenDelete}
+      />
 
       <DeleteModal
         open={deleteTarget !== undefined}
         onClose={() => setDeleteTarget(undefined)}
-        onSuccess={incrementRefreshTrigger}
+        onSuccess={handleDeleteSuccess}
         onDelete={() => deleteBook(deleteTarget!.id)}
         title={t('books.delete.title')}
         description={t('books.delete.confirm', { title: deleteTarget?.title ?? '' })}

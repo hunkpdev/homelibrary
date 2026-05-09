@@ -92,6 +92,29 @@
       "editBook": "Edit",
       "deleteBook": "Delete"
     },
+    "status": {
+      "AT_HOME": "At home",
+      "LOANED": "Loaned out",
+      "DELETED": "Deleted"
+    },
+    "source": {
+      "OSZK": "OSZK",
+      "MANUAL": "Manual"
+    },
+    "detail": {
+      "isbn": "ISBN",
+      "subtitle": "Subtitle",
+      "publisher": "Publisher",
+      "publishYear": "Publication year",
+      "pageCount": "Page count",
+      "language": "Language",
+      "categories": "Categories",
+      "source": "Source",
+      "location": "Location",
+      "description": "Description",
+      "createdAt": "Created",
+      "edit": "Edit"
+    },
     "delete": {
       "title": "Delete book",
       "confirm": "Are you sure you want to delete \"{{title}}\"?"
