@@ -49,8 +49,8 @@ export function RoomFormModal({ open, onClose, onSuccess, room }: Readonly<Props
       error={error}
       isLoading={isLoading}
       cancelLabel={t('common.cancel')}
-      confirmLabel={t('locations.rooms.form.save')}
-      loadingLabel={t('locations.rooms.form.saving')}
+      confirmLabel={t('common.save')}
+      loadingLabel={t('common.saving')}
       confirmDisabled={!name.trim()}
       formId={FORM_ID}
     >

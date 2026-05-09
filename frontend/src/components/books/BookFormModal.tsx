@@ -270,7 +270,7 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
                 form={FORM_ID}
                 disabled={isLoading || !fields.title.trim()}
               >
-                {isLoading ? t('books.add.saving') : t('books.add.save')}
+                {isLoading ? t('common.saving') : t('common.save')}
               </MutationButton>
             </DialogFooter>
           </>

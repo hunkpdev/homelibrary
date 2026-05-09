@@ -159,8 +159,8 @@ export function LocationManagementPage() {
         isDemo,
         onEdit: handleOpenEditLocation,
         onDelete: handleOpenDeleteLocation,
-        deleteLabel: t('locations.grid.deleteLocation'),
-        editLabel: t('locations.grid.editLocation'),
+        deleteLabel: t('common.delete'),
+        editLabel: t('common.edit'),
       },
     }
 
@@ -255,7 +255,7 @@ export function LocationManagementPage() {
                 </div>
                 {(isAdmin || isDemo) && (
                   <div className="flex gap-1 shrink-0">
-                    <MutationButton variant="ghost" size="icon" className="h-7 w-7" aria-label={t('locations.rooms.editRoom')} onClick={() => handleOpenEditRoom(room)}>
+                    <MutationButton variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </MutationButton>
                     <MutationButton
@@ -272,7 +272,7 @@ export function LocationManagementPage() {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive"
-                        aria-label={t('locations.rooms.deleteRoom')}
+                        aria-label={t('common.delete')}
                         onClick={() => setDeleteRoomTarget(room)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

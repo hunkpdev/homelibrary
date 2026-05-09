@@ -20,8 +20,11 @@
   "common": {
     "loading": "Betöltés...",
     "cancel": "Mégse",
+    "edit": "Szerkesztés",
     "delete": "Törlés",
     "deleting": "Törlés...",
+    "save": "Mentés",
+    "saving": "Mentés...",
     "errorUnexpected": "Váratlan hiba történt",
     "demoTooltip": "Demo módban ez a művelet nem elérhető"
   },
@@ -30,8 +33,6 @@
     "rooms": {
       "panelTitle": "Helyiségek",
       "newRoom": "Új helyiség",
-      "editRoom": "Szerkesztés",
-      "deleteRoom": "Törlés",
       "addLocation": "+ Helyszín",
       "locationCount": "helyszín",
       "form": {
@@ -41,8 +42,6 @@
         "namePlaceholder": "Pl. Nappali",
         "descriptionLabel": "Leírás",
         "descriptionPlaceholder": "Opcionális megjegyzés",
-        "save": "Mentés",
-        "saving": "Mentés...",
         "errorConflict": "Ez a névváltoztatás ütközést okozna"
       },
       "delete": {
@@ -60,8 +59,6 @@
       "descriptionPlaceholder": "Opcionális megjegyzés",
       "roomLabel": "Helyiség",
       "roomPlaceholder": "Válassz helyiséget",
-      "save": "Mentés",
-      "saving": "Mentés...",
       "errorConflict": "Ez a névváltoztatás ütközést okozna"
     },
     "delete": {
@@ -75,9 +72,7 @@
       "colRoom": "Helyiség",
       "colBookCount": "Könyvek",
       "filterAllRooms": "Minden helyiség",
-      "filterAllLocations": "Minden helyszín",
-      "deleteLocation": "Törlés",
-      "editLocation": "Szerkesztés"
+      "filterAllLocations": "Minden helyszín"
     }
   },
   "books": {
@@ -87,9 +82,7 @@
       "colTitle": "Cím",
       "colAuthors": "Szerző(k)",
       "colPublishYear": "Kiadási év",
-      "colCategories": "Kategóriák",
-      "editBook": "Szerkesztés",
-      "deleteBook": "Törlés"
+      "colCategories": "Kategóriák"
     },
     "status": {
       "AT_HOME": "Itthon",
@@ -111,8 +104,7 @@
       "source": "Forrás",
       "location": "Helyszín",
       "description": "Leírás",
-      "createdAt": "Létrehozva",
-      "edit": "Szerkesztés"
+      "createdAt": "Létrehozva"
     },
     "add": {
       "title": "Új könyv",
@@ -130,9 +122,7 @@
       "locationLabel": "Helyszín",
       "locationPlaceholder": "Válassz helyszínt",
       "descriptionLabel": "Leírás",
-      "commaSeparated": "Vesszővel elválasztva",
-      "save": "Mentés",
-      "saving": "Mentés..."
+      "commaSeparated": "Vesszővel elválasztva"
     },
     "edit": {
       "title": "Könyv szerkesztése",

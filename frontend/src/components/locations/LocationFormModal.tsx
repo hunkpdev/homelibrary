@@ -54,8 +54,8 @@ export function LocationFormModal({ open, onClose, onSuccess, location, rooms, d
       error={error}
       isLoading={isLoading}
       cancelLabel={t('common.cancel')}
-      confirmLabel={t('locations.form.save')}
-      loadingLabel={t('locations.form.saving')}
+      confirmLabel={t('common.save')}
+      loadingLabel={t('common.saving')}
       confirmDisabled={!name.trim() || !roomId}
       formId={FORM_ID}
     >

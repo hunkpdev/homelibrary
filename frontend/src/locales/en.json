@@ -20,8 +20,11 @@
   "common": {
     "loading": "Loading...",
     "cancel": "Cancel",
+    "edit": "Edit",
     "delete": "Delete",
     "deleting": "Deleting...",
+    "save": "Save",
+    "saving": "Saving...",
     "errorUnexpected": "An unexpected error occurred",
     "demoTooltip": "This action is not available in demo mode"
   },
@@ -30,8 +33,6 @@
     "rooms": {
       "panelTitle": "Rooms",
       "newRoom": "New room",
-      "editRoom": "Edit",
-      "deleteRoom": "Delete",
       "addLocation": "+ Location",
       "locationCount_one": "location",
       "locationCount_other": "locations",
@@ -42,8 +43,6 @@
         "namePlaceholder": "E.g. Living room",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Optional note",
-        "save": "Save",
-        "saving": "Saving...",
         "errorConflict": "This name change would cause a conflict"
       },
       "delete": {
@@ -61,8 +60,6 @@
       "descriptionPlaceholder": "Optional note",
       "roomLabel": "Room",
       "roomPlaceholder": "Select a room",
-      "save": "Save",
-      "saving": "Saving...",
       "errorConflict": "This name change would cause a conflict"
     },
     "delete": {
@@ -76,9 +73,7 @@
       "colRoom": "Room",
       "colBookCount": "Books",
       "filterAllRooms": "All rooms",
-      "filterAllLocations": "All locations",
-      "deleteLocation": "Delete",
-      "editLocation": "Edit"
+      "filterAllLocations": "All locations"
     }
   },
   "books": {
@@ -88,9 +83,7 @@
       "colTitle": "Title",
       "colAuthors": "Author(s)",
       "colPublishYear": "Year",
-      "colCategories": "Categories",
-      "editBook": "Edit",
-      "deleteBook": "Delete"
+      "colCategories": "Categories"
     },
     "status": {
       "AT_HOME": "At home",
@@ -112,8 +105,7 @@
       "source": "Source",
       "location": "Location",
       "description": "Description",
-      "createdAt": "Created",
-      "edit": "Edit"
+      "createdAt": "Created"
     },
     "add": {
       "title": "New book",
@@ -131,9 +123,7 @@
       "locationLabel": "Location",
       "locationPlaceholder": "Select a location",
       "descriptionLabel": "Description",
-      "commaSeparated": "Comma-separated",
-      "save": "Save",
-      "saving": "Saving..."
+      "commaSeparated": "Comma-separated"
     },
     "edit": {
       "title": "Edit book",

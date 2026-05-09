@@ -97,8 +97,8 @@ export function BookListPage() {
         isDemo,
         onEdit: handleOpenEdit,
         onDelete: handleOpenDelete,
-        editLabel: t('books.grid.editBook'),
-        deleteLabel: t('books.grid.deleteBook'),
+        editLabel: t('common.edit'),
+        deleteLabel: t('common.delete'),
       },
     }
 
