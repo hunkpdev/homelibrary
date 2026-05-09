@@ -16,6 +16,7 @@ const location: LocationResponse = {
 const defaultProps = {
   data: location,
   isAdmin: true,
+  isDemo: false,
   onEdit: vi.fn(),
   onDelete: vi.fn(),
   editLabel: 'Edit',
@@ -23,8 +24,8 @@ const defaultProps = {
 }
 
 describe('ActionCell', () => {
-  it('isAdmin false → renders nothing', () => {
-    const { container } = render(<ActionCell {...defaultProps} isAdmin={false} />)
+  it('isAdmin false, isDemo false → renders nothing', () => {
+    const { container } = render(<ActionCell {...defaultProps} isAdmin={false} isDemo={false} />)
     expect(container).toBeEmptyDOMElement()
   })
 

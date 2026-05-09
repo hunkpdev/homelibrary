@@ -20,17 +20,19 @@
   "common": {
     "loading": "Betöltés...",
     "cancel": "Mégse",
+    "edit": "Szerkesztés",
     "delete": "Törlés",
     "deleting": "Törlés...",
-    "errorUnexpected": "Váratlan hiba történt"
+    "save": "Mentés",
+    "saving": "Mentés...",
+    "errorUnexpected": "Váratlan hiba történt",
+    "demoTooltip": "Demo módban ez a művelet nem elérhető"
   },
   "locations": {
     "pageTitle": "Helyszínek kezelése",
     "rooms": {
       "panelTitle": "Helyiségek",
       "newRoom": "Új helyiség",
-      "editRoom": "Szerkesztés",
-      "deleteRoom": "Törlés",
       "addLocation": "+ Helyszín",
       "locationCount": "helyszín",
       "form": {
@@ -40,8 +42,6 @@
         "namePlaceholder": "Pl. Nappali",
         "descriptionLabel": "Leírás",
         "descriptionPlaceholder": "Opcionális megjegyzés",
-        "save": "Mentés",
-        "saving": "Mentés...",
         "errorConflict": "Ez a névváltoztatás ütközést okozna"
       },
       "delete": {
@@ -59,8 +59,6 @@
       "descriptionPlaceholder": "Opcionális megjegyzés",
       "roomLabel": "Helyiség",
       "roomPlaceholder": "Válassz helyiséget",
-      "save": "Mentés",
-      "saving": "Mentés...",
       "errorConflict": "Ez a névváltoztatás ütközést okozna"
     },
     "delete": {
@@ -74,9 +72,65 @@
       "colRoom": "Helyiség",
       "colBookCount": "Könyvek",
       "filterAllRooms": "Minden helyiség",
-      "filterAllLocations": "Minden helyszín",
-      "deleteLocation": "Törlés",
-      "editLocation": "Szerkesztés"
+      "filterAllLocations": "Minden helyszín"
+    }
+  },
+  "books": {
+    "pageTitle": "Könyvek",
+    "grid": {
+      "colIsbn": "ISBN",
+      "colTitle": "Cím",
+      "colAuthors": "Szerző(k)",
+      "colPublishYear": "Kiadási év",
+      "colCategories": "Kategóriák"
+    },
+    "status": {
+      "AT_HOME": "Itthon",
+      "LOANED": "Kölcsönadva",
+      "DELETED": "Törölt"
+    },
+    "source": {
+      "OSZK": "OSZK",
+      "MANUAL": "Kézi"
+    },
+    "detail": {
+      "isbn": "ISBN",
+      "subtitle": "Alcím",
+      "publisher": "Kiadó",
+      "publishYear": "Kiadási év",
+      "pageCount": "Oldalszám",
+      "language": "Nyelv",
+      "categories": "Kategóriák",
+      "source": "Forrás",
+      "location": "Helyszín",
+      "description": "Leírás",
+      "createdAt": "Létrehozva"
+    },
+    "add": {
+      "title": "Új könyv",
+      "newBook": "Új könyv",
+      "manualEntry": "Kézi bevitel",
+      "titleLabel": "Cím",
+      "subtitleLabel": "Alcím",
+      "isbnLabel": "ISBN",
+      "authorsLabel": "Szerző(k)",
+      "publisherLabel": "Kiadó",
+      "publishYearLabel": "Kiadási év",
+      "pageCountLabel": "Oldalszám",
+      "languageLabel": "Nyelv",
+      "categoriesLabel": "Kategóriák",
+      "locationLabel": "Helyszín",
+      "locationPlaceholder": "Válassz helyszínt",
+      "descriptionLabel": "Leírás",
+      "commaSeparated": "Vesszővel elválasztva"
+    },
+    "edit": {
+      "title": "Könyv szerkesztése",
+      "errorConflict": "A könyv időközben módosult, kérlek töltsd be újra"
+    },
+    "delete": {
+      "title": "Könyv törlése",
+      "confirm": "Biztosan törlöd a(z) \"{{title}}\" könyvet?"
     }
   },
   "isbnLookup": {

@@ -3,7 +3,7 @@ import { create } from 'zustand'
 export type AuthUser = {
   id: string
   username: string
-  role: 'ADMIN' | 'VISITOR'
+  role: 'ADMIN' | 'VISITOR' | 'DEMO'
 }
 
 type AuthState = {
@@ -17,7 +17,7 @@ type AuthState = {
 }
 
 function decodeAuthUser(token: string): AuthUser {
-  const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+  const payload = JSON.parse(atob(token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')))
   return {
     id: payload.sub,
     username: payload.username,

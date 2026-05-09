@@ -32,7 +32,7 @@ public class LocationController {
     @Operation(summary = "List locations with optional name and room filters")
     @ApiResponse(responseCode = "200", description = "Locations returned successfully")
     @GetMapping
-    @PreAuthorize("hasRole('VISITOR')")
+    @PreAuthorize("hasAnyRole('VISITOR', 'DEMO')")
     public ResponseEntity<Page<LocationResponse>> list(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) UUID roomId,
@@ -44,7 +44,7 @@ public class LocationController {
     @Operation(summary = "List all active locations without pagination")
     @ApiResponse(responseCode = "200", description = "All locations returned successfully")
     @GetMapping("/all")
-    @PreAuthorize("hasRole('VISITOR')")
+    @PreAuthorize("hasAnyRole('VISITOR', 'DEMO')")
     public ResponseEntity<List<LocationResponse>> listAll() {
         return ResponseEntity.ok(locationService.findAll().stream().map(this::toResponse).toList());
     }

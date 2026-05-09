@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-seed-demo-user
+      author: homelibrary
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  value: 00000000-0000-0000-0000-000000000002
+              - column:
+                  name: username
+                  value: demo
+              - column:
+                  name: email
+                  value: demo@homelibrary.local
+              - column:
+                  name: password_hash
+                  value: $2a$12$pMq4ExBG0UTyavDQIXu99uWkh2CppAjkwEC04qpaflnByVOOBwZRG
+              - column:
+                  name: preferred_language
+                  value: en
+              - column:
+                  name: role
+                  value: DEMO
+              - column:
+                  name: active
+                  valueBoolean: true
+              - column:
+                  name: version
+                  valueNumeric: 0
+              - column:
+                  name: created_at
+                  valueComputed: NOW()
+              - column:
+                  name: updated_at
+                  valueComputed: NOW()

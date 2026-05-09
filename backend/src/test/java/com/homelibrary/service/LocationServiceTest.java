@@ -2,7 +2,10 @@ package com.homelibrary.service;
 
 import com.homelibrary.entity.Location;
 import com.homelibrary.entity.Room;
+import com.homelibrary.exception.ActiveChildException;
 import com.homelibrary.exception.ResourceNotFoundException;
+import com.homelibrary.model.BookStatus;
+import com.homelibrary.repository.BookRepository;
 import com.homelibrary.repository.LocationRepository;
 import com.homelibrary.repository.RoomRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +49,14 @@ class LocationServiceTest {
     private LocationRepository locationRepository;
     @Mock
     private RoomRepository roomRepository;
+    @Mock
+    private BookRepository bookRepository;
 
     private LocationService locationService;
 
     @BeforeEach
     void setUp() {
-        locationService = new LocationService(locationRepository, roomRepository);
+        locationService = new LocationService(locationRepository, roomRepository, bookRepository);
     }
 
     @Test
@@ -63,6 +68,7 @@ class LocationServiceTest {
         Page<Location> page = new PageImpl<>(List.of(loc1, loc2), pageable, 2);
 
         when(locationRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+        when(bookRepository.countActiveBooksByLocationIds(any())).thenReturn(List.of());
 
         Page<LocationWithCount> result = locationService.list(null, null, null, pageable);
 
@@ -81,6 +87,7 @@ class LocationServiceTest {
         Page<Location> page = new PageImpl<>(List.of(loc), pageable, 1);
 
         when(locationRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+        when(bookRepository.countActiveBooksByLocationIds(any())).thenReturn(List.of());
 
         Page<LocationWithCount> result = locationService.list(null, roomId, null, pageable);
 
@@ -94,6 +101,7 @@ class LocationServiceTest {
         Location loc = locationWithName("Left Shelf");
 
         when(locationRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of(loc));
+        when(bookRepository.countActiveBooksByLocationIds(any())).thenReturn(List.of());
 
         List<LocationWithCount> result = locationService.findAll();
 
@@ -198,6 +206,19 @@ class LocationServiceTest {
 
         assertThatThrownBy(() -> locationService.delete(id))
                 .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(locationRepository, never()).save(any());
+    }
+
+    @Test
+    void delete_locationWithActiveBooks_throwsActiveChildException() {
+        Location location = locationWithName("Left Shelf");
+        UUID id = location.getId();
+        when(locationRepository.findById(id)).thenReturn(Optional.of(location));
+        when(bookRepository.existsByLocationAndStatusNot(location, BookStatus.DELETED)).thenReturn(true);
+
+        assertThatThrownBy(() -> locationService.delete(id))
+                .isInstanceOf(ActiveChildException.class);
 
         verify(locationRepository, never()).save(any());
     }

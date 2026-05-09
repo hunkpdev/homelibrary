@@ -1,5 +1,6 @@
 package com.homelibrary.config;
 
+import com.homelibrary.model.Role;
 import com.homelibrary.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @SuppressWarnings("java:S4502") // CSRF disabled intentionally: stateless JWT + SameSite=Strict cookie
 public class SecurityConfig {
 
+    private static final String API_ALL = "/api/**";
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsProperties corsProperties;
 
@@ -47,6 +49,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole(Role.VISITOR.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole(Role.VISITOR.name())
+                        .requestMatchers(HttpMethod.POST, API_ALL).hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, API_ALL).hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PATCH, API_ALL).hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, API_ALL).hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, API_ALL).hasAnyRole(Role.VISITOR.name(), Role.DEMO.name())
+                        .requestMatchers(HttpMethod.HEAD, API_ALL).hasAnyRole(Role.VISITOR.name(), Role.DEMO.name())
+                        .requestMatchers(HttpMethod.OPTIONS, API_ALL).hasAnyRole(Role.VISITOR.name(), Role.DEMO.name())
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

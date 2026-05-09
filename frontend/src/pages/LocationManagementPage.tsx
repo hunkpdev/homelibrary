@@ -1,34 +1,27 @@
-import {
-  type MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
-import { useTranslation } from 'react-i18next'
-import { AgGridReact } from 'ag-grid-react'
-import type { ColDef, IDatasource, IGetRowsParams } from 'ag-grid-community'
-import { AllCommunityModule, ModuleRegistry, themeQuartz, colorSchemeDark, colorSchemeLight } from 'ag-grid-community'
-import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
-import { ChevronDown, ChevronUp, Pencil, Trash2, Plus } from 'lucide-react'
-import { fetchAllRooms, deleteRoom } from '@/api/roomApi'
-import { fetchAllLocations, fetchLocations, deleteLocation } from '@/api/locationApi'
-import type { LocationResponse, RoomResponse } from '@/api/types'
-import { useLocationStore } from '@/store/locationStore'
-import { useAuthStore } from '@/store/authStore'
-import { useTheme } from '@/hooks/useTheme'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { PassthroughFilter } from '@/components/grid/PassthroughFilter'
-import { SelectFloatingFilter } from '@/components/grid/SelectFloatingFilter'
-import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
-import { ActionCell } from '@/components/locations/ActionCell'
-import { LocationFormModal } from '@/components/locations/LocationFormModal'
-import { RoomFormModal } from '@/components/rooms/RoomFormModal'
-import { DeleteModal } from '@/components/ui/DeleteModal'
+import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState,} from 'react'
+import {useTranslation} from 'react-i18next'
+import {AgGridReact} from 'ag-grid-react'
+import type {ColDef, IDatasource, IGetRowsParams} from 'ag-grid-community'
+import {AllCommunityModule, colorSchemeDark, colorSchemeLight, ModuleRegistry, themeQuartz} from 'ag-grid-community'
+import {AG_GRID_LOCALE_HU} from '@ag-grid-community/locale'
+import {ChevronDown, ChevronUp, Pencil, Plus, Trash2} from 'lucide-react'
+import {deleteRoom, fetchAllRooms} from '@/api/roomApi'
+import {deleteLocation, fetchAllLocations, fetchLocations} from '@/api/locationApi'
+import type {LocationResponse, RoomResponse} from '@/api/types'
+import {useLocationStore} from '@/store/locationStore'
+import {useAuthStore} from '@/store/authStore'
+import {useTheme} from '@/hooks/useTheme'
+import {useIsMobile} from '@/hooks/use-mobile'
+import {MutationButton} from '@/components/common/MutationButton'
+import {Badge} from '@/components/ui/badge'
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible'
+import {PassthroughFilter} from '@/components/grid/PassthroughFilter'
+import {SelectFloatingFilter} from '@/components/grid/SelectFloatingFilter'
+import {ClearableTextFloatingFilter} from '@/components/grid/ClearableTextFloatingFilter'
+import {ActionCell} from '@/components/locations/ActionCell'
+import {LocationFormModal} from '@/components/locations/LocationFormModal'
+import {RoomFormModal} from '@/components/rooms/RoomFormModal'
+import {DeleteModal} from '@/components/ui/DeleteModal'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -41,6 +34,7 @@ export function LocationManagementPage() {
   const { theme } = useTheme()
   const isMobile = useIsMobile()
   const isAdmin = useAuthStore(s => s.user?.role === 'ADMIN')
+  const isDemo = useAuthStore(s => s.user?.role === 'DEMO')
   const { locationsRefreshTrigger, incrementRefreshTrigger } = useLocationStore()
 
   const gridRef = useRef<AgGridReact<LocationResponse>>(null)
@@ -162,10 +156,11 @@ export function LocationManagementPage() {
       cellRenderer: ActionCell,
       cellRendererParams: {
         isAdmin,
+        isDemo,
         onEdit: handleOpenEditLocation,
         onDelete: handleOpenDeleteLocation,
-        deleteLabel: t('locations.grid.deleteLocation'),
-        editLabel: t('locations.grid.editLocation'),
+        deleteLabel: t('common.delete'),
+        editLabel: t('common.edit'),
       },
     }
 
@@ -210,9 +205,9 @@ export function LocationManagementPage() {
         filter: false,
         sortable: false,
       },
-      ...(isAdmin ? [actionCol] : []),
+      ...(isAdmin || isDemo ? [actionCol] : []),
     ]
-  }, [isAdmin, roomOptions, locationOptions, t, handleOpenEditLocation, handleOpenDeleteLocation, handleNameFilterChange, handleRoomFilterChange])
+  }, [isAdmin, isDemo, roomOptions, locationOptions, t, handleOpenEditLocation, handleOpenDeleteLocation, handleNameFilterChange, handleRoomFilterChange])
 
   const gridTheme = useMemo(
     () => themeQuartz.withPart(theme === 'dark' ? colorSchemeDark : colorSchemeLight),
@@ -237,11 +232,11 @@ export function LocationManagementPage() {
               {panelOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               {t('locations.rooms.panelTitle')}
             </span>
-            {isAdmin && (
-              <Button size="sm" variant="outline" onClick={handleOpenCreateRoom}>
+            {(isAdmin || isDemo) && (
+              <MutationButton size="sm" variant="outline" onClick={handleOpenCreateRoom}>
                 <Plus className="h-4 w-4 mr-1" />
                 {t('locations.rooms.newRoom')}
-              </Button>
+              </MutationButton>
             )}
           </div>
         </CollapsibleTrigger>
@@ -258,12 +253,12 @@ export function LocationManagementPage() {
                     <span className="text-xs text-muted-foreground truncate">{room.description}</span>
                   )}
                 </div>
-                {isAdmin && (
+                {(isAdmin || isDemo) && (
                   <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('locations.rooms.editRoom')} onClick={() => handleOpenEditRoom(room)}>
+                    <MutationButton variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
                       <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
+                    </MutationButton>
+                    <MutationButton
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
@@ -271,17 +266,17 @@ export function LocationManagementPage() {
                       onClick={() => handleOpenCreateLocation(room.id)}
                     >
                       <Plus className="h-3.5 w-3.5" />
-                    </Button>
+                    </MutationButton>
                     {room.locationCount === 0 && (
-                      <Button
+                      <MutationButton
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive"
-                        aria-label={t('locations.rooms.deleteRoom')}
+                        aria-label={t('common.delete')}
                         onClick={() => setDeleteRoomTarget(room)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      </MutationButton>
                     )}
                   </div>
                 )}

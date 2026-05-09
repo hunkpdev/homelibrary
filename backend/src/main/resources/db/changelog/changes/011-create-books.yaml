@@ -1,0 +1,112 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-create-books
+      author: homelibrary
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: isbn
+                  type: VARCHAR(20)
+                  constraints:
+                    unique: true
+              - column:
+                  name: title
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: subtitle
+                  type: VARCHAR(500)
+              - column:
+                  name: authors
+                  type: VARCHAR(1000)
+              - column:
+                  name: publisher
+                  type: VARCHAR(255)
+              - column:
+                  name: publish_year
+                  type: INTEGER
+              - column:
+                  name: page_count
+                  type: INTEGER
+              - column:
+                  name: language
+                  type: VARCHAR(10)
+              - column:
+                  name: categories
+                  type: VARCHAR(500)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: cover_image_url
+                  type: VARCHAR(500)
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: location_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_books_location_id
+                    references: locations(id)
+              - column:
+                  name: source
+                  type: VARCHAR(20)
+              - column:
+                  name: added_by
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_books_added_by
+                    references: users(id)
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+  - changeSet:
+      id: 011-create-books-idx-status
+      author: homelibrary
+      changes:
+        - createIndex:
+            indexName: idx_books_status
+            tableName: books
+            columns:
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 011-create-books-idx-location-id
+      author: homelibrary
+      changes:
+        - createIndex:
+            indexName: idx_books_location_id
+            tableName: books
+            columns:
+              - column:
+                  name: location_id

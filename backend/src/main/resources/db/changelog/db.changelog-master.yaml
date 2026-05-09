@@ -17,3 +17,9 @@ databaseChangeLog:
   - include:
       file: changes/009-unique-demo-isbn-daily-stats-lookup-date.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/010-seed-demo-user.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/011-create-books.yaml
+      relativeToChangelogFile: true
