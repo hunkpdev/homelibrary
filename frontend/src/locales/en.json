@@ -81,6 +81,22 @@
       "editLocation": "Edit"
     }
   },
+  "books": {
+    "pageTitle": "Books",
+    "grid": {
+      "colIsbn": "ISBN",
+      "colTitle": "Title",
+      "colAuthors": "Author(s)",
+      "colPublishYear": "Year",
+      "colCategories": "Categories",
+      "editBook": "Edit",
+      "deleteBook": "Delete"
+    },
+    "delete": {
+      "title": "Delete book",
+      "confirm": "Are you sure you want to delete \"{{title}}\"?"
+    }
+  },
   "isbnLookup": {
     "connecting": "Connecting to database…",
     "notFound": "Not found in the database, please fill in manually",

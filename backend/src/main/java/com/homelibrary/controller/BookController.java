@@ -37,18 +37,24 @@ public class BookController {
     @GetMapping
     @PreAuthorize("hasAnyRole('VISITOR', 'DEMO')")
     public ResponseEntity<Page<BookResponse>> search(
-            @Parameter(description = "Full-text search across title and author fields. Performs partial (contains) matching.")
-            @RequestParam(required = false) String search,
+            @Parameter(description = "startsWith filter on ISBN field")
+            @RequestParam(required = false) String isbn,
+            @Parameter(description = "contains filter on title field (case insensitive)")
+            @RequestParam(required = false) String title,
+            @Parameter(description = "contains filter on authors field (case insensitive)")
+            @RequestParam(required = false) String authors,
             @RequestParam(required = false) BookStatus status,
             @RequestParam(required = false) UUID locationId,
+            @Parameter(description = "contains filter on categories field (case insensitive)")
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String language,
-            @RequestParam(required = false) Integer publishYear,
+            @Parameter(description = "startsWith filter on publish year (matched as string prefix)")
+            @RequestParam(required = false) String publishYear,
             @PageableDefault(size = 20) Pageable pageable) {
         if (pageable.getPageSize() > 100) {
             return ResponseEntity.badRequest().build();
         }
-        BookSearchParams params = new BookSearchParams(search, status, locationId, category, language, publishYear);
+        BookSearchParams params = new BookSearchParams(isbn, title, authors, status, locationId, category, language, publishYear);
         return ResponseEntity.ok(bookService.search(params, pageable));
     }
 

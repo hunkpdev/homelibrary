@@ -3,8 +3,11 @@ package com.homelibrary.repository.specification;
 import com.homelibrary.dto.BookSearchParams;
 import com.homelibrary.entity.Book;
 import com.homelibrary.model.BookStatus;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,30 +20,39 @@ public class BookSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.notEqual(root.get("status"), BookStatus.DELETED));
-
-            if (params.search() != null && !params.search().isBlank()) {
-                String pattern = "%" + params.search().toLowerCase() + "%";
-                Predicate titleLike = cb.like(cb.lower(root.get("title")), pattern);
-                Predicate authorsLike = cb.like(cb.lower(root.get("authors")), pattern);
-                predicates.add(cb.or(titleLike, authorsLike));
-            }
-            if (params.status() != null) {
-                predicates.add(cb.equal(root.get("status"), params.status()));
-            }
-            if (params.locationId() != null) {
-                predicates.add(cb.equal(root.get("location").get("id"), params.locationId()));
-            }
-            if (params.category() != null && !params.category().isBlank()) {
-                String safeCategory = params.category().replace("\"", "\\\"");
-                predicates.add(cb.like(root.get("categories"), "%\"" + safeCategory + "\"%"));
-            }
-            if (params.language() != null && !params.language().isBlank()) {
-                predicates.add(cb.equal(root.get("language"), params.language()));
-            }
-            if (params.publishYear() != null) {
-                predicates.add(cb.equal(root.get("publishYear"), params.publishYear()));
-            }
+            addEqualsPredicates(params, root, cb, predicates);
+            addContainsPredicates(params, root, cb, predicates);
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    private static void addEqualsPredicates(BookSearchParams params, Root<Book> root, CriteriaBuilder cb, List<Predicate> predicates) {
+        if (params.status() != null) {
+            predicates.add(cb.equal(root.get("status"), params.status()));
+        }
+        if (params.locationId() != null) {
+            predicates.add(cb.equal(root.get("location").get("id"), params.locationId()));
+        }
+        if (StringUtils.hasText(params.language())) {
+            predicates.add(cb.equal(root.get("language"), params.language()));
+        }
+    }
+
+    private static void addContainsPredicates(BookSearchParams params, Root<Book> root, CriteriaBuilder cb, List<Predicate> predicates) {
+        if (StringUtils.hasText(params.isbn())) {
+            predicates.add(cb.like(cb.lower(root.get("isbn")), params.isbn().toLowerCase() + "%"));
+        }
+        if (StringUtils.hasText(params.title())) {
+            predicates.add(cb.like(cb.lower(root.get("title")), "%" + params.title().toLowerCase() + "%"));
+        }
+        if (StringUtils.hasText(params.authors())) {
+            predicates.add(cb.like(cb.lower(root.get("authors").as(String.class)), "%" + params.authors().toLowerCase() + "%"));
+        }
+        if (StringUtils.hasText(params.category())) {
+            predicates.add(cb.like(cb.lower(root.get("categories").as(String.class)), "%" + params.category().toLowerCase() + "%"));
+        }
+        if (StringUtils.hasText(params.publishYear())) {
+            predicates.add(cb.like(root.get("publishYear").as(String.class), params.publishYear() + "%"));
+        }
     }
 }

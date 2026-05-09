@@ -5,11 +5,13 @@ import com.homelibrary.model.BookStatus;
 import java.util.UUID;
 
 public record BookSearchParams(
-        String search,
+        String isbn,
+        String title,
+        String authors,
         BookStatus status,
         UUID locationId,
         String category,
         String language,
-        Integer publishYear
+        String publishYear
 ) {
 }

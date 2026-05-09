@@ -80,6 +80,22 @@
       "editLocation": "Szerkesztés"
     }
   },
+  "books": {
+    "pageTitle": "Könyvek",
+    "grid": {
+      "colIsbn": "ISBN",
+      "colTitle": "Cím",
+      "colAuthors": "Szerző(k)",
+      "colPublishYear": "Kiadási év",
+      "colCategories": "Kategóriák",
+      "editBook": "Szerkesztés",
+      "deleteBook": "Törlés"
+    },
+    "delete": {
+      "title": "Könyv törlése",
+      "confirm": "Biztosan törlöd a(z) \"{{title}}\" könyvet?"
+    }
+  },
   "isbnLookup": {
     "connecting": "Adatbázishoz csatlakozás…",
     "notFound": "Nem találtuk az adatbázisban, töltsd ki kézzel",

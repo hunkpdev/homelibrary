@@ -171,7 +171,7 @@ class BookServiceTest {
         Book book = bookWithTitle("Clean Code");
         Pageable pageable = PageRequest.of(0, 20);
         Page<Book> page = new PageImpl<>(List.of(book), pageable, 1);
-        BookSearchParams params = new BookSearchParams(null, null, null, null, null, null);
+        BookSearchParams params = new BookSearchParams(null, null, null, null, null, null, null, null);
 
         when(bookRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 

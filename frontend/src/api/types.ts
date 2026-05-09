@@ -22,6 +22,41 @@ export interface LocationResponse {
 
 export type IsbnSource = 'OSZK' | 'MANUAL'
 
+export type BookStatus = 'AT_HOME' | 'LOANED' | 'DELETED'
+export type BookSource = 'OSZK' | 'MANUAL'
+
+export interface BookRoomSummary {
+  id: string
+  name: string
+}
+
+export interface BookLocationSummary {
+  id: string
+  name: string
+  room: BookRoomSummary
+}
+
+export interface BookResponse {
+  id: string
+  isbn: string | null
+  title: string
+  subtitle: string | null
+  authors: string[]
+  publisher: string | null
+  publishYear: number | null
+  pageCount: number | null
+  language: string | null
+  categories: string[]
+  description: string | null
+  coverImageUrl: string | null
+  status: BookStatus
+  location: BookLocationSummary | null
+  source: BookSource
+  version: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface RateLimitExceededResponse {
   reason: 'DEMO_SESSION_LIMIT_EXCEEDED' | 'DEMO_DAILY_LIMIT_EXCEEDED'
 }

@@ -7,6 +7,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage } from '@/pages/ForbiddenPage'
+import { BookListPage } from '@/pages/BookListPage'
 import { LocationManagementPage } from '@/pages/LocationManagementPage'
 import { decodeAuthUser, useAuthStore } from '@/store/authStore'
 
@@ -50,7 +51,7 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'VISITOR', 'DEMO']} />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<div className="text-foreground">Üdvözlünk a Homelibraryban!</div>} />
-                <Route path="/books" element={<div className="text-foreground">Könyvek</div>} />
+                <Route path="/books" element={<BookListPage />} />
                 <Route path="/profile" element={<div className="text-foreground">Saját profil</div>} />
                 <Route path="/locations" element={<LocationManagementPage />} />
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
