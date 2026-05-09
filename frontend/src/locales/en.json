@@ -135,6 +135,10 @@
       "save": "Save",
       "saving": "Saving..."
     },
+    "edit": {
+      "title": "Edit book",
+      "errorConflict": "The book was modified in the meantime, please reload"
+    },
     "delete": {
       "title": "Delete book",
       "confirm": "Are you sure you want to delete \"{{title}}\"?"

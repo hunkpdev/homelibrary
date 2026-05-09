@@ -1,22 +1,24 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
-import { createBook } from '@/api/bookApi'
-import { fetchAllLocations } from '@/api/locationApi'
-import type { BookCreateRequest, BookSource, IsbnLookupResult, LocationResponse } from '@/api/types'
-import { IsbnLookupPanel } from '@/components/isbn/IsbnLookupPanel'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { MutationButton } from '@/components/common/MutationButton'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import type {ReactNode} from 'react'
+import React, {useEffect, useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {isAxiosError} from 'axios'
+import {createBook, updateBook} from '@/api/bookApi'
+import {fetchAllLocations} from '@/api/locationApi'
+import type {
+    BookCreateRequest,
+    BookResponse,
+    BookSource,
+    BookUpdateRequest,
+    IsbnLookupResult,
+    LocationResponse
+} from '@/api/types'
+import {IsbnLookupPanel} from '@/components/isbn/IsbnLookupPanel'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import {Textarea} from '@/components/ui/textarea'
+import {MutationButton} from '@/components/common/MutationButton'
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from '@/components/ui/dialog'
 
 type Phase = 'isbn' | 'form'
 
@@ -42,7 +44,7 @@ const EMPTY_FORM: FormFields = {
   description: '', source: 'MANUAL',
 }
 
-const FORM_ID = 'book-add-form'
+const FORM_ID = 'book-form'
 
 function splitTrim(value: string): string[] {
   return value.split(',').map(v => v.trim()).filter(Boolean)
@@ -59,14 +61,33 @@ function LabeledField({ label, required, children }: Readonly<{ label: string; r
   )
 }
 
+function bookToFields(book: BookResponse): FormFields {
+  return {
+    isbn: book.isbn ?? '',
+    title: book.title,
+    subtitle: book.subtitle ?? '',
+    authors: book.authors.join(', '),
+    publisher: book.publisher ?? '',
+    publishYear: book.publishYear?.toString() ?? '',
+    pageCount: book.pageCount?.toString() ?? '',
+    language: book.language ?? '',
+    categories: book.categories.join(', '),
+    locationId: book.location?.id ?? '',
+    description: book.description ?? '',
+    source: book.source,
+  }
+}
+
 interface Props {
   open: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (updatedBook?: BookResponse) => void
+  book?: BookResponse
 }
 
-export function BookAddModal({ open, onClose, onSuccess }: Readonly<Props>) {
+export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props>) {
   const { t } = useTranslation()
+  const isEdit = !!book
   const [phase, setPhase] = useState<Phase>('isbn')
   const [fields, setFields] = useState<FormFields>(EMPTY_FORM)
   const [locations, setLocations] = useState<LocationResponse[]>([])
@@ -75,12 +96,12 @@ export function BookAddModal({ open, onClose, onSuccess }: Readonly<Props>) {
 
   useEffect(() => {
     if (open) {
-      setPhase('isbn')
-      setFields(EMPTY_FORM)
+      setPhase(isEdit ? 'form' : 'isbn')
+      setFields(isEdit ? bookToFields(book) : EMPTY_FORM)
       setError(null)
       fetchAllLocations().then(setLocations).catch(() => {})
     }
-  }, [open])
+  }, [open, isEdit, book])
 
   const handleIsbnResult = (result: IsbnLookupResult | null, isbn: string) => {
     if (result) {
@@ -107,30 +128,54 @@ export function BookAddModal({ open, onClose, onSuccess }: Readonly<Props>) {
   const setField = (key: keyof FormFields) => (value: string) =>
     setFields(prev => ({ ...prev, [key]: value }))
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
     try {
-      const payload: BookCreateRequest = {
-        isbn: fields.isbn.trim() || undefined,
-        title: fields.title.trim(),
-        subtitle: fields.subtitle.trim() || undefined,
-        authors: splitTrim(fields.authors),
-        publisher: fields.publisher.trim() || undefined,
-        publishYear: fields.publishYear ? Number.parseInt(fields.publishYear, 10) : undefined,
-        pageCount: fields.pageCount ? Number.parseInt(fields.pageCount, 10) : undefined,
-        language: fields.language.trim() || undefined,
-        categories: splitTrim(fields.categories),
-        description: fields.description.trim() || undefined,
-        locationId: fields.locationId || undefined,
-        source: fields.source,
+      if (isEdit) {
+        const payload: BookUpdateRequest = {
+          isbn: fields.isbn.trim() || undefined,
+          title: fields.title.trim(),
+          subtitle: fields.subtitle.trim() || undefined,
+          authors: splitTrim(fields.authors),
+          publisher: fields.publisher.trim() || undefined,
+          publishYear: fields.publishYear ? Number.parseInt(fields.publishYear, 10) : undefined,
+          pageCount: fields.pageCount ? Number.parseInt(fields.pageCount, 10) : undefined,
+          language: fields.language.trim() || undefined,
+          categories: splitTrim(fields.categories),
+          description: fields.description.trim() || undefined,
+          locationId: fields.locationId || undefined,
+          source: fields.source,
+          version: book.version,
+        }
+        const updated = await updateBook(book.id, payload)
+        onSuccess(updated)
+      } else {
+        const payload: BookCreateRequest = {
+          isbn: fields.isbn.trim() || undefined,
+          title: fields.title.trim(),
+          subtitle: fields.subtitle.trim() || undefined,
+          authors: splitTrim(fields.authors),
+          publisher: fields.publisher.trim() || undefined,
+          publishYear: fields.publishYear ? Number.parseInt(fields.publishYear, 10) : undefined,
+          pageCount: fields.pageCount ? Number.parseInt(fields.pageCount, 10) : undefined,
+          language: fields.language.trim() || undefined,
+          categories: splitTrim(fields.categories),
+          description: fields.description.trim() || undefined,
+          locationId: fields.locationId || undefined,
+          source: fields.source,
+        }
+        await createBook(payload)
+        onSuccess()
       }
-      await createBook(payload)
-      onSuccess()
       onClose()
-    } catch {
-      setError(t('common.errorUnexpected'))
+    } catch (err) {
+      if (isEdit && isAxiosError(err) && err.response?.status === 409) {
+        setError(t('books.edit.errorConflict'))
+      } else {
+        setError(t('common.errorUnexpected'))
+      }
     } finally {
       setIsLoading(false)
     }
@@ -140,7 +185,7 @@ export function BookAddModal({ open, onClose, onSuccess }: Readonly<Props>) {
     <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('books.add.title')}</DialogTitle>
+          <DialogTitle>{isEdit ? t('books.edit.title') : t('books.add.title')}</DialogTitle>
         </DialogHeader>
 
         {phase === 'isbn' ? (

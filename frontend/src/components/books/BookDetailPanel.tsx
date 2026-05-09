@@ -32,10 +32,11 @@ export interface BookDetailPanelProps {
   book: BookResponse | null
   open: boolean
   onClose: () => void
+  onEdit: (book: BookResponse) => void
   onDelete: (book: BookResponse) => void
 }
 
-export function BookDetailPanel({ book, open, onClose, onDelete }: Readonly<BookDetailPanelProps>) {
+export function BookDetailPanel({ book, open, onClose, onEdit, onDelete }: Readonly<BookDetailPanelProps>) {
   const { t } = useTranslation()
   const isAdmin = useAuthStore(s => s.user?.role === 'ADMIN')
   const isDemo = useAuthStore(s => s.user?.role === 'DEMO')
@@ -102,7 +103,7 @@ export function BookDetailPanel({ book, open, onClose, onDelete }: Readonly<Book
           <>
             <Separator />
             <div className="flex gap-2">
-              <MutationButton variant="outline" onClick={() => {}}>
+              <MutationButton variant="outline" onClick={() => onEdit(book)}>
                 <Pencil className="h-4 w-4 mr-2" />
                 {t('books.detail.edit')}
               </MutationButton>

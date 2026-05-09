@@ -134,6 +134,10 @@
       "save": "Mentés",
       "saving": "Mentés..."
     },
+    "edit": {
+      "title": "Könyv szerkesztése",
+      "errorConflict": "A könyv időközben módosult, kérlek töltsd be újra"
+    },
     "delete": {
       "title": "Könyv törlése",
       "confirm": "Biztosan törlöd a(z) \"{{title}}\" könyvet?"

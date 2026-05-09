@@ -4,16 +4,16 @@ import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, IDatasource, IGetRowsParams } from 'ag-grid-community'
 import { AllCommunityModule, colorSchemeDark, colorSchemeLight, ModuleRegistry, themeQuartz } from 'ag-grid-community'
 import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
-import { deleteBook, fetchBooks } from '@/api/bookApi'
+import { fetchBooks } from '@/api/bookApi'
 import type { BookResponse } from '@/api/types'
 import { useBookStore } from '@/store/bookStore'
 import { useAuthStore } from '@/store/authStore'
 import { useTheme } from '@/hooks/useTheme'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { BookActionCell } from '@/components/books/BookActionCell'
-import { BookAddModal } from '@/components/books/BookAddModal'
+import { BookDeleteConfirmModal } from '@/components/books/BookDeleteConfirmModal'
 import { BookDetailPanel } from '@/components/books/BookDetailPanel'
-import { DeleteModal } from '@/components/ui/DeleteModal'
+import { BookFormModal } from '@/components/books/BookFormModal'
 import { Button } from '@/components/ui/button'
 
 ModuleRegistry.registerModules([AllCommunityModule])
@@ -29,8 +29,9 @@ export function BookListPage() {
 
   const gridRef = useRef<AgGridReact<BookResponse>>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<BookResponse | null>(null)
   const [selectedBook, setSelectedBook] = useState<BookResponse | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<BookResponse | undefined>(undefined)
+  const [deleteTarget, setDeleteTarget] = useState<BookResponse | null>(null)
 
   useEffect(() => {
     if (booksRefreshTrigger > 0) {
@@ -56,6 +57,15 @@ export function BookListPage() {
         .catch(() => params.failCallback())
     },
   }), [])
+
+  const handleOpenEdit = useCallback((book: BookResponse) => {
+    setEditTarget(book)
+  }, [])
+
+  const handleEditSuccess = useCallback((updatedBook?: BookResponse) => {
+    incrementRefreshTrigger()
+    if (updatedBook) setSelectedBook(updatedBook)
+  }, [incrementRefreshTrigger])
 
   const handleOpenDelete = useCallback((book: BookResponse) => {
     setDeleteTarget(book)
@@ -85,7 +95,7 @@ export function BookListPage() {
       cellRendererParams: {
         isAdmin,
         isDemo,
-        onEdit: () => {},
+        onEdit: handleOpenEdit,
         onDelete: handleOpenDelete,
         editLabel: t('books.grid.editBook'),
         deleteLabel: t('books.grid.deleteBook'),
@@ -128,7 +138,7 @@ export function BookListPage() {
       },
       ...(isAdmin || isDemo ? [actionCol] : []),
     ]
-  }, [isAdmin, isDemo, t, handleOpenDelete])
+  }, [isAdmin, isDemo, t, handleOpenEdit, handleOpenDelete])
 
   const gridTheme = useMemo(
     () => themeQuartz.withPart(theme === 'dark' ? colorSchemeDark : colorSchemeLight),
@@ -177,26 +187,32 @@ export function BookListPage() {
         />
       </div>
 
-      <BookAddModal
+      <BookFormModal
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onSuccess={incrementRefreshTrigger}
+      />
+
+      <BookFormModal
+        open={editTarget !== null}
+        onClose={() => setEditTarget(null)}
+        onSuccess={handleEditSuccess}
+        book={editTarget ?? undefined}
       />
 
       <BookDetailPanel
         book={selectedBook}
         open={selectedBook !== null}
         onClose={() => setSelectedBook(null)}
+        onEdit={handleOpenEdit}
         onDelete={handleOpenDelete}
       />
 
-      <DeleteModal
-        open={deleteTarget !== undefined}
-        onClose={() => setDeleteTarget(undefined)}
+      <BookDeleteConfirmModal
+        book={deleteTarget}
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
         onSuccess={handleDeleteSuccess}
-        onDelete={() => deleteBook(deleteTarget!.id)}
-        title={t('books.delete.title')}
-        description={t('books.delete.confirm', { title: deleteTarget?.title ?? '' })}
       />
     </div>
   )
