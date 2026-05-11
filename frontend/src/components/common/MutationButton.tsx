@@ -42,7 +42,7 @@ export function MutationButton({ children, onClick, type = 'button', variant = '
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span onClick={e => e.stopPropagation()}>{button}</span>
+          <span onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>{button}</span>
         </TooltipTrigger>
         <TooltipContent>
           {t('common.demoTooltip')}
