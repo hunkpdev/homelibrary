@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
@@ -79,6 +80,20 @@ class NativeLibraryLoaderTest {
         assertThat(dir1).isEqualTo(dir2);
         assertThat(loadedPaths.get(0)).endsWith("libyaz.so.5");
         assertThat(loadedPaths.get(1)).endsWith("libyaz4j.so");
+    }
+
+    @Test
+    void loadTo_extractsLibraryToSpecifiedDirectory(@TempDir Path targetDir) {
+        ClassLoader mockClassLoader = mock(ClassLoader.class);
+        when(mockClassLoader.getResourceAsStream(anyString()))
+                .thenReturn(new ByteArrayInputStream(new byte[]{1, 2, 3}));
+        List<String> loadedPaths = new ArrayList<>();
+        NativeLibraryLoader loader = new NativeLibraryLoader(mockClassLoader, loadedPaths::add);
+
+        loader.loadTo("native/linux-x86_64/libyaz.so.5", targetDir);
+
+        assertThat(loadedPaths).hasSize(1);
+        assertThat(Path.of(loadedPaths.get(0))).isEqualTo(targetDir.resolve("libyaz.so.5"));
     }
 
     @Test

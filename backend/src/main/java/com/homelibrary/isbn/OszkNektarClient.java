@@ -16,6 +16,8 @@ import org.yaz4j.exception.ConnectionTimeoutException;
 import org.yaz4j.exception.ConnectionUnavailableException;
 import org.yaz4j.exception.ZoomException;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -65,8 +67,12 @@ public class OszkNektarClient {
         if (isWindows) {
             nativeLibraryLoader.load("native/win32-x86_64/yaz5.dll");
         } else {
-            nativeLibraryLoader.load("native/linux-x86_64/libyaz.so.5");
-            nativeLibraryLoader.load("Linux/amd64/libyaz4j.so");
+            // yaz4j's Connection static initializer extracts libyaz4j.so directly into
+            // java.io.tmpdir (e.g. /tmp/xxxNNNlibyaz4j.so). libyaz4j.so is compiled with
+            // RPATH=$ORIGIN, so the dynamic linker looks for libyaz.so.5 in the same directory.
+            // We must therefore extract libyaz.so.5 into the same tmpdir root — not a subdir.
+            Path tmpRoot = Paths.get(System.getProperty("java.io.tmpdir"));
+            nativeLibraryLoader.loadTo("native/linux-x86_64/libyaz.so.5", tmpRoot);
         }
     }
 
