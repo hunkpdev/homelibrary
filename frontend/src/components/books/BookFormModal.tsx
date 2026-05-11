@@ -1,17 +1,10 @@
-import type {ReactNode} from 'react'
+import type {ComponentPropsWithRef, ReactElement, ReactNode} from 'react'
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {isAxiosError} from 'axios'
 import {createBook, updateBook} from '@/api/bookApi'
 import {fetchAllLocations} from '@/api/locationApi'
-import type {
-    BookCreateRequest,
-    BookResponse,
-    BookSource,
-    BookUpdateRequest,
-    IsbnLookupResult,
-    LocationResponse
-} from '@/api/types'
+import type {BookCreateRequest, BookResponse, BookSource, IsbnLookupResult, LocationResponse} from '@/api/types'
 import {IsbnLookupPanel} from '@/components/isbn/IsbnLookupPanel'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
@@ -53,7 +46,7 @@ function splitTrim(value: string): string[] {
 function LabeledField({ label, required, children }: Readonly<{ label: string; required?: boolean; children: ReactNode }>) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium">
+      <label className="text-sm font-medium" htmlFor={(children as ReactElement<ComponentPropsWithRef<typeof Input>>)?.props?.id}>
         {label}{required && <span className="text-destructive ml-1">*</span>}
       </label>
       {children}
@@ -62,7 +55,7 @@ function LabeledField({ label, required, children }: Readonly<{ label: string; r
 }
 
 function bookToFields(book: BookResponse): FormFields {
-  return {
+    return {
     isbn: book.isbn ?? '',
     title: book.title,
     subtitle: book.subtitle ?? '',
@@ -133,8 +126,7 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
     setIsLoading(true)
     setError(null)
     try {
-      if (isEdit) {
-        const payload: BookUpdateRequest = {
+      const payload: BookCreateRequest = {
           isbn: fields.isbn.trim() || undefined,
           title: fields.title.trim(),
           subtitle: fields.subtitle.trim() || undefined,
@@ -146,26 +138,12 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
           categories: splitTrim(fields.categories),
           description: fields.description.trim() || undefined,
           locationId: fields.locationId || undefined,
-          source: fields.source,
-          version: book.version,
-        }
-        const updated = await updateBook(book.id, payload)
+          source: fields.source
+      }
+      if (isEdit) {
+        const updated = await updateBook(book.id, {...payload, version: book.version})
         onSuccess(updated)
       } else {
-        const payload: BookCreateRequest = {
-          isbn: fields.isbn.trim() || undefined,
-          title: fields.title.trim(),
-          subtitle: fields.subtitle.trim() || undefined,
-          authors: splitTrim(fields.authors),
-          publisher: fields.publisher.trim() || undefined,
-          publishYear: fields.publishYear ? Number.parseInt(fields.publishYear, 10) : undefined,
-          pageCount: fields.pageCount ? Number.parseInt(fields.pageCount, 10) : undefined,
-          language: fields.language.trim() || undefined,
-          categories: splitTrim(fields.categories),
-          description: fields.description.trim() || undefined,
-          locationId: fields.locationId || undefined,
-          source: fields.source,
-        }
         await createBook(payload)
         onSuccess()
       }
@@ -206,45 +184,35 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
           <>
             <form id={FORM_ID} onSubmit={handleSubmit} className="flex flex-col gap-4">
               <LabeledField label={t('books.add.titleLabel')} required>
-                <Input value={fields.title} onChange={e => setField('title')(e.target.value)} disabled={isLoading} />
+                <Input id="bookTitle" value={fields.title} onChange={e => setField('title')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.subtitleLabel')}>
-                <Input value={fields.subtitle} onChange={e => setField('subtitle')(e.target.value)} disabled={isLoading} />
+                <Input id="bookSubtitle" value={fields.subtitle} onChange={e => setField('subtitle')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.isbnLabel')}>
-                <Input value={fields.isbn} onChange={e => setField('isbn')(e.target.value)} disabled={isLoading} />
+                <Input id="bookIsbn" value={fields.isbn} onChange={e => setField('isbn')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.authorsLabel')}>
-                <Input
-                  value={fields.authors}
-                  onChange={e => setField('authors')(e.target.value)}
-                  placeholder={t('books.add.commaSeparated')}
-                  disabled={isLoading}
-                />
+                <Input id="bookAuthors" value={fields.authors} onChange={e => setField('authors')(e.target.value)} placeholder={t('books.add.commaSeparated')} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.publisherLabel')}>
-                <Input value={fields.publisher} onChange={e => setField('publisher')(e.target.value)} disabled={isLoading} />
+                <Input id="bookPublisher" value={fields.publisher} onChange={e => setField('publisher')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.publishYearLabel')}>
-                <Input type="number" value={fields.publishYear} onChange={e => setField('publishYear')(e.target.value)} disabled={isLoading} />
+                <Input id="bookPublishYear" type="number" value={fields.publishYear} onChange={e => setField('publishYear')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.pageCountLabel')}>
-                <Input type="number" value={fields.pageCount} onChange={e => setField('pageCount')(e.target.value)} disabled={isLoading} />
+                <Input id="bookPageCount" type="number" value={fields.pageCount} onChange={e => setField('pageCount')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.languageLabel')}>
-                <Input value={fields.language} onChange={e => setField('language')(e.target.value)} disabled={isLoading} />
+                <Input id="bookLanguage" value={fields.language} onChange={e => setField('language')(e.target.value)} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.categoriesLabel')}>
-                <Input
-                  value={fields.categories}
-                  onChange={e => setField('categories')(e.target.value)}
-                  placeholder={t('books.add.commaSeparated')}
-                  disabled={isLoading}
-                />
+                <Input id="bookCategories" value={fields.categories} onChange={e => setField('categories')(e.target.value)} placeholder={t('books.add.commaSeparated')} disabled={isLoading} />
               </LabeledField>
               <LabeledField label={t('books.add.locationLabel')}>
                 <Select value={fields.locationId || undefined} onValueChange={setField('locationId')} disabled={isLoading}>
-                  <SelectTrigger>
+                  <SelectTrigger id="bookLocation">
                     <SelectValue placeholder={t('books.add.locationPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -257,7 +225,7 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
                 </Select>
               </LabeledField>
               <LabeledField label={t('books.add.descriptionLabel')}>
-                <Textarea value={fields.description} onChange={e => setField('description')(e.target.value)} rows={3} disabled={isLoading} />
+                <Textarea id="bookDescription" value={fields.description} onChange={e => setField('description')(e.target.value)} rows={3} disabled={isLoading} />
               </LabeledField>
             </form>
             {error && <p className="text-sm text-destructive">{error}</p>}

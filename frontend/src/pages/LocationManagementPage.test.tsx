@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import MockAdapter from 'axios-mock-adapter'
 import axiosInstance from '@/api/axiosInstance'
@@ -128,5 +128,81 @@ describe('LocationManagementPage — data loading', () => {
 
     await screen.findByText('Living Room')
     expect(mock.history.get.some(r => r.url === '/api/locations/all')).toBe(true)
+  })
+
+  it('shows error message when API call fails', async () => {
+    mock.onGet('/api/rooms/all').reply(500)
+    mock.onGet('/api/locations/all').reply(500)
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    renderPage()
+
+    expect(await screen.findByText('Váratlan hiba történt')).toBeInTheDocument()
+  })
+
+  it('shows room description when present', async () => {
+    mock.onGet('/api/rooms/all').reply(200, [{ ...roomA, description: 'Könyvespolc a nappaliban' }, roomB])
+    useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
+    renderPage()
+
+    expect(await screen.findByText('Könyvespolc a nappaliban')).toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — room delete modal', () => {
+  it('clicking delete button on room with no locations opens delete modal', async () => {
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    renderPage()
+
+    await screen.findByText('Bedroom')
+    fireEvent.click(screen.getByLabelText('Törlés'))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — collapsible panel', () => {
+  it('rooms panel starts open and can be toggled closed', async () => {
+    useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
+    renderPage()
+
+    await screen.findByText('Living Room')
+    fireEvent.click(screen.getByText('Helyiségek'))
+    expect(screen.queryByText('Living Room')).not.toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — add location button', () => {
+  it('clicking "+ Helyszín" button opens location form modal', async () => {
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    renderPage()
+
+    await screen.findByText('Living Room')
+    fireEvent.click(screen.getAllByLabelText('+ Helyszín')[0])
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — room form modal close', () => {
+  it('closing room form modal hides dialog', async () => {
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    renderPage()
+
+    fireEvent.click(await screen.findByText('Új helyiség'))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Mégse' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — delete room', () => {
+  it('successful room deletion closes modal and triggers data reload', async () => {
+    mock.onDelete('/api/rooms/room-2').reply(204)
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    renderPage()
+
+    await screen.findByText('Bedroom')
+    fireEvent.click(screen.getByLabelText('Törlés'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Törlés' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(mock.history.delete[0].url).toBe('/api/rooms/room-2')
   })
 })

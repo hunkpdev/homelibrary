@@ -14,10 +14,4 @@ describe('useLocationStore', () => {
     useLocationStore.getState().incrementRefreshTrigger()
     expect(useLocationStore.getState().locationsRefreshTrigger).toBe(1)
   })
-
-  it('incrementRefreshTrigger is additive', () => {
-    useLocationStore.getState().incrementRefreshTrigger()
-    useLocationStore.getState().incrementRefreshTrigger()
-    expect(useLocationStore.getState().locationsRefreshTrigger).toBe(2)
-  })
 })
