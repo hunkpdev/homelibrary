@@ -38,20 +38,34 @@ public class NativeLibraryLoader {
      * dependencies at load time — the dynamic linker finds them in the same directory.
      */
     public void load(String resourcePath) {
+        try {
+            if (tempDir == null) {
+                tempDir = createSecureTempDir();
+                tempDir.toFile().deleteOnExit();
+            }
+            loadTo(resourcePath, tempDir);
+        } catch (IOException e) {
+            log.warn("Failed to create temp directory for native library", e);
+        }
+    }
+
+    /**
+     * Extracts a native library to a specific directory and loads it.
+     * Use this when the target directory matters for dependency resolution —
+     * e.g. when a third-party loader will extract a dependent library to the same directory
+     * and RPATH=$ORIGIN must resolve against it.
+     */
+    public void loadTo(String resourcePath, Path targetDirectory) {
         try (InputStream is = classLoader.getResourceAsStream(resourcePath)) {
             if (is == null) {
                 log.warn("Native library not found in classpath at {}", resourcePath);
                 return;
             }
-            if (tempDir == null) {
-                tempDir = createSecureTempDir();
-                tempDir.toFile().deleteOnExit();
-            }
             String filename = Paths.get(resourcePath).getFileName().toString();
-            Path tempFile = tempDir.resolve(filename);
-            tempFile.toFile().deleteOnExit();
-            Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            systemLoader.load(tempFile.toAbsolutePath().toString());
+            Path targetFile = targetDirectory.resolve(filename);
+            targetFile.toFile().deleteOnExit();
+            Files.copy(is, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            systemLoader.load(targetFile.toAbsolutePath().toString());
             log.info("Loaded native library from classpath: {}", resourcePath);
         } catch (IOException | UnsatisfiedLinkError e) {
             log.warn("Failed to load native library", e);
