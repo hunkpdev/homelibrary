@@ -148,19 +148,34 @@ describe('BookFormModal — create mode - isbn search result', () => {
 
 describe('BookFormModal — edit mode', () => {
     it('pre-fills form fields when book data is provided', async () => {
-        const { onClose, onSuccess } = renderModal({book: books[0]})
+        renderModal({book: books[0]})
         expect(screen.getByLabelText('Cím*')).toHaveValue('Title 1')
         expect(screen.getByLabelText('Szerző(k)')).toHaveValue('Author 1')
         expect(screen.getByLabelText('Kiadó')).toHaveValue('Publisher 1')
         expect(screen.getByLabelText('Kiadási év')).toHaveValue(1999)
+    })
 
+    it('PUT request sends original version and onSuccess receives server response', async () => {
         mock.onPut('/api/books/' + books[0].id).reply(200, { ...books[0], version: 1 })
-        await userEvent.clear(screen.getByLabelText('Cím*'))
-        await userEvent.type(screen.getByLabelText('Cím*'), 'Title 1 mod')
+        const { onSuccess } = renderModal({ book: books[0] })
         await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
-        await waitFor(() => {
-            expect(onSuccess).toHaveBeenCalledOnce()
-            expect(onClose).toHaveBeenCalledOnce()
-        })
+        await waitFor(() =>
+            expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({ version: 1 }))
+        )
+        expect(JSON.parse(mock.history.put[0].data).version).toBe(0)
+    })
+
+    it('shows conflict error message on 409 response', async () => {
+        mock.onPut('/api/books/' + books[0].id).reply(409)
+        renderModal({ book: books[0] })
+        await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
+        expect(await screen.findByText('A könyv időközben módosult, kérlek töltsd be újra')).toBeInTheDocument()
+    })
+
+    it('shows unexpected error message on 500 response', async () => {
+        mock.onPut('/api/books/' + books[0].id).reply(500)
+        renderModal({ book: books[0] })
+        await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
+        expect(await screen.findByText('Váratlan hiba történt')).toBeInTheDocument()
     })
 })
