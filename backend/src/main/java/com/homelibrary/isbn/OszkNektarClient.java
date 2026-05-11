@@ -62,9 +62,12 @@ public class OszkNektarClient {
     @PostConstruct
     void init() {
         boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
-        String resourcePath = isWindows ? "native/win32-x86_64/yaz5.dll" : "native/linux-x86_64/libyaz.so.5";
-        String tempSuffix = isWindows ? ".dll" : ".so";
-        nativeLibraryLoader.load(resourcePath, tempSuffix);
+        if (isWindows) {
+            nativeLibraryLoader.load("native/win32-x86_64/yaz5.dll");
+        } else {
+            nativeLibraryLoader.load("native/linux-x86_64/libyaz.so.5");
+            nativeLibraryLoader.load("Linux/amd64/libyaz4j.so");
+        }
     }
 
     @PreDestroy
