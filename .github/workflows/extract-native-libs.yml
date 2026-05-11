@@ -15,10 +15,12 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Build libyaz4j.so from source and collect transitive .so closure (Ubuntu 24.04)
-        # libyaz.so.5 and its transitive deps are built/collected from Ubuntu 24.04.
-        # glibc compatibility with Lambda AL2023 (glibc 2.34) is verified by the
-        # "Validate native lib closure" step below using the actual Lambda Java 21 runtime image.
+      - name: Build libyaz4j.so and yaz from source on AL2023, collect transitive .so closure
+        # Building on amazonlinux:2023 (same base as Lambda java21 runtime, glibc 2.34) guarantees
+        # that all produced binaries and collected .so files are compatible with the Lambda runtime.
+        # Ubuntu 24.04 (glibc 2.38) caused GLIBC_2.38 symbol errors in the transitive closure on AL2023.
+        # Ubuntu 20.04 was rejected as it reached EOL in April 2025.
+        # yaz is built with --disable-tcp-wrappers to eliminate the deprecated libwrap dependency.
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
           mkdir -p backend/src/main/resources/native/Linux/amd64
@@ -26,23 +28,39 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}/backend/src/main/resources/native:/output-native" \
             -v "${{ github.workspace }}/backend/src/main/resources/lib:/output-lib" \
-            ubuntu:24.04 \
+            amazonlinux:2023 \
             bash -c "
-              apt-get update -qq &&
-              DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                build-essential libyaz-dev default-jdk-headless maven swig git pkg-config &&
-              git clone --depth 1 https://github.com/indexdata/yaz4j.git &&
-              cd yaz4j &&
-              mvn package -DskipTests -q &&
+              set -e
+              dnf install -y \
+                gcc gcc-c++ make autoconf automake libtool pkg-config bison swig \
+                gnutls-devel libxml2-devel libxslt-devel \
+                java-21-amazon-corretto-devel maven \
+                git tar gzip findutils &&
+
+              git clone --depth 1 https://github.com/indexdata/yaz.git /build/yaz &&
+              cd /build/yaz &&
+              ./buildconf.sh &&
+              ./configure --prefix=/build/yaz-install --disable-tcp-wrappers &&
+              make -j\$(nproc) &&
+              make install &&
+
+              git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
+              cd /build/yaz4j &&
+              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig mvn package -DskipTests -q &&
               LIBYAZ4J=\$(find target/native -name 'libyaz4j.so' | head -1) &&
+
               cp \"\$LIBYAZ4J\" /output-native/Linux/amd64/libyaz4j.so &&
-              cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output-native/linux-x86_64/libyaz.so.5 &&
-              cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output-lib/libyaz.so.5 &&
-              { ldd \"\$LIBYAZ4J\"; ldd /usr/lib/x86_64-linux-gnu/libyaz.so.5; } \
+              cp -L /build/yaz-install/lib/libyaz.so.5 /output-native/linux-x86_64/libyaz.so.5 &&
+              cp -L /build/yaz-install/lib/libyaz.so.5 /output-lib/libyaz.so.5 &&
+
+              export LD_LIBRARY_PATH=/build/yaz-install/lib &&
+              { ldd \"\$LIBYAZ4J\"; ldd /build/yaz-install/lib/libyaz.so.5; } \
                 | awk '\$3 ~ \"^/\" {print \$3}' \
                 | sort -u \
-                | grep -Ev '/(libc|libpthread|libdl|libm|librt|ld-linux|libstdc\+\+|linux-vdso)\.so' \
-                | xargs -I{} cp -L {} /output-lib/
+                | grep -Ev '/(libc|libpthread|libdl|libm|librt|ld-linux|libstdc\\+\\+|libyaz|linux-vdso)\\.so' \
+                | xargs -I{} cp -L {} /output-lib/ &&
+
+              chmod -R 755 /output-lib/ /output-native/
             "
 
       - name: Validate native lib closure against Lambda AL2023 runtime
@@ -70,5 +88,5 @@ jobs:
           git add backend/src/main/resources/native/linux-x86_64/libyaz.so.5
           git add backend/src/main/resources/native/Linux/amd64/libyaz4j.so
           git add backend/src/main/resources/lib/
-          git diff --staged --quiet || git commit -m "chore: add libyaz native libraries with transitive .so closure for Lambda"
+          git diff --staged --quiet || git commit -m "chore: rebuild libyaz and transitive .so closure from source on AL2023"
           git push
