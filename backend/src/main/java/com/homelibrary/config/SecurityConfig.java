@@ -32,7 +32,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@SuppressWarnings("java:S4502") // CSRF disabled intentionally: stateless JWT + SameSite=Strict cookie
+@SuppressWarnings("java:S4502") // CSRF disabled intentionally: stateless JWT + HttpOnly cookie + CORS allowedOriginPatterns + HTTPS (prod: SameSite=None;Secure)
 public class SecurityConfig {
 
     private static final String API_ALL = "/api/**";

@@ -15,7 +15,6 @@ public class RefreshTokenCookieUtil {
 
     private static final String COOKIE_NAME = "refreshToken";
     private static final String COOKIE_PATH = "/api/auth";
-    private static final String SAME_SITE = "Strict";
 
     private final CookieProperties cookieProperties;
     private final JwtProperties jwtProperties;
@@ -48,7 +47,7 @@ public class RefreshTokenCookieUtil {
         return ResponseCookie.from(COOKIE_NAME, value)
                 .httpOnly(true)
                 .secure(cookieProperties.isSecure())
-                .sameSite(SAME_SITE)
+                .sameSite(cookieProperties.getSameSite())
                 .path(COOKIE_PATH)
                 .maxAge(maxAge)
                 .build();
