@@ -43,30 +43,20 @@ jobs:
               ./configure --prefix=/build/yaz-install --disable-tcp-wrappers &&
               sed -i 's/ doc\b//g' Makefile &&
               make -j\$(nproc) &&
-
-              YAZ_ZOOM=\$(find /build/yaz -name 'zoom.h' | head -1) &&
-              [ -n \"\$YAZ_ZOOM\" ] || { echo 'ERROR: zoom.h not found'; exit 1; } &&
-              YAZ_YAZ_DIR=\$(dirname \$YAZ_ZOOM) &&
-              YAZ_LIBDIR=/build/yaz/src/.libs &&
-              ls \$YAZ_LIBDIR/libyaz.so.5 &&
-              mkdir -p /build/yaz-headers/yaz &&
-              cp -rL \"\$YAZ_YAZ_DIR/.\" /build/yaz-headers/yaz/ &&
-              mkdir -p /build/yaz-pc &&
-              cp /build/yaz/yaz.pc /build/yaz-pc/ &&
-              sed -i \"s|^prefix=.*|prefix=/build/yaz|;s|^libdir=.*|libdir=\$YAZ_LIBDIR|;s|^includedir=.*|includedir=/build/yaz-headers|\" /build/yaz-pc/yaz.pc &&
-              sed -i \"s|-I[^ ]*/include|-I/build/yaz-headers|g\" /build/yaz-pc/yaz.pc &&
+              make install &&
 
               git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
               cd /build/yaz4j &&
-              PKG_CONFIG_PATH=/build/yaz-pc LD_LIBRARY_PATH=\$YAZ_LIBDIR mvn package -DskipTests -q &&
+              sed -i 's|<arg value=\"\${yaz.cflags}\"|<arg line=\"\${yaz.cflags}\"|g' pom.xml &&
+              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig mvn package -DskipTests -q &&
               LIBYAZ4J=\$(find target/native -name 'libyaz4j.so' | head -1) &&
 
               cp \"\$LIBYAZ4J\" /output-native/Linux/amd64/libyaz4j.so &&
-              cp -L \$YAZ_LIBDIR/libyaz.so.5 /output-native/linux-x86_64/libyaz.so.5 &&
-              cp -L \$YAZ_LIBDIR/libyaz.so.5 /output-lib/libyaz.so.5 &&
+              cp -L /build/yaz-install/lib/libyaz.so.5 /output-native/linux-x86_64/libyaz.so.5 &&
+              cp -L /build/yaz-install/lib/libyaz.so.5 /output-lib/libyaz.so.5 &&
 
-              export LD_LIBRARY_PATH=\$YAZ_LIBDIR &&
-              { ldd \"\$LIBYAZ4J\"; ldd \$YAZ_LIBDIR/libyaz.so.5; } \
+              export LD_LIBRARY_PATH=/build/yaz-install/lib &&
+              { ldd \"\$LIBYAZ4J\"; ldd /build/yaz-install/lib/libyaz.so.5; } \
                 | awk '\$3 ~ \"^/\" {print \$3}' \
                 | sort -u \
                 | grep -Ev '/(libc|libpthread|libdl|libm|librt|ld-linux|libstdc\\+\\+|libyaz|linux-vdso)\\.so' \
