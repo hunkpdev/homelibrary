@@ -45,14 +45,16 @@ jobs:
               make -j\$(nproc) &&
 
               YAZ_ZOOM=\$(find /build/yaz -name 'zoom.h' | head -1) &&
-              [ -n \"\$YAZ_ZOOM\" ] || { echo 'ERROR: zoom.h not found in yaz build tree'; exit 1; } &&
-              YAZ_INCLUDE=\$(dirname \$(dirname \$YAZ_ZOOM)) &&
+              [ -n \"\$YAZ_ZOOM\" ] || { echo 'ERROR: zoom.h not found'; exit 1; } &&
+              YAZ_YAZ_DIR=\$(dirname \$YAZ_ZOOM) &&
               YAZ_LIBDIR=/build/yaz/src/.libs &&
-              echo \"zoom.h: \$YAZ_ZOOM | include root: \$YAZ_INCLUDE\" &&
               ls \$YAZ_LIBDIR/libyaz.so.5 &&
+              mkdir -p /build/yaz-headers/yaz &&
+              cp -rL \"\$YAZ_YAZ_DIR/.\" /build/yaz-headers/yaz/ &&
               mkdir -p /build/yaz-pc &&
               cp /build/yaz/yaz.pc /build/yaz-pc/ &&
-              sed -i \"s|^prefix=.*|prefix=/build/yaz|;s|^libdir=.*|libdir=\$YAZ_LIBDIR|;s|^includedir=.*|includedir=\$YAZ_INCLUDE|\" /build/yaz-pc/yaz.pc &&
+              sed -i \"s|^prefix=.*|prefix=/build/yaz|;s|^libdir=.*|libdir=\$YAZ_LIBDIR|;s|^includedir=.*|includedir=/build/yaz-headers|\" /build/yaz-pc/yaz.pc &&
+              sed -i \"s|-I[^ ]*/include|-I/build/yaz-headers|g\" /build/yaz-pc/yaz.pc &&
 
               git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
               cd /build/yaz4j &&
