@@ -294,6 +294,7 @@ export function LocationManagementPage() {
           rowModelType="infinite"
           datasource={datasource}
           columnDefs={colDefs}
+          suppressDragLeaveHidesColumns={true}
           defaultColDef={{ sortable: true, resizable: true, filter: false, sortingOrder: ['asc', 'desc', null], suppressFloatingFilterButton: true, suppressHeaderFilterButton: true }}
           cacheBlockSize={PAGE_SIZE}
           maxBlocksInCache={10}

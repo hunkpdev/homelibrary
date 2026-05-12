@@ -165,6 +165,7 @@ export function BookListPage() {
           rowModelType="infinite"
           datasource={datasource}
           columnDefs={colDefs}
+          suppressDragLeaveHidesColumns={true}
           defaultColDef={{
             sortable: true,
             resizable: true,
