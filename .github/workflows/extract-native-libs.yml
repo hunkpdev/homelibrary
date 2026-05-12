@@ -44,11 +44,8 @@ jobs:
               sed -i 's/ doc\b//g' Makefile &&
               make -j\$(nproc) &&
               make install &&
-
-              echo '=== yaz install verification ===' &&
-              ls /build/yaz-install/lib/pkgconfig/ &&
-              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig pkg-config --cflags --libs yaz &&
-              ls /build/yaz-install/include/yaz/ | head -5 &&
+              mkdir -p /build/yaz-install/include/yaz &&
+              cp /build/yaz/include/yaz/*.h /build/yaz-install/include/yaz/ &&
 
               git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
               cd /build/yaz4j &&
