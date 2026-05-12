@@ -12,4 +12,5 @@ import org.springframework.stereotype.Component;
 public class CookieProperties {
 
     private boolean secure;
+    private String sameSite;
 }

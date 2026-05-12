@@ -63,6 +63,7 @@ class RefreshTokenCookieUtilTest {
     @Test
     void buildSetCookie_setsCorrectAttributes() {
         when(cookieProperties.isSecure()).thenReturn(false);
+        when(cookieProperties.getSameSite()).thenReturn("None");
         when(jwtProperties.getRefreshTokenExpirationMs()).thenReturn(604_800_000L);
 
         ResponseCookie cookie = cookieUtil.buildSetCookie("uuid:part");
@@ -72,12 +73,13 @@ class RefreshTokenCookieUtilTest {
         assertThat(cookie.getMaxAge().getSeconds()).isEqualTo(604800L);
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getPath()).isEqualTo("/api/auth");
-        assertThat(cookie.getSameSite()).isEqualTo("Strict");
+        assertThat(cookie.getSameSite()).isEqualTo("None");
     }
 
     @Test
     void buildDeleteCookie_setsMaxAgeZero() {
         when(cookieProperties.isSecure()).thenReturn(false);
+        when(cookieProperties.getSameSite()).thenReturn("None");
 
         ResponseCookie cookie = cookieUtil.buildDeleteCookie();
 
