@@ -88,6 +88,7 @@ export class HomelibraryStack extends cdk.Stack {
         JWT_SECRET:                  ssm.StringParameter.valueForStringParameter(this, SSM_JWT_SECRET),
         ADMIN_PASSWORD_HASH:         ssm.StringParameter.valueForStringParameter(this, SSM_ADMIN_BCRYPT),
         CORS_ALLOWED_ORIGIN:         `https://${distribution.distributionDomainName}`,
+        LD_LIBRARY_PATH:             '/var/task/lib',
       },
     });
 
