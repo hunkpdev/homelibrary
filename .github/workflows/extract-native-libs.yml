@@ -40,7 +40,7 @@ jobs:
               git clone --depth 1 https://github.com/indexdata/yaz.git /build/yaz &&
               cd /build/yaz &&
               ./buildconf.sh &&
-              ./configure --prefix=/build/yaz-install --disable-tcp-wrappers &&
+              ./configure --prefix=/build/yaz-install --disable-tcp-wrappers --disable-doc &&
               make -j\$(nproc) &&
               make install &&
 
