@@ -18,7 +18,7 @@ export function BookActionCell({ data, isAdmin, isDemo, onEdit, onDelete, editLa
   return (
     <div className="flex gap-1 items-center h-full">
       <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={editLabel} onClick={() => onEdit(data)}>
-        <Pencil className="h-3.5 w-3.5" />
+        <Pencil className="h-3.5 w-3.5 text-primary" />
       </Button>
       <MutationButton
         variant="ghost"

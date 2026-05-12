@@ -159,6 +159,14 @@
       "unexpected": "An unexpected error occurred"
     }
   },
+  "theme": {
+    "zinc": "Zinc",
+    "rose": "Rose",
+    "blue": "Blue",
+    "orange": "Orange",
+    "green": "Green",
+    "violet": "Violet"
+  },
   "comingSoon": {
     "title": "Coming Soon",
     "subtitle": "This page is currently under construction."

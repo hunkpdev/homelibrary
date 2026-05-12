@@ -241,7 +241,7 @@ export function LocationManagementPage() {
             </span>
             {(isAdmin || isDemo) && (
               <Button size="sm" variant="outline" onClick={handleOpenCreateRoom}>
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4 mr-1 text-primary" />
                 {t('locations.rooms.newRoom')}
               </Button>
             )}
@@ -263,7 +263,7 @@ export function LocationManagementPage() {
                 {(isAdmin || isDemo) && (
                   <div className="flex gap-1 shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
-                      <Pencil className="h-3.5 w-3.5" />
+                      <Pencil className="h-3.5 w-3.5 text-primary" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -272,7 +272,7 @@ export function LocationManagementPage() {
                       aria-label={t('locations.rooms.addLocation')}
                       onClick={() => handleOpenCreateLocation(room.id)}
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3.5 w-3.5 text-primary" />
                     </Button>
                     {room.locationCount === 0 && (
                       <MutationButton

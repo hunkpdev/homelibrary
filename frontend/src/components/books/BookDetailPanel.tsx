@@ -105,7 +105,7 @@ export function BookDetailPanel({ book, open, onClose, onEdit, onDelete }: Reado
             <Separator />
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => onEdit(book)}>
-                <Pencil className="h-4 w-4 mr-2" />
+                <Pencil className="h-4 w-4 mr-2 text-primary" />
                 {t('common.edit')}
               </Button>
               <MutationButton variant="destructive" onClick={() => onDelete(book)}>

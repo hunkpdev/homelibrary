@@ -158,6 +158,14 @@
       "unexpected": "Váratlan hiba történt"
     }
   },
+  "theme": {
+    "zinc": "Zinc",
+    "rose": "Rose",
+    "blue": "Blue",
+    "orange": "Orange",
+    "green": "Green",
+    "violet": "Violet"
+  },
   "comingSoon": {
     "title": "Hamarosan",
     "subtitle": "Ez az oldal még fejlesztés alatt áll."
