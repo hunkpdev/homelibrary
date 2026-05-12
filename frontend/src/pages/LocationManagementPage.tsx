@@ -168,6 +168,8 @@ export function LocationManagementPage() {
       {
         field: 'name',
         headerName: t('locations.grid.colName'),
+        minWidth: 150,
+        wrapText: true,
         floatingFilter: true,
         filter: PassthroughFilter,
         floatingFilterComponent: SelectFloatingFilter,
@@ -180,6 +182,8 @@ export function LocationManagementPage() {
       {
         field: 'description',
         headerName: t('locations.grid.colDescription'),
+        minWidth: 200,
+        wrapText: true,
         sortable: false,
         filter: 'agTextColumnFilter',
         floatingFilter: true,
@@ -189,6 +193,7 @@ export function LocationManagementPage() {
       {
         field: 'room.name',
         headerName: t('locations.grid.colRoom'),
+        minWidth: 150,
         floatingFilter: true,
         filter: PassthroughFilter,
         floatingFilterComponent: SelectFloatingFilter,
@@ -202,6 +207,7 @@ export function LocationManagementPage() {
         field: 'bookCount',
         headerName: t('locations.grid.colBookCount'),
         width: 100,
+        minWidth: 80,
         filter: false,
         sortable: false,
       },
