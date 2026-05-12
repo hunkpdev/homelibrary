@@ -4,6 +4,7 @@ import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, IDatasource, IGetRowsParams } from 'ag-grid-community'
 import { AllCommunityModule, colorSchemeDark, colorSchemeLight, ModuleRegistry, themeQuartz } from 'ag-grid-community'
 import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
+import { MousePointerClick } from 'lucide-react'
 import { fetchBooks } from '@/api/bookApi'
 import type { BookResponse } from '@/api/types'
 import { useBookStore } from '@/store/bookStore'
@@ -159,11 +160,17 @@ export function BookListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">{t('books.pageTitle')}</h1>
-        {(isAdmin || isDemo) && (
-          <Button onClick={() => setAddModalOpen(true)}>{t('books.add.newBook')}</Button>
-        )}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-foreground">{t('books.pageTitle')}</h1>
+          {(isAdmin || isDemo) && (
+            <Button onClick={() => setAddModalOpen(true)}>{t('books.add.newBook')}</Button>
+          )}
+        </div>
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <MousePointerClick className="h-4 w-4 shrink-0" />
+          {t('books.rowClickHint')}
+        </p>
       </div>
       <div className="w-full" style={{ height: 500 }}>
         <AgGridReact<BookResponse>
