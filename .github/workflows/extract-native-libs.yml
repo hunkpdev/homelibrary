@@ -15,26 +15,72 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Build libyaz4j.so from source and extract libyaz.so.5 (Ubuntu)
-        # tech-debt: libyaz.so.5 itt Ubuntu 24.04-ből származik, nem a Lambda Java 21 image-ből.
-        # Az AL2023-alapú Lambda image-ből való kinyerés (ADR-010 eredeti szándéka) nem kivitelezhető,
-        # mert a 'yaz' csomag nem érhető el az AL2023 alapértelmezett repóiból.
-        # Feature 5-nél verifikálandó CloudWatch-ban, hogy az Ubuntu-ból származó libyaz.so.5
-        # glibc-kompatibilis-e a Lambda futtatókörnyezettel (dlopen failure → minden lookup Optional.empty()).
+      - name: Build libyaz4j.so and yaz from source on AL2023, collect transitive .so closure
+        # Building on amazonlinux:2023 (same base as Lambda java21 runtime, glibc 2.34) guarantees
+        # that all produced binaries and collected .so files are compatible with the Lambda runtime.
+        # Ubuntu 24.04 (glibc 2.38) caused GLIBC_2.38 symbol errors in the transitive closure on AL2023.
+        # Ubuntu 20.04 was rejected as it reached EOL in April 2025.
+        # yaz is built with --disable-tcp-wrappers to eliminate the deprecated libwrap dependency.
         run: |
           mkdir -p backend/src/main/resources/native/linux-x86_64
           mkdir -p backend/src/main/resources/native/Linux/amd64
+          mkdir -p backend/src/main/resources/lib
           docker run --rm \
-            -v "${{ github.workspace }}/backend/src/main/resources/native:/output" \
-            ubuntu:24.04 \
+            -v "${{ github.workspace }}/backend/src/main/resources/native:/output-native" \
+            -v "${{ github.workspace }}/backend/src/main/resources/lib:/output-lib" \
+            amazonlinux:2023 \
             bash -c "
-              apt-get update -qq &&
-              DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libyaz-dev default-jdk-headless maven swig git pkg-config &&
-              git clone --depth 1 https://github.com/indexdata/yaz4j.git &&
-              cd yaz4j &&
-              mvn package -DskipTests -q &&
-              find target/native -name 'libyaz4j.so' | head -1 | xargs -I{} cp {} /output/Linux/amd64/libyaz4j.so &&
-              cp /usr/lib/x86_64-linux-gnu/libyaz.so.5 /output/linux-x86_64/libyaz.so.5
+              set -e
+              dnf install -y \
+                gcc gcc-c++ make autoconf automake libtool pkg-config bison swig tcl \
+                gnutls-devel libxml2-devel libxslt-devel \
+                java-21-amazon-corretto-devel maven \
+                git tar gzip findutils &&
+
+              git clone --depth 1 https://github.com/indexdata/yaz.git /build/yaz &&
+              cd /build/yaz &&
+              ./buildconf.sh &&
+              ./configure --prefix=/build/yaz-install --disable-tcp-wrappers &&
+              sed -i 's/ doc\b//g' Makefile &&
+              make -j\$(nproc) &&
+              make install &&
+
+              git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
+              cd /build/yaz4j &&
+              sed -i 's|<arg value=\"\${yaz.cflags}\"|<arg line=\"\${yaz.cflags}\"|g' pom.xml &&
+              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig mvn package -DskipTests -q &&
+              LIBYAZ4J=\$(find target/native -name 'libyaz4j.so' | head -1) &&
+
+              cp \"\$LIBYAZ4J\" /output-native/Linux/amd64/libyaz4j.so &&
+              cp -L /build/yaz-install/lib/libyaz.so.5 /output-native/linux-x86_64/libyaz.so.5 &&
+              cp -L /build/yaz-install/lib/libyaz.so.5 /output-lib/libyaz.so.5 &&
+
+              export LD_LIBRARY_PATH=/build/yaz-install/lib &&
+              { ldd \"\$LIBYAZ4J\"; ldd /build/yaz-install/lib/libyaz.so.5; } \
+                | awk '\$3 ~ \"^/\" {print \$3}' \
+                | sort -u \
+                | grep -Ev '/(libc|libpthread|libdl|libm|librt|ld-linux|libstdc\\+\\+|libyaz|linux-vdso)\\.so' \
+                | xargs -I{} cp -L {} /output-lib/ &&
+
+              chmod -R 755 /output-lib/ /output-native/
+            "
+
+      - name: Validate native lib closure against Lambda AL2023 runtime
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/backend/src/main/resources/lib:/var/task/lib:ro" \
+            -e LD_LIBRARY_PATH=/var/task/lib \
+            --entrypoint /bin/bash \
+            public.ecr.aws/lambda/java:21 \
+            -c "
+              set -e
+              echo '=== libyaz.so.5 ldd ==='
+              ldd /var/task/lib/libyaz.so.5
+              if ldd /var/task/lib/libyaz.so.5 | grep -q 'not found'; then
+                echo 'ERROR: Missing transitive .so dependency in resources/lib/'
+                exit 1
+              fi
+              echo 'OK: all transitive deps resolve under /var/task/lib + Lambda AL2023 system paths.'
             "
 
       - name: Commit native libraries
@@ -43,5 +89,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add backend/src/main/resources/native/linux-x86_64/libyaz.so.5
           git add backend/src/main/resources/native/Linux/amd64/libyaz4j.so
-          git diff --staged --quiet || git commit -m "chore: add libyaz.so.5 and libyaz4j.so native libraries from Index Data APT"
+          git add backend/src/main/resources/lib/
+          git diff --staged --quiet || git commit -m "chore: rebuild libyaz and transitive .so closure from source on AL2023"
           git push
