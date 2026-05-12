@@ -45,7 +45,8 @@ jobs:
               make -j\$(nproc) &&
               make install &&
               mkdir -p /build/yaz-install/include/yaz &&
-              cp /build/yaz/include/yaz/*.h /build/yaz-install/include/yaz/ &&
+              find /build/yaz -name '*.h' ! -path '/build/yaz-install/*' -exec cp {} /build/yaz-install/include/yaz/ \; &&
+              ls /build/yaz-install/include/yaz/zoom.h &&
 
               git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
               cd /build/yaz4j &&
