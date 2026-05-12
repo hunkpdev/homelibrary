@@ -32,7 +32,7 @@ jobs:
             bash -c "
               set -e
               dnf install -y \
-                gcc gcc-c++ make autoconf automake libtool pkg-config bison swig \
+                gcc gcc-c++ make autoconf automake libtool pkg-config bison swig tcl \
                 gnutls-devel libxml2-devel libxslt-devel \
                 java-21-amazon-corretto-devel maven \
                 git tar gzip findutils &&
