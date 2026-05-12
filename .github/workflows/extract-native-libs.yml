@@ -45,9 +45,14 @@ jobs:
               make -j\$(nproc) &&
               make install &&
 
+              echo '=== yaz install verification ===' &&
+              ls /build/yaz-install/lib/pkgconfig/ &&
+              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig pkg-config --cflags --libs yaz &&
+              ls /build/yaz-install/include/yaz/ | head -5 &&
+
               git clone --depth 1 https://github.com/indexdata/yaz4j.git /build/yaz4j &&
               cd /build/yaz4j &&
-              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig mvn package -DskipTests -q &&
+              PKG_CONFIG_PATH=/build/yaz-install/lib/pkgconfig mvn package -DskipTests &&
               LIBYAZ4J=\$(find target/native -name 'libyaz4j.so' | head -1) &&
 
               cp \"\$LIBYAZ4J\" /output-native/Linux/amd64/libyaz4j.so &&
