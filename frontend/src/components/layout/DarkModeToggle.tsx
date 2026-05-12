@@ -7,7 +7,7 @@ export function DarkModeToggle() {
 
   return (
     <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode">
-      {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {theme === 'dark' ? <Sun className="h-5 w-5 text-primary" /> : <Moon className="h-5 w-5 text-primary" />}
     </Button>
   )
 }

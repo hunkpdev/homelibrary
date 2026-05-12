@@ -12,6 +12,7 @@ import {useLocationStore} from '@/store/locationStore'
 import {useAuthStore} from '@/store/authStore'
 import {useTheme} from '@/hooks/useTheme'
 import {useIsMobile} from '@/hooks/use-mobile'
+import {Button} from '@/components/ui/button'
 import {MutationButton} from '@/components/common/MutationButton'
 import {Badge} from '@/components/ui/badge'
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible'
@@ -168,6 +169,8 @@ export function LocationManagementPage() {
       {
         field: 'name',
         headerName: t('locations.grid.colName'),
+        minWidth: 150,
+        wrapText: true,
         floatingFilter: true,
         filter: PassthroughFilter,
         floatingFilterComponent: SelectFloatingFilter,
@@ -180,6 +183,8 @@ export function LocationManagementPage() {
       {
         field: 'description',
         headerName: t('locations.grid.colDescription'),
+        minWidth: 200,
+        wrapText: true,
         sortable: false,
         filter: 'agTextColumnFilter',
         floatingFilter: true,
@@ -189,6 +194,7 @@ export function LocationManagementPage() {
       {
         field: 'room.name',
         headerName: t('locations.grid.colRoom'),
+        minWidth: 150,
         floatingFilter: true,
         filter: PassthroughFilter,
         floatingFilterComponent: SelectFloatingFilter,
@@ -202,6 +208,7 @@ export function LocationManagementPage() {
         field: 'bookCount',
         headerName: t('locations.grid.colBookCount'),
         width: 100,
+        minWidth: 80,
         filter: false,
         sortable: false,
       },
@@ -233,10 +240,10 @@ export function LocationManagementPage() {
               {t('locations.rooms.panelTitle')}
             </span>
             {(isAdmin || isDemo) && (
-              <MutationButton size="sm" variant="outline" onClick={handleOpenCreateRoom}>
-                <Plus className="h-4 w-4 mr-1" />
+              <Button size="sm" variant="outline" onClick={handleOpenCreateRoom}>
+                <Plus className="h-4 w-4 mr-1 text-primary" />
                 {t('locations.rooms.newRoom')}
-              </MutationButton>
+              </Button>
             )}
           </div>
         </CollapsibleTrigger>
@@ -255,18 +262,18 @@ export function LocationManagementPage() {
                 </div>
                 {(isAdmin || isDemo) && (
                   <div className="flex gap-1 shrink-0">
-                    <MutationButton variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </MutationButton>
-                    <MutationButton
+                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
+                      <Pencil className="h-3.5 w-3.5 text-primary" />
+                    </Button>
+                    <Button
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
                       aria-label={t('locations.rooms.addLocation')}
                       onClick={() => handleOpenCreateLocation(room.id)}
                     >
-                      <Plus className="h-3.5 w-3.5" />
-                    </MutationButton>
+                      <Plus className="h-3.5 w-3.5 text-primary" />
+                    </Button>
                     {room.locationCount === 0 && (
                       <MutationButton
                         variant="ghost"
@@ -294,6 +301,7 @@ export function LocationManagementPage() {
           rowModelType="infinite"
           datasource={datasource}
           columnDefs={colDefs}
+          suppressDragLeaveHidesColumns={true}
           defaultColDef={{ sortable: true, resizable: true, filter: false, sortingOrder: ['asc', 'desc', null], suppressFloatingFilterButton: true, suppressHeaderFilterButton: true }}
           cacheBlockSize={PAGE_SIZE}
           maxBlocksInCache={10}

@@ -78,6 +78,7 @@
   },
   "books": {
     "pageTitle": "Books",
+    "rowClickHint": "Click on a row to view the full details of the book.",
     "grid": {
       "colIsbn": "ISBN",
       "colTitle": "Title",
@@ -157,5 +158,17 @@
       "invalidCredentials": "Invalid username or password",
       "unexpected": "An unexpected error occurred"
     }
+  },
+  "theme": {
+    "zinc": "Zinc",
+    "rose": "Rose",
+    "blue": "Blue",
+    "orange": "Orange",
+    "green": "Green",
+    "violet": "Violet"
+  },
+  "comingSoon": {
+    "title": "Coming Soon",
+    "subtitle": "This page is currently under construction."
   }
 }

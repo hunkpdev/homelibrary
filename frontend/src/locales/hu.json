@@ -77,6 +77,7 @@
   },
   "books": {
     "pageTitle": "Könyvek",
+    "rowClickHint": "Sorra kattintva megtekinthető a könyv teljes adatlapja.",
     "grid": {
       "colIsbn": "ISBN",
       "colTitle": "Cím",
@@ -156,5 +157,17 @@
       "invalidCredentials": "Hibás felhasználónév vagy jelszó",
       "unexpected": "Váratlan hiba történt"
     }
+  },
+  "theme": {
+    "zinc": "Zinc",
+    "rose": "Rose",
+    "blue": "Blue",
+    "orange": "Orange",
+    "green": "Green",
+    "violet": "Violet"
+  },
+  "comingSoon": {
+    "title": "Hamarosan",
+    "subtitle": "Ez az oldal még fejlesztés alatt áll."
   }
 }

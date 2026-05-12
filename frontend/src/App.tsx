@@ -9,6 +9,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage } from '@/pages/ForbiddenPage'
 import { BookListPage } from '@/pages/BookListPage'
 import { LocationManagementPage } from '@/pages/LocationManagementPage'
+import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { decodeAuthUser, useAuthStore } from '@/store/authStore'
 
 interface RefreshResponse {
@@ -52,11 +53,11 @@ function App() {
               <Route element={<AppLayout />}>
                 <Route path="/" element={<div className="text-foreground">Üdvözlünk a Homelibraryban!</div>} />
                 <Route path="/books" element={<BookListPage />} />
-                <Route path="/profile" element={<div className="text-foreground">Saját profil</div>} />
+                <Route path="/profile" element={<ComingSoonPage />} />
                 <Route path="/locations" element={<LocationManagementPage />} />
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                  <Route path="/loans" element={<div className="text-foreground">Kölcsönzések</div>} />
-                  <Route path="/users" element={<div className="text-foreground">Felhasználók</div>} />
+                  <Route path="/loans" element={<ComingSoonPage />} />
+                  <Route path="/users" element={<ComingSoonPage />} />
                 </Route>
               </Route>
             </Route>

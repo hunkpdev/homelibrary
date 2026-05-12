@@ -46,6 +46,7 @@ export default defineConfig({
         'src/components/grid/**',
         'src/hooks/useTheme.ts',
         'src/pages/ForbiddenPage.tsx',
+        'src/pages/ComingSoonPage.tsx',
         'src/**/*.test.ts',
         'src/**/*.test.tsx',
       ],

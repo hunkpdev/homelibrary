@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle'
+import { ThemeSelector } from '@/components/layout/ThemeSelector'
 import { useAuthStore } from '@/store/authStore'
 import type { AuthUser } from '@/store/authStore'
 import axiosInstance from '@/api/axiosInstance'
@@ -58,12 +59,13 @@ export function AppSidebar() {
               {visibleItems.map(item => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.to}
-                      className={({ isActive }) => (isActive ? 'font-semibold' : '')}
-                    >
-                      <item.icon />
-                      <span>{t(item.labelKey)}</span>
+                    <NavLink to={item.to}>
+                      {({ isActive }) => (
+                        <>
+                          <item.icon className={isActive ? 'text-primary' : 'text-muted-foreground'} />
+                          <span className={isActive ? 'font-semibold' : ''}>{t(item.labelKey)}</span>
+                        </>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -76,10 +78,13 @@ export function AppSidebar() {
         {user && (
           <span className="px-2 py-1 text-sm text-muted-foreground truncate">{user.username}</span>
         )}
-        <div className="flex items-center gap-2">
-          <DarkModeToggle />
-          <SidebarMenuButton onClick={handleLogout} className="flex-1">
-            <LogOut />
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <DarkModeToggle />
+            <ThemeSelector />
+          </div>
+          <SidebarMenuButton onClick={handleLogout}>
+            <LogOut className="text-primary" />
             <span>{t('sidebar.logout')}</span>
           </SidebarMenuButton>
         </div>
