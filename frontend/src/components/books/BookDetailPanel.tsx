@@ -3,6 +3,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
 import { MutationButton } from '@/components/common/MutationButton'
 import { useAuthStore } from '@/store/authStore'
 import type { BookResponse, BookSource, BookStatus } from '@/api/types'
@@ -103,10 +104,10 @@ export function BookDetailPanel({ book, open, onClose, onEdit, onDelete }: Reado
           <>
             <Separator />
             <div className="flex gap-2">
-              <MutationButton variant="outline" onClick={() => onEdit(book)}>
+              <Button variant="outline" onClick={() => onEdit(book)}>
                 <Pencil className="h-4 w-4 mr-2" />
                 {t('common.edit')}
-              </MutationButton>
+              </Button>
               <MutationButton variant="destructive" onClick={() => onDelete(book)}>
                 <Trash2 className="h-4 w-4 mr-2" />
                 {t('common.delete')}

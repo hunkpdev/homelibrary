@@ -12,6 +12,7 @@ import {useLocationStore} from '@/store/locationStore'
 import {useAuthStore} from '@/store/authStore'
 import {useTheme} from '@/hooks/useTheme'
 import {useIsMobile} from '@/hooks/use-mobile'
+import {Button} from '@/components/ui/button'
 import {MutationButton} from '@/components/common/MutationButton'
 import {Badge} from '@/components/ui/badge'
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible'
@@ -239,10 +240,10 @@ export function LocationManagementPage() {
               {t('locations.rooms.panelTitle')}
             </span>
             {(isAdmin || isDemo) && (
-              <MutationButton size="sm" variant="outline" onClick={handleOpenCreateRoom}>
+              <Button size="sm" variant="outline" onClick={handleOpenCreateRoom}>
                 <Plus className="h-4 w-4 mr-1" />
                 {t('locations.rooms.newRoom')}
-              </MutationButton>
+              </Button>
             )}
           </div>
         </CollapsibleTrigger>
@@ -261,10 +262,10 @@ export function LocationManagementPage() {
                 </div>
                 {(isAdmin || isDemo) && (
                   <div className="flex gap-1 shrink-0">
-                    <MutationButton variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('common.edit')} onClick={() => handleOpenEditRoom(room)}>
                       <Pencil className="h-3.5 w-3.5" />
-                    </MutationButton>
-                    <MutationButton
+                    </Button>
+                    <Button
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
@@ -272,7 +273,7 @@ export function LocationManagementPage() {
                       onClick={() => handleOpenCreateLocation(room.id)}
                     >
                       <Plus className="h-3.5 w-3.5" />
-                    </MutationButton>
+                    </Button>
                     {room.locationCount === 0 && (
                       <MutationButton
                         variant="ghost"
