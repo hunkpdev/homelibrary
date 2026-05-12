@@ -157,5 +157,9 @@
       "invalidCredentials": "Hibás felhasználónév vagy jelszó",
       "unexpected": "Váratlan hiba történt"
     }
+  },
+  "comingSoon": {
+    "title": "Hamarosan",
+    "subtitle": "Ez az oldal még fejlesztés alatt áll."
   }
 }

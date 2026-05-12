@@ -158,5 +158,9 @@
       "invalidCredentials": "Invalid username or password",
       "unexpected": "An unexpected error occurred"
     }
+  },
+  "comingSoon": {
+    "title": "Coming Soon",
+    "subtitle": "This page is currently under construction."
   }
 }
