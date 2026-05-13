@@ -41,6 +41,11 @@ ISBN lookups use the [Hungarian National Library (OSZK)](https://oszk.hu/) NektÃ
 | Swagger UI   | {BASE_URL}/swagger-ui.html |
 | OpenAPI JSON | {BASE_URL}/v3/api-docs     |
 
+## Code Quality
+
+Frontend &nbsp;<a href="https://sonarcloud.io/summary/new_code?id=hunkpdev_homelibrary-frontend"><img src="https://sonarcloud.io/images/project_badges/sonarcloud-light.svg" height="30"></a> &nbsp;&nbsp;
+Backend &nbsp;<a href="https://sonarcloud.io/summary/new_code?id=hunkpdev_homelibrary-backend"><img src="https://sonarcloud.io/images/project_badges/sonarcloud-light.svg" height="30"></a>
+
 ## License
 
 [PolyForm Personal Use 1.0.0](LICENSE) â€” free for personal, non-commercial use.  
