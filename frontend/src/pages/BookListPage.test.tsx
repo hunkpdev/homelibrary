@@ -21,7 +21,7 @@ const book: BookResponse = {
   id: 'book-1', title: 'Title 1', isbn: '978-0-06-112008-4', subtitle: null,
   authors: ['Author 1'], publisher: null, publishYear: 2024, pageCount: null,
   language: null, categories: [], description: null, coverImageUrl: null,
-  status: 'AT_HOME', location: null, source: 'MANUAL', version: 0,
+  status: 'AT_HOME', location: { id: 'loc-1', name: 'Felső polc', room: { id: 'room-1', name: 'Nappali' } }, source: 'MANUAL', version: 0,
   createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z',
 }
 
