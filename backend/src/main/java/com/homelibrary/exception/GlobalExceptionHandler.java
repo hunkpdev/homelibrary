@@ -3,6 +3,7 @@ package com.homelibrary.exception;
 import com.homelibrary.dto.RateLimitExceededResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +28,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Void> handleResourceNotFoundException() {
         return ResponseEntity.status(404).build();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Void> handleMethodArgumentNotValid() {
+        return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(InvalidDataAccessResourceUsageException.class)

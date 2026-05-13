@@ -26,6 +26,7 @@
     "save": "Save",
     "saving": "Saving...",
     "errorUnexpected": "An unexpected error occurred",
+    "errorRequiredFields": "Required fields are missing",
     "demoTooltip": "This action is not available in demo mode"
   },
   "locations": {

@@ -21,7 +21,7 @@ public record BookUpdateRequest(
         @Size(max = 10) String language,
         List<String> categories,
         String description,
-        UUID locationId,
+        @NotNull UUID locationId,
         BookSource source,
         @NotNull Long version
 ) {}
