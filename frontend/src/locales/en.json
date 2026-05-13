@@ -125,6 +125,7 @@
       "locationLabel": "Location",
       "locationPlaceholder": "Select a location",
       "descriptionLabel": "Description",
+      "descriptionHint": "Take a photo of the back cover or inner blurb with your phone. The gallery AI can recognise the text — copy it and paste it here.",
       "commaSeparated": "Comma-separated"
     },
     "edit": {

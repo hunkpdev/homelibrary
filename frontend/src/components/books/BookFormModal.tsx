@@ -1,5 +1,6 @@
 import type {ComponentPropsWithRef, ReactElement, ReactNode} from 'react'
 import React, {useEffect, useState} from 'react'
+import {Info} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {isAxiosError} from 'axios'
 import {createBook, updateBook} from '@/api/bookApi'
@@ -43,12 +44,23 @@ function splitTrim(value: string): string[] {
   return value.split(',').map(v => v.trim()).filter(Boolean)
 }
 
-function LabeledField({ label, required, children }: Readonly<{ label: string; required?: boolean; children: ReactNode }>) {
+function LabeledField({ label, required, hint, children }: Readonly<{ label: string; required?: boolean; hint?: string; children: ReactNode }>) {
+  const [hintOpen, setHintOpen] = useState(false)
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium" htmlFor={(children as ReactElement<ComponentPropsWithRef<typeof Input>>)?.props?.id}>
-        {label}{required && <span className="text-destructive ml-1">*</span>}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label className="text-sm font-medium" htmlFor={(children as ReactElement<ComponentPropsWithRef<typeof Input>>)?.props?.id}>
+          {label}{required && <span className="text-destructive ml-1">*</span>}
+        </label>
+        {hint && (
+          <button type="button" onClick={() => setHintOpen(v => !v)} className="text-muted-foreground hover:text-foreground">
+            <Info size={14} />
+          </button>
+        )}
+      </div>
+      {hint && hintOpen && (
+        <p className="text-xs text-muted-foreground bg-muted rounded px-2 py-1.5">{hint}</p>
+      )}
       {children}
     </div>
   )
@@ -226,7 +238,7 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
                   </SelectContent>
                 </Select>
               </LabeledField>
-              <LabeledField label={t('books.add.descriptionLabel')}>
+              <LabeledField label={t('books.add.descriptionLabel')} hint={t('books.add.descriptionHint')}>
                 <Textarea id="bookDescription" value={fields.description} onChange={e => setField('description')(e.target.value)} rows={3} disabled={isLoading} />
               </LabeledField>
             </form>

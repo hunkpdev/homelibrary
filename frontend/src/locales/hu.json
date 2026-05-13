@@ -124,6 +124,7 @@
       "locationLabel": "Helyszín",
       "locationPlaceholder": "Válassz helyszínt",
       "descriptionLabel": "Leírás",
+      "descriptionHint": "Telefonnal fotózd le a hátlapot vagy a belső ajánlót. A galéria AI felismeri a szöveget — másold ki, majd illeszd be ide.",
       "commaSeparated": "Vesszővel elválasztva"
     },
     "edit": {
