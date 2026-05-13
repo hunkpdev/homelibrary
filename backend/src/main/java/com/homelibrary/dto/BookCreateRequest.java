@@ -4,6 +4,7 @@ import com.homelibrary.model.BookSource;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -20,6 +21,6 @@ public record BookCreateRequest(
         @Size(max = 10) String language,
         List<String> categories,
         String description,
-        UUID locationId,
+        @NotNull UUID locationId,
         BookSource source
 ) {}

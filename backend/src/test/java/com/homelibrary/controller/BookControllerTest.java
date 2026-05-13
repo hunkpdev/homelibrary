@@ -52,6 +52,7 @@ class BookControllerTest {
     private MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final UUID LOCATION_ID = UUID.randomUUID();
 
     @MockitoBean
     private BookService bookService;
@@ -97,7 +98,7 @@ class BookControllerTest {
         mockMvc.perform(post("/api/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new BookCreateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, null, null))))
+                                new BookCreateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, LOCATION_ID, null))))
                 .andExpect(status().isForbidden());
     }
 
@@ -107,7 +108,7 @@ class BookControllerTest {
         mockMvc.perform(post("/api/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new BookCreateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, null, null))))
+                                new BookCreateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, LOCATION_ID, null))))
                 .andExpect(status().isForbidden());
     }
 
@@ -121,7 +122,7 @@ class BookControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.authentication(adminAuthentication()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new BookCreateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, null, null))))
+                                new BookCreateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, LOCATION_ID, null))))
                 .andExpect(status().isCreated());
     }
 
@@ -144,7 +145,7 @@ class BookControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.authentication(adminAuthentication()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new BookUpdateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, null, null, 0L))))
+                                new BookUpdateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, LOCATION_ID, null, 0L))))
                 .andExpect(status().isOk());
     }
 
@@ -155,7 +156,7 @@ class BookControllerTest {
         mockMvc.perform(put("/api/books/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new BookUpdateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, null, null, 0L))))
+                                new BookUpdateRequest(null, "Clean Code", null, null, null, null, null, null, null, null, LOCATION_ID, null, 0L))))
                 .andExpect(status().isForbidden());
     }
 

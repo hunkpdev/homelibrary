@@ -151,6 +151,8 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
     } catch (err) {
       if (isEdit && isAxiosError(err) && err.response?.status === 409) {
         setError(t('books.edit.errorConflict'))
+      } else if (isAxiosError(err) && err.response?.status === 400) {
+        setError(t('common.errorRequiredFields'))
       } else {
         setError(t('common.errorUnexpected'))
       }
@@ -210,7 +212,7 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
               <LabeledField label={t('books.add.categoriesLabel')}>
                 <Input id="bookCategories" value={fields.categories} onChange={e => setField('categories')(e.target.value)} placeholder={t('books.add.commaSeparated')} disabled={isLoading} />
               </LabeledField>
-              <LabeledField label={t('books.add.locationLabel')}>
+              <LabeledField label={t('books.add.locationLabel')} required>
                 <Select value={fields.locationId || undefined} onValueChange={setField('locationId')} disabled={isLoading}>
                   <SelectTrigger id="bookLocation">
                     <SelectValue placeholder={t('books.add.locationPlaceholder')} />
@@ -236,7 +238,7 @@ export function BookFormModal({ open, onClose, onSuccess, book }: Readonly<Props
               <MutationButton
                 type="submit"
                 form={FORM_ID}
-                disabled={isLoading || !fields.title.trim()}
+                disabled={isLoading || !fields.title.trim() || !fields.locationId.trim()}
               >
                 {isLoading ? t('common.saving') : t('common.save')}
               </MutationButton>
