@@ -4,14 +4,19 @@ import {beforeEach, describe, expect, it, vi} from "vitest";
 import {render, screen, waitFor} from "@testing-library/react";
 import {BookFormModal} from "@/components/books/BookFormModal.tsx";
 import userEvent from '@testing-library/user-event'
-import {BookResponse} from "@/api/types.ts";
+import {BookResponse, LocationResponse} from "@/api/types.ts";
 
 const mock = new MockAdapter(axiosInstance)
+
+const location: LocationResponse = {
+    id: 'loc-1', name: 'Felső polc', description: null,
+    room: { id: 'room-1', name: 'Nappali' }, bookCount: 0, version: 1
+}
 
 const books: BookResponse[] = [
     { id: 'book-1', title: 'Title 1', isbn: null, subtitle: null, authors: ['Author 1'], publisher: 'Publisher 1', publishYear: 1999,
       pageCount: null, language: null, categories: [], description: null, coverImageUrl: null, status: "AT_HOME",
-      location: null, source: "MANUAL", version: 0, createdAt: "", updatedAt: ""
+      location: { id: 'loc-1', name: 'Felső polc', room: { id: 'room-1', name: 'Nappali' } }, source: "MANUAL", version: 0, createdAt: "", updatedAt: ""
     },
     { id: 'book-2', title: 'Szülői generációk harca', isbn: '9789636091996', subtitle: 'hogyan értsük meg magunkat?',
       authors: ['Steigervald Krisztián, Matyus Dóra'], publisher: 'Partvonal', publishYear: 2026, pageCount: null,
@@ -37,6 +42,7 @@ function renderModal(props: Partial<Parameters<typeof BookFormModal>[0]> = {}) {
 
 beforeEach(() => {
     mock.reset()
+    mock.onGet('/api/locations/all').reply(200, [location])
 })
 
 describe('BookFormModal — create mode - manual entry', () => {
@@ -67,6 +73,8 @@ describe('BookFormModal — create mode - manual entry', () => {
         const { onClose, onSuccess } = renderModal()
         await userEvent.click(screen.getByRole('button', { name: 'Kézi bevitel' }))
         await userEvent.type(screen.getByLabelText('Cím*'), 'Title 1')
+        await userEvent.click(screen.getByRole('combobox'))
+        await userEvent.click(screen.getByRole('option', { name: 'Felső polc — Nappali' }))
         await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
         await waitFor(() => {
             expect(onSuccess).toHaveBeenCalledOnce()
@@ -81,8 +89,21 @@ describe('BookFormModal — create mode - manual entry', () => {
         renderModal()
         await userEvent.click(screen.getByRole('button', { name: 'Kézi bevitel' }))
         await userEvent.type(screen.getByLabelText('Cím*'), 'Title 1')
+        await userEvent.click(screen.getByRole('combobox'))
+        await userEvent.click(screen.getByRole('option', { name: 'Felső polc — Nappali' }))
         await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
         expect(await screen.findByText('Váratlan hiba történt')).toBeInTheDocument()
+    })
+
+    it('shows required fields error message on 400 response', async () => {
+        mock.onPost('/api/books').reply(400)
+        renderModal()
+        await userEvent.click(screen.getByRole('button', { name: 'Kézi bevitel' }))
+        await userEvent.type(screen.getByLabelText('Cím*'), 'Title 1')
+        await userEvent.click(screen.getByRole('combobox'))
+        await userEvent.click(screen.getByRole('option', { name: 'Felső polc — Nappali' }))
+        await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
+        expect(await screen.findByText('Kötelező mezők nincsenek kitöltve')).toBeInTheDocument()
     })
 })
 
