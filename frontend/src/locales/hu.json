@@ -143,7 +143,13 @@
       "daily": "Elérted a napi DEMO keresési limitet, holnap újra próbálhatod",
       "session": "Elérted a DEMO keresési limitet"
     },
-    "retry": "Újrapróbálkozás"
+    "retry": "Újrapróbálkozás",
+    "serviceInfo": {
+      "trigger": "OSZK Nektár info",
+      "text": "Az ISBN-keresés az Országos Széchényi Könyvtár (OSZK) Nektár Z39.50 adatbázisából dolgozik. Karbantartás vagy leállás esetén a keresés nem elérhető.",
+      "newsLink": "Hírek, karbantartások — oszk.hu",
+      "statusLink": "Nektár szolgáltatás állapota — nektar1.oszk.hu"
+    }
   },
   "isbnScanner": {
     "placeholder": "ISBN szám",

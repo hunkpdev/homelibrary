@@ -144,7 +144,13 @@
       "daily": "You have reached the daily DEMO search limit, try again tomorrow",
       "session": "You have reached the DEMO search limit"
     },
-    "retry": "Try again"
+    "retry": "Try again",
+    "serviceInfo": {
+      "trigger": "OSZK Nektár info",
+      "text": "ISBN lookups are powered by the Hungarian National Library (OSZK) Nektár Z39.50 service. The search is unavailable during maintenance or outages.",
+      "newsLink": "News & maintenance — oszk.hu",
+      "statusLink": "Nektár service status — nektar1.oszk.hu"
+    }
   },
   "isbnScanner": {
     "placeholder": "ISBN number",

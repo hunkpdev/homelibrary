@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isAxiosError } from 'axios'
-import { Loader2 } from 'lucide-react'
+import { Info, Loader2 } from 'lucide-react'
 import { IsbnScannerInput } from './IsbnScannerInput'
 import type { IsbnScannerInputHandle } from './IsbnScannerInput'
 import { lookupIsbn } from '@/api/isbnApi'
@@ -20,6 +20,7 @@ type PanelState = 'idle' | 'loading' | 'found' | 'not-found' | ErrorReason
 export function IsbnLookupPanel({ onResult, onError }: Readonly<Props>) {
   const { t } = useTranslation()
   const [state, setState] = useState<PanelState>('idle')
+  const [serviceInfoOpen, setServiceInfoOpen] = useState(false)
   const scannerRef = useRef<IsbnScannerInputHandle>(null)
 
   const handleScan = async (isbn: string) => {
@@ -53,6 +54,27 @@ export function IsbnLookupPanel({ onResult, onError }: Readonly<Props>) {
         onScan={handleScan}
         isLoading={state === 'loading'}
       />
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => setServiceInfoOpen(v => !v)}
+          className="self-start flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Info size={12} />
+          {t('isbnLookup.serviceInfo.trigger')}
+        </button>
+        {serviceInfoOpen && (
+          <div className="text-xs text-muted-foreground bg-muted rounded px-2 py-1.5 flex flex-col gap-1">
+            <span>{t('isbnLookup.serviceInfo.text')}</span>
+            <a href="https://oszk.hu/" target="_blank" rel="noreferrer" className="underline">
+              {t('isbnLookup.serviceInfo.newsLink')}
+            </a>
+            <a href="https://nektar1.oszk.hu/librivision_hun.html" target="_blank" rel="noreferrer" className="underline">
+              {t('isbnLookup.serviceInfo.statusLink')}
+            </a>
+          </div>
+        )}
+      </div>
       {state === 'loading' && (
         <p className="text-sm text-muted-foreground flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" data-testid="loading-spinner" />
