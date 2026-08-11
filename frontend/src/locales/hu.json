@@ -27,7 +27,8 @@
     "saving": "Mentés...",
     "errorUnexpected": "Váratlan hiba történt",
     "errorRequiredFields": "Kötelező mezők nincsenek kitöltve",
-    "demoTooltip": "Demo módban ez a művelet nem elérhető"
+    "demoTooltip": "Demo módban ez a művelet nem elérhető",
+    "retry": "Újrapróbálom"
   },
   "locations": {
     "pageTitle": "Helyszínek kezelése",

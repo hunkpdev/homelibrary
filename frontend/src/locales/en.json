@@ -27,7 +27,8 @@
     "saving": "Saving...",
     "errorUnexpected": "An unexpected error occurred",
     "errorRequiredFields": "Required fields are missing",
-    "demoTooltip": "This action is not available in demo mode"
+    "demoTooltip": "This action is not available in demo mode",
+    "retry": "Try again"
   },
   "locations": {
     "pageTitle": "Location Management",
