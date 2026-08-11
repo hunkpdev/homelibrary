@@ -12,7 +12,7 @@ const FORM_ID = 'location-form'
 interface Props {
   open: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (updated?: LocationResponse) => void
   location?: LocationResponse
   rooms: RoomResponse[]
   defaultRoomId?: string
@@ -32,17 +32,16 @@ export function LocationFormModal({ open, onClose, onSuccess, location, rooms, d
     }
   }, [open, location, defaultRoomId])
 
-  const { isLoading, error, onSubmit } = useFormSubmit({
+  const { isLoading, error, onSubmit } = useFormSubmit<LocationResponse | undefined>({
     open,
     conflictErrorKey: 'locations.form.errorConflict',
     onSuccess,
     onClose,
     submitFn: async () => {
       if (location) {
-        await updateLocation(location.id, { name: name.trim(), description: description.trim() || undefined, version: location.version })
-      } else {
-        await createLocation({ name: name.trim(), roomId, description: description.trim() || undefined })
+        return await updateLocation(location.id, { name: name.trim(), description: description.trim() || undefined, version: location.version })
       }
+      return await createLocation({ name: name.trim(), roomId, description: description.trim() || undefined })
     },
   })
 

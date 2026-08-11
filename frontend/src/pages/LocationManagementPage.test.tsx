@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
 import MockAdapter from 'axios-mock-adapter'
 import axiosInstance from '@/api/axiosInstance'
 import { useAuthStore } from '@/store/authStore'
 import { useLocationStore } from '@/store/locationStore'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { LocationManagementPage } from './LocationManagementPage'
-import type { RoomResponse, LocationResponse } from '@/api/types'
+import type { RoomResponse } from '@/api/types'
+import type { LocationCardViewProps } from './LocationCardView'
+import type { LocationGridViewFilterState } from './LocationGridView'
 
 const mock = new MockAdapter(axiosInstance)
 
@@ -19,26 +22,49 @@ const makeToken = (role: 'ADMIN' | 'VISITOR') =>
 const roomA: RoomResponse = { id: 'room-1', name: 'Living Room', description: null, locationCount: 2, version: 0 }
 const roomB: RoomResponse = { id: 'room-2', name: 'Bedroom', description: null, locationCount: 0, version: 0 }
 
-const loc1: LocationResponse = { id: 'loc-1', name: 'Top Shelf', description: null, room: roomA, bookCount: 3, version: 0 }
-const loc2: LocationResponse = { id: 'loc-2', name: 'Bottom Shelf', description: null, room: roomA, bookCount: 0, version: 0 }
+vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }))
 
-vi.mock('ag-grid-react', () => ({
-  AgGridReact: () => <div data-testid="ag-grid" />,
+vi.mock('@/pages/LocationCardView', () => ({
+  LocationCardView: (props: LocationCardViewProps) => (
+    <div data-testid="location-card-view">
+      <span data-testid="card-search">{props.search}</span>
+      <span data-testid="card-reset-signal">{props.cardListResetSignal}</span>
+      <button onClick={() => props.onSearchChange('typed')}>set-search</button>
+    </div>
+  ),
 }))
 
+vi.mock('@/pages/LocationGridView', () => ({
+  default: (props: {
+    initialFilterState: LocationGridViewFilterState
+    onFilterStateCapture: (state: LocationGridViewFilterState) => void
+  }) => (
+    <div data-testid="location-grid-view">
+      <span data-testid="grid-initial-search">{props.initialFilterState.search}</span>
+      <button
+        onClick={() => props.onFilterStateCapture({
+          search: 'from-grid',
+          sort: 'room.name,desc',
+          filters: { roomId: '', description: '' },
+        })}
+      >
+        capture
+      </button>
+    </div>
+  ),
+}))
+
+const mockUseIsMobile = vi.mocked(useIsMobile)
+
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <LocationManagementPage />
-    </MemoryRouter>
-  )
+  return render(<LocationManagementPage />)
 }
 
 beforeEach(() => {
   mock.reset()
   mock.onGet('/api/rooms/all').reply(200, [roomA, roomB])
-  mock.onGet('/api/locations/all').reply(200, [loc1, loc2])
   useLocationStore.setState({ locationsRefreshTrigger: 0 })
+  mockUseIsMobile.mockReturnValue(false)
 })
 
 describe('LocationManagementPage — rooms panel', () => {
@@ -68,9 +94,7 @@ describe('LocationManagementPage — rooms panel', () => {
     await screen.findByText('Living Room')
     await screen.findByText('Bedroom')
 
-    const allDeleteButtons = screen.getAllByLabelText('Törlés')
-    // Only Bedroom (locationCount=0) has a delete button in the rooms panel
-    expect(allDeleteButtons).toHaveLength(1)
+    expect(screen.getAllByLabelText('Törlés')).toHaveLength(1)
   })
 
   it('ADMIN sees "Új helyiség" button', async () => {
@@ -81,17 +105,6 @@ describe('LocationManagementPage — rooms panel', () => {
   })
 })
 
-describe('LocationManagementPage — VISITOR grid', () => {
-  it('VISITOR sees no action buttons in grid area', async () => {
-    useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
-    renderPage()
-
-    await screen.findByText('Living Room')
-    // AG Grid is mocked — verify no edit/delete buttons are rendered
-    expect(screen.queryByLabelText('Szerkesztés')).not.toBeInTheDocument()
-  })
-})
-
 describe('LocationManagementPage — ADMIN interactions', () => {
   beforeEach(() => {
     useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
@@ -99,16 +112,14 @@ describe('LocationManagementPage — ADMIN interactions', () => {
 
   it('clicking "Új helyiség" button opens room form modal', async () => {
     renderPage()
-    const newRoomBtn = await screen.findByText('Új helyiség')
-    fireEvent.click(newRoomBtn)
+    fireEvent.click(await screen.findByText('Új helyiség'))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('clicking edit room button opens room form modal', async () => {
     renderPage()
     await screen.findByText('Living Room')
-    const editBtns = screen.getAllByLabelText('Szerkesztés')
-    fireEvent.click(editBtns[0])
+    fireEvent.click(screen.getAllByLabelText('Szerkesztés')[0])
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })
@@ -122,17 +133,8 @@ describe('LocationManagementPage — data loading', () => {
     expect(screen.getByText('Bedroom')).toBeInTheDocument()
   })
 
-  it('fetches all locations from API on load', async () => {
-    useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
-    renderPage()
-
-    await screen.findByText('Living Room')
-    expect(mock.history.get.some(r => r.url === '/api/locations/all')).toBe(true)
-  })
-
-  it('shows error message when API call fails', async () => {
+  it('shows error message when the rooms API call fails', async () => {
     mock.onGet('/api/rooms/all').reply(500)
-    mock.onGet('/api/locations/all').reply(500)
     useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
     renderPage()
 
@@ -157,6 +159,36 @@ describe('LocationManagementPage — room delete modal', () => {
     fireEvent.click(screen.getByLabelText('Törlés'))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
+
+  it('successful room deletion closes modal and triggers data reload', async () => {
+    mock.onDelete('/api/rooms/room-2').reply(204)
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    renderPage()
+
+    await screen.findByText('Bedroom')
+    fireEvent.click(screen.getByLabelText('Törlés'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Törlés' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(mock.history.delete[0].url).toBe('/api/rooms/room-2')
+  })
+
+  it('bumps the card list reset signal, so the mobile card view fully resets', async () => {
+    mock.onDelete('/api/rooms/room-2').reply(204)
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    mockUseIsMobile.mockReturnValue(true)
+    renderPage()
+
+    // On mobile the Rooms panel starts collapsed — open it before its buttons are reachable.
+    fireEvent.click(await screen.findByText('Helyiségek'))
+    await screen.findByText('Bedroom')
+    expect(screen.getByTestId('card-reset-signal')).toHaveTextContent('0')
+
+    fireEvent.click(screen.getByLabelText('Törlés'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Törlés' }))
+
+    await waitFor(() => expect(screen.getByTestId('card-reset-signal')).toHaveTextContent('1'))
+  })
 })
 
 describe('LocationManagementPage — collapsible panel', () => {
@@ -179,6 +211,22 @@ describe('LocationManagementPage — add location button', () => {
     fireEvent.click(screen.getAllByLabelText('+ Helyszín')[0])
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
+
+  it('successful location creation bumps the card list reset signal', async () => {
+    mock.onPost('/api/locations').reply(201, { id: 'new-1', name: 'Top Shelf', description: null, room: roomA, bookCount: 0, version: 0 })
+    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+    mockUseIsMobile.mockReturnValue(true)
+    renderPage()
+
+    // On mobile the Rooms panel starts collapsed — open it before its buttons are reachable.
+    fireEvent.click(await screen.findByText('Helyiségek'))
+    await screen.findByText('Living Room')
+    fireEvent.click(screen.getAllByLabelText('+ Helyszín')[0])
+    await userEvent.type(screen.getByPlaceholderText('Pl. Felső polc'), 'Top Shelf')
+    await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
+
+    await waitFor(() => expect(screen.getByTestId('card-reset-signal')).toHaveTextContent('1'))
+  })
 })
 
 describe('LocationManagementPage — room form modal close', () => {
@@ -193,16 +241,45 @@ describe('LocationManagementPage — room form modal close', () => {
   })
 })
 
-describe('LocationManagementPage — delete room', () => {
-  it('successful room deletion closes modal and triggers data reload', async () => {
-    mock.onDelete('/api/rooms/room-2').reply(204)
-    useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
+describe('LocationManagementPage — view switching', () => {
+  it('renders the grid view when not mobile', async () => {
+    mockUseIsMobile.mockReturnValue(false)
     renderPage()
+    expect(await screen.findByTestId('location-grid-view')).toBeInTheDocument()
+    expect(screen.queryByTestId('location-card-view')).not.toBeInTheDocument()
+  })
 
-    await screen.findByText('Bedroom')
-    fireEvent.click(screen.getByLabelText('Törlés'))
-    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Törlés' }))
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(mock.history.delete[0].url).toBe('/api/rooms/room-2')
+  it('renders the card view when mobile', () => {
+    mockUseIsMobile.mockReturnValue(true)
+    renderPage()
+    expect(screen.getByTestId('location-card-view')).toBeInTheDocument()
+    expect(screen.queryByTestId('location-grid-view')).not.toBeInTheDocument()
+  })
+})
+
+describe('LocationManagementPage — filter/sort state survives a breakpoint switch', () => {
+  it('state captured from the grid is handed to the card view after switching to mobile', async () => {
+    mockUseIsMobile.mockReturnValue(false)
+    const { rerender } = renderPage()
+    await screen.findByTestId('location-grid-view')
+
+    await userEvent.click(screen.getByRole('button', { name: 'capture' }))
+
+    mockUseIsMobile.mockReturnValue(true)
+    rerender(<LocationManagementPage />)
+
+    expect(screen.getByTestId('card-search')).toHaveTextContent('from-grid')
+  })
+
+  it('state set in the card view is handed to the grid as its initial filter state after switching to desktop', async () => {
+    mockUseIsMobile.mockReturnValue(true)
+    const { rerender } = renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'set-search' }))
+
+    mockUseIsMobile.mockReturnValue(false)
+    rerender(<LocationManagementPage />)
+
+    expect(await screen.findByTestId('grid-initial-search')).toHaveTextContent('typed')
   })
 })

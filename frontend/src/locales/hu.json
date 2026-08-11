@@ -77,6 +77,20 @@
       "colBookCount": "Könyvek",
       "filterAllRooms": "Minden helyiség",
       "filterAllLocations": "Minden helyszín"
+    },
+    "cardView": {
+      "searchPlaceholder": "Keresés név szerint…",
+      "resultsCount": "{{count}} találat",
+      "filtersButton": "Szűrők",
+      "filtersSheetTitle": "Szűrők",
+      "sortLabel": "Rendezés",
+      "emptyState": "Nincs találat — próbálj más szűrőt",
+      "sort": {
+        "nameAsc": "Név A-Z",
+        "nameDesc": "Név Z-A",
+        "roomAsc": "Helyiség A-Z",
+        "roomDesc": "Helyiség Z-A"
+      }
     }
   },
   "books": {

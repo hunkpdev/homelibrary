@@ -78,6 +78,21 @@
       "colBookCount": "Books",
       "filterAllRooms": "All rooms",
       "filterAllLocations": "All locations"
+    },
+    "cardView": {
+      "searchPlaceholder": "Search by name…",
+      "resultsCount_one": "{{count}} result",
+      "resultsCount_other": "{{count}} results",
+      "filtersButton": "Filters",
+      "filtersSheetTitle": "Filters",
+      "sortLabel": "Sort",
+      "emptyState": "No results — try a different filter",
+      "sort": {
+        "nameAsc": "Name A-Z",
+        "nameDesc": "Name Z-A",
+        "roomAsc": "Room A-Z",
+        "roomDesc": "Room Z-A"
+      }
     }
   },
   "books": {
