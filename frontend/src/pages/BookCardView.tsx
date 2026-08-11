@@ -14,7 +14,7 @@ import type { BookFiltersValues } from '@/components/books/BookFiltersSheet'
 import { BookDetailPanel } from '@/components/books/BookDetailPanel'
 import { BookFormModal } from '@/components/books/BookFormModal'
 import { BookDeleteConfirmModal } from '@/components/books/BookDeleteConfirmModal'
-import { MutationButton } from '@/components/common/MutationButton'
+import { Button } from '@/components/ui/button'
 
 const PAGE_SIZE = 20
 
@@ -110,13 +110,13 @@ export function BookCardView({
       />
 
       {(isAdmin || isDemo) && (
-        <MutationButton
+        <Button
           className="fixed bottom-[calc(1.5rem_+_env(safe-area-inset-bottom))] right-6 h-14 w-14 rounded-full p-0 shadow-lg"
           aria-label={t('books.add.newBook')}
           onClick={() => setAddModalOpen(true)}
         >
           <Plus className="h-6 w-6" />
-        </MutationButton>
+        </Button>
       )}
 
       <BookFiltersSheet

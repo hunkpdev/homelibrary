@@ -60,11 +60,13 @@ describe('LocationCard — role-based actions', () => {
     expect(screen.queryByRole('button', { name: 'Törlés' })).not.toBeInTheDocument()
   })
 
-  it('DEMO: both buttons visible, delete disabled', () => {
+  it('DEMO: both buttons visible, delete marked aria-disabled', () => {
     useAuthStore.setState({ user: { id: '1', username: 'demo', role: 'DEMO' }, accessToken: null, isInitialized: true })
     render(<LocationCard {...defaultProps} location={{ ...location, bookCount: 0 }} />)
     expect(screen.getByRole('button', { name: 'Szerkesztés' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Törlés' })).toBeDisabled()
+    // MutationButton keeps the button natively enabled (aria-disabled, not disabled) for DEMO, so
+    // it stays tappable and can show the "unavailable" tooltip on touch devices too.
+    expect(screen.getByRole('button', { name: 'Törlés' })).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('VISITOR: no action buttons', () => {

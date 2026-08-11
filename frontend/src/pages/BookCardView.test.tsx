@@ -89,6 +89,17 @@ describe('BookCardView — "+ Új könyv" FAB', () => {
     await waitFor(() => expect(mock.history.get.length).toBeGreaterThan(0))
     expect(screen.queryByRole('button', { name: 'Új könyv' })).not.toBeInTheDocument()
   })
+
+  it('is not disabled for DEMO — it only opens the add dialog, the actual save is gated inside it', async () => {
+    useAuthStore.setState({ user: { id: '1', username: 'demo', role: 'DEMO' }, accessToken: null, isInitialized: true })
+    mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView()
+
+    const fab = await screen.findByRole('button', { name: 'Új könyv' })
+    expect(fab).toBeEnabled()
+    await userEvent.click(fab)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
 })
 
 describe('BookCardView — mutation refresh strategy', () => {
