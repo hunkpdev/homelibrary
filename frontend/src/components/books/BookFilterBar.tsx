@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useDebouncedInput } from '@/hooks/useDebouncedInput'
 
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -28,16 +28,7 @@ export function BookFilterBar({
   resultsCount,
 }: Readonly<BookFilterBarProps>) {
   const { t } = useTranslation()
-  const [searchInput, setSearchInput] = useState(search)
-
-  useEffect(() => setSearchInput(search), [search])
-
-  useEffect(() => {
-    if (searchInput === search) return
-    const timer = setTimeout(() => onSearchChange(searchInput), SEARCH_DEBOUNCE_MS)
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput])
+  const [searchInput, setSearchInput] = useDebouncedInput(search, onSearchChange, SEARCH_DEBOUNCE_MS)
 
   return (
     <div className="flex flex-col gap-2">

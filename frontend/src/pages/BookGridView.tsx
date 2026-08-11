@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AgGridReact } from 'ag-grid-react'
-import type { ColDef, GridReadyEvent, IDatasource, IGetRowsParams } from 'ag-grid-community'
+import type { ColDef, IDatasource, IGetRowsParams } from 'ag-grid-community'
 import { AllCommunityModule, colorSchemeDark, colorSchemeLight, ModuleRegistry, themeQuartz } from 'ag-grid-community'
 import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
 import { MousePointerClick } from 'lucide-react'
@@ -10,6 +10,7 @@ import type { BookResponse } from '@/api/types'
 import { useBookStore } from '@/store/bookStore'
 import { useAuthStore } from '@/store/authStore'
 import { useTheme } from '@/hooks/useTheme'
+import { useGridFilterSortHandoff } from '@/hooks/useGridFilterSortHandoff'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { BookActionCell } from '@/components/books/BookActionCell'
 import { BookDeleteConfirmModal } from '@/components/books/BookDeleteConfirmModal'
@@ -44,52 +45,17 @@ export default function BookGridView({ initialFilterState, onFilterStateCapture 
   const isDemo = useAuthStore(s => s.user?.role === 'DEMO')
   const { booksRefreshTrigger, incrementRefreshTrigger } = useBookStore()
 
-  const gridRef = useRef<AgGridReact<BookResponse>>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<BookResponse | null>(null)
   const [selectedBook, setSelectedBook] = useState<BookResponse | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<BookResponse | null>(null)
 
   const initialFilterStateRef = useRef(initialFilterState)
-  const onFilterStateCaptureRef = useRef(onFilterStateCapture)
-  onFilterStateCaptureRef.current = onFilterStateCapture
 
-  // Last-known grid filter/sort state, kept in sync on every change (not read lazily at unmount) —
-  // AG Grid's imperative ref is torn down (via useImperativeHandle's layout effect) before this
-  // component's own effect cleanups run, so gridRef.current is already null by unmount time.
-  const latestGridStateRef = useRef<BookGridViewFilterState>(initialFilterState)
-
-  useEffect(() => {
-    if (booksRefreshTrigger > 0) {
-      gridRef.current?.api?.purgeInfiniteCache()
-    }
-  }, [booksRefreshTrigger])
-
-  const captureGridState = useCallback(() => {
-    const api = gridRef.current?.api
-    if (!api) return
-    const filterModel = api.getFilterModel() as Record<string, { filter?: string } | undefined>
-    const sortedColumn = api.getColumnState().find(c => c.sort)
-
-    latestGridStateRef.current = {
-      search: filterModel.title?.filter ?? '',
-      sort: sortedColumn ? `${sortedColumn.colId},${sortedColumn.sort}` : 'title,asc',
-      filters: {
-        isbn: filterModel.isbn?.filter ?? '',
-        authors: filterModel.authors?.filter ?? '',
-        category: filterModel.categories?.filter ?? '',
-        publishYear: filterModel.publishYear?.filter ?? '',
-      },
-    }
-  }, [])
-
-  // Seed the grid's filter/sort state once from the state captured when the card view was last active.
-  // Deferred a tick: applying a non-empty filter model in the same synchronous pass as the grid's
-  // initial layout makes the floating filter row's width calculation collapse (the clear-button
-  // in ClearableTextFloatingFilter only renders once a value is present, which this is the first
-  // code path to trigger during that very first layout pass).
-  const onGridReady = useCallback((params: GridReadyEvent<BookResponse>) => {
-    setTimeout(() => {
+  const { gridRef, onGridReady, onFilterChanged, onSortChanged } = useGridFilterSortHandoff<BookResponse, BookGridViewFilterState>({
+    initialState: initialFilterState,
+    onStateCapture: onFilterStateCapture,
+    seed: api => {
       const { search, sort, filters } = initialFilterStateRef.current
       const filterModel: Record<string, ReturnType<typeof textFilterModel>> = {}
       if (search) filterModel.title = textFilterModel(search)
@@ -97,20 +63,35 @@ export default function BookGridView({ initialFilterState, onFilterStateCapture 
       if (filters.authors) filterModel.authors = textFilterModel(filters.authors)
       if (filters.category) filterModel.categories = textFilterModel(filters.category)
       if (filters.publishYear) filterModel.publishYear = textFilterModel(filters.publishYear)
-      params.api.setFilterModel(filterModel)
+      api.setFilterModel(filterModel)
 
       const [sortField, sortDir] = sort.split(',')
-      params.api.applyColumnState({
+      api.applyColumnState({
         state: [{ colId: sortField, sort: sortDir === 'desc' ? 'desc' : 'asc' }],
         defaultState: { sort: null },
       })
-    }, 0)
-  }, [])
+    },
+    capture: api => {
+      const filterModel = api.getFilterModel() as Record<string, { filter?: string } | undefined>
+      const sortedColumn = api.getColumnState().find(c => c.sort)
+      return {
+        search: filterModel.title?.filter ?? '',
+        sort: sortedColumn ? `${sortedColumn.colId},${sortedColumn.sort}` : 'title,asc',
+        filters: {
+          isbn: filterModel.isbn?.filter ?? '',
+          authors: filterModel.authors?.filter ?? '',
+          category: filterModel.categories?.filter ?? '',
+          publishYear: filterModel.publishYear?.filter ?? '',
+        },
+      }
+    },
+  })
 
-  // Hand the last-known grid filter/sort state back up when the grid unmounts (switch to card view).
-  useEffect(() => () => {
-    onFilterStateCaptureRef.current(latestGridStateRef.current)
-  }, [])
+  useEffect(() => {
+    if (booksRefreshTrigger > 0) {
+      gridRef.current?.api?.purgeInfiniteCache()
+    }
+  }, [booksRefreshTrigger, gridRef])
 
   const datasource: IDatasource = useMemo(() => ({
     getRows(params: IGetRowsParams) {
@@ -274,8 +255,8 @@ export default function BookGridView({ initialFilterState, onFilterStateCapture 
           paginationPageSizeSelector={[5, 10, 20]}
           localeText={gridLocaleText}
           onGridReady={onGridReady}
-          onFilterChanged={captureGridState}
-          onSortChanged={captureGridState}
+          onFilterChanged={onFilterChanged}
+          onSortChanged={onSortChanged}
           onCellClicked={params => {
             if (params.column.getColId() !== 'actions' && params.data) {
               setSelectedBook(params.data)
