@@ -28,7 +28,9 @@
     "errorUnexpected": "An unexpected error occurred",
     "errorRequiredFields": "Required fields are missing",
     "demoTooltip": "This action is not available in demo mode",
-    "retry": "Try again"
+    "retry": "Try again",
+    "applyFilters": "Apply",
+    "clearFilters": "Clear"
   },
   "locations": {
     "pageTitle": "Location Management",
@@ -87,6 +89,23 @@
       "colAuthors": "Author(s)",
       "colPublishYear": "Year",
       "colCategories": "Categories"
+    },
+    "cardView": {
+      "searchPlaceholder": "Search by title…",
+      "resultsCount_one": "{{count}} result",
+      "resultsCount_other": "{{count}} results",
+      "filtersButton": "Filters",
+      "filtersSheetTitle": "Filters",
+      "sortLabel": "Sort",
+      "emptyState": "No results — try a different filter",
+      "sort": {
+        "titleAsc": "Title A-Z",
+        "titleDesc": "Title Z-A",
+        "authorsAsc": "Author A-Z",
+        "authorsDesc": "Author Z-A",
+        "publishYearDesc": "Year (newest)",
+        "publishYearAsc": "Year (oldest)"
+      }
     },
     "status": {
       "AT_HOME": "At home",

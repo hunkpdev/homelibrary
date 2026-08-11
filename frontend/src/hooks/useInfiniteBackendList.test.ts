@@ -36,6 +36,14 @@ describe('useInfiniteBackendList', () => {
     expect(fetchPage).toHaveBeenNthCalledWith(2, 1, 20)
   })
 
+  it('exposes totalElements from the backend page response', async () => {
+    const fetchPage = vi.fn().mockResolvedValue(makePage([{ id: '1', name: 'A' }, { id: '2', name: 'B' }], 0, 3))
+    const { result } = renderHook(() => useInfiniteBackendList({ fetchPage, resetKey: 'k' }))
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.totalElements).toBe(6)
+  })
+
   it('does not fetch again when there is no more page', async () => {
     const fetchPage = vi.fn().mockResolvedValue(makePage([{ id: '1', name: 'A' }], 0, 1))
     const { result } = renderHook(() => useInfiniteBackendList({ fetchPage, resetKey: 'k' }))

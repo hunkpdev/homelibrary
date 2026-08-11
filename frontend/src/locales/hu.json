@@ -28,7 +28,9 @@
     "errorUnexpected": "Váratlan hiba történt",
     "errorRequiredFields": "Kötelező mezők nincsenek kitöltve",
     "demoTooltip": "Demo módban ez a művelet nem elérhető",
-    "retry": "Újrapróbálom"
+    "retry": "Újrapróbálom",
+    "applyFilters": "Alkalmaz",
+    "clearFilters": "Törlés"
   },
   "locations": {
     "pageTitle": "Helyszínek kezelése",
@@ -86,6 +88,22 @@
       "colAuthors": "Szerző(k)",
       "colPublishYear": "Kiadási év",
       "colCategories": "Kategóriák"
+    },
+    "cardView": {
+      "searchPlaceholder": "Keresés cím szerint…",
+      "resultsCount": "{{count}} találat",
+      "filtersButton": "Szűrők",
+      "filtersSheetTitle": "Szűrők",
+      "sortLabel": "Rendezés",
+      "emptyState": "Nincs találat — próbálj más szűrőt",
+      "sort": {
+        "titleAsc": "Cím A-Z",
+        "titleDesc": "Cím Z-A",
+        "authorsAsc": "Szerző A-Z",
+        "authorsDesc": "Szerző Z-A",
+        "publishYearDesc": "Kiadási év (legújabb)",
+        "publishYearAsc": "Kiadási év (legrégebbi)"
+      }
     },
     "status": {
       "AT_HOME": "Itthon",

@@ -17,6 +17,7 @@ export interface UseInfiniteBackendListResult<T extends WithId> {
   isLoadingMore: boolean
   error: boolean
   hasMore: boolean
+  totalElements: number
   loadMore: () => void
   retry: () => void
   updateItem: (id: string, updater: (item: T) => T) => void
@@ -33,6 +34,7 @@ export function useInfiniteBackendList<T extends WithId>({
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [totalElements, setTotalElements] = useState(0)
 
   const fetchPageRef = useRef(fetchPage)
   fetchPageRef.current = fetchPage
@@ -51,6 +53,7 @@ export function useInfiniteBackendList<T extends WithId>({
         if (generation !== generationRef.current) return
         setItems(prev => (isInitial ? data.content : [...prev, ...data.content]))
         setHasMore(data.page.number + 1 < data.page.totalPages)
+        setTotalElements(data.page.totalElements)
         setError(false)
         pageIndexRef.current = page
       })
@@ -73,6 +76,7 @@ export function useInfiniteBackendList<T extends WithId>({
     fetchInFlightRef.current = false
     setItems([])
     setHasMore(true)
+    setTotalElements(0)
     setError(false)
     setIsLoading(true)
     setIsLoadingMore(false)
@@ -105,5 +109,5 @@ export function useInfiniteBackendList<T extends WithId>({
     setItems(prev => prev.filter(item => item.id !== id))
   }, [])
 
-  return { items, isLoading, isLoadingMore, error, hasMore, loadMore, retry, updateItem, removeItem }
+  return { items, isLoading, isLoadingMore, error, hasMore, totalElements, loadMore, retry, updateItem, removeItem }
 }
