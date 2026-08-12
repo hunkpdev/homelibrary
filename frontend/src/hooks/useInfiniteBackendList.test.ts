@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useInfiniteBackendList } from './useInfiniteBackendList'
@@ -190,15 +191,45 @@ describe('useInfiniteBackendList', () => {
     expect(result.current.items).toEqual([{ id: '1', name: 'A' }, { id: '2', name: 'B2' }])
   })
 
-  it('removeItem removes the matching item from the accumulated list', async () => {
+  it('removeItem removes the matching item from the accumulated list and decrements totalElements', async () => {
     const fetchPage = vi.fn().mockResolvedValue(
-      makePage([{ id: '1', name: 'A' }, { id: '2', name: 'B' }], 0, 1)
+      makePage([{ id: '1', name: 'A' }, { id: '2', name: 'B' }], 0, 3)
     )
     const { result } = renderHook(() => useInfiniteBackendList({ fetchPage, resetKey: 'k' }))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.totalElements).toBe(6)
 
     act(() => result.current.removeItem('1'))
 
     expect(result.current.items).toEqual([{ id: '2', name: 'B' }])
+    expect(result.current.totalElements).toBe(5)
+  })
+
+  it('removeItem decrements totalElements by exactly one under StrictMode double-invocation', async () => {
+    const fetchPage = vi.fn().mockResolvedValue(
+      makePage([{ id: '1', name: 'A' }, { id: '2', name: 'B' }], 0, 3)
+    )
+    const { result } = renderHook(() => useInfiniteBackendList({ fetchPage, resetKey: 'k' }), {
+      wrapper: StrictMode,
+    })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.totalElements).toBe(6)
+
+    act(() => result.current.removeItem('1'))
+
+    expect(result.current.totalElements).toBe(5)
+  })
+
+  it('removeItem with a non-existent id leaves totalElements unchanged', async () => {
+    const fetchPage = vi.fn().mockResolvedValue(
+      makePage([{ id: '1', name: 'A' }, { id: '2', name: 'B' }], 0, 3)
+    )
+    const { result } = renderHook(() => useInfiniteBackendList({ fetchPage, resetKey: 'k' }))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.removeItem('does-not-exist'))
+
+    expect(result.current.items).toEqual([{ id: '1', name: 'A' }, { id: '2', name: 'B' }])
+    expect(result.current.totalElements).toBe(6)
   })
 })

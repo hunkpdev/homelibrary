@@ -38,6 +38,8 @@ export function useInfiniteBackendList<T extends WithId>({
 
   const fetchPageRef = useRef(fetchPage)
   fetchPageRef.current = fetchPage
+  const itemsRef = useRef(items)
+  itemsRef.current = items
 
   const generationRef = useRef(0)
   const pageIndexRef = useRef(0)
@@ -106,7 +108,12 @@ export function useInfiniteBackendList<T extends WithId>({
   }, [])
 
   const removeItem = useCallback((id: string) => {
+    // The existence check and the two setState calls stay outside of each other's updater
+    // functions on purpose: React Strict Mode double-invokes updater functions in dev, and a
+    // setTotalElements call nested inside the setItems updater would fire twice per removeItem.
+    const existed = itemsRef.current.some(item => item.id === id)
     setItems(prev => prev.filter(item => item.id !== id))
+    if (existed) setTotalElements(n => Math.max(0, n - 1))
   }, [])
 
   return { items, isLoading, isLoadingMore, error, hasMore, totalElements, loadMore, retry, updateItem, removeItem }
