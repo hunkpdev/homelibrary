@@ -125,6 +125,23 @@ describe('LocationCardView — mutation refresh strategy', () => {
     expect(useLocationStore.getState().locationsRefreshTrigger).toBe(1)
   })
 
+  it('keeps the previous bookCount after editing — the PUT response always reports 0', async () => {
+    const loc1WithBooks: LocationResponse = { ...loc1, bookCount: 3 }
+    mock.onGet('/api/locations').reply(200, { content: [loc1WithBooks, loc2], page: { totalElements: 2, totalPages: 1, size: 20, number: 0 } })
+    mock.onPut('/api/locations/loc-1').reply(200, { ...loc1WithBooks, name: 'Felső polc Updated', bookCount: 0, version: 1 })
+    renderCardView()
+    await screen.findByText('Felső polc')
+
+    const card1 = screen.getByText('Felső polc').closest('[data-testid="location-card"]') as HTMLElement
+    await userEvent.click(within(card1).getByRole('button', { name: 'Szerkesztés' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Mentés' }))
+
+    await waitFor(() => expect(screen.queryByText('Felső polc')).not.toBeInTheDocument())
+    const updatedCard = screen.getByText('Felső polc Updated').closest('[data-testid="location-card"]') as HTMLElement
+    expect(within(updatedCard).getByText('3 Könyvek')).toBeInTheDocument()
+    expect(within(updatedCard).queryByRole('button', { name: 'Törlés' })).not.toBeInTheDocument()
+  })
+
   it('removes the deleted card from the list, without refetching', async () => {
     mock.onGet('/api/locations').reply(200, { content: [loc1, loc2], page: { totalElements: 2, totalPages: 1, size: 20, number: 0 } })
     mock.onDelete('/api/locations/loc-1').reply(204)

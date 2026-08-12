@@ -69,7 +69,9 @@ export function LocationCardView({
   }, [])
 
   const handleEditSuccess = useCallback((updated?: LocationResponse) => {
-    if (updated) cardList.updateItem(updated.id, () => updated)
+    // A PUT /api/locations/{id} válasza fixen bookCount: 0-t ad vissza (a controller nem számolja
+    // újra), ezért a listában lévő korábbi értéket tartjuk meg — szerkesztés nem is változtathatja.
+    if (updated) cardList.updateItem(updated.id, prev => ({ ...updated, bookCount: prev.bookCount }))
     incrementRefreshTrigger()
   }, [cardList, incrementRefreshTrigger])
 
