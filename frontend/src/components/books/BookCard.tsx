@@ -21,6 +21,9 @@ export function BookCard({ book, onOpen, onEdit, onDelete }: Readonly<BookCardPr
   const isDemo = useAuthStore(s => s.user?.role === 'DEMO')
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // Csak a kártya saját fókuszán reagálunk: a beágyazott akciógombokról felbuborékoló keydownt
+    // átengedjük, különben a preventDefault() elnyelné a gomb natív Enter/Space aktiválását.
+    if (e.target !== e.currentTarget) return
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       onOpen(book)

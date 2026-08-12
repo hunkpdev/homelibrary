@@ -98,6 +98,26 @@ describe('BookCard — interaction', () => {
     expect(onDelete).toHaveBeenCalledWith(book)
     expect(onOpen).not.toHaveBeenCalled()
   })
+
+  it('Enter on the focused edit button calls onEdit, not onOpen', async () => {
+    const onOpen = vi.fn()
+    const onEdit = vi.fn()
+    render(<BookCard {...defaultProps} onOpen={onOpen} onEdit={onEdit} />)
+    screen.getByRole('button', { name: 'Szerkesztés' }).focus()
+    await userEvent.keyboard('{Enter}')
+    expect(onEdit).toHaveBeenCalledWith(book)
+    expect(onOpen).not.toHaveBeenCalled()
+  })
+
+  it('Space on the focused delete button calls onDelete, not onOpen', async () => {
+    const onOpen = vi.fn()
+    const onDelete = vi.fn()
+    render(<BookCard {...defaultProps} onOpen={onOpen} onDelete={onDelete} />)
+    screen.getByRole('button', { name: 'Törlés' }).focus()
+    await userEvent.keyboard(' ')
+    expect(onDelete).toHaveBeenCalledWith(book)
+    expect(onOpen).not.toHaveBeenCalled()
+  })
 })
 
 describe('BookCard — content', () => {
