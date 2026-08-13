@@ -14,14 +14,24 @@ import { LocationFormModal } from '@/components/locations/LocationFormModal'
 import { RoomFormModal } from '@/components/rooms/RoomFormModal'
 import { DeleteModal } from '@/components/ui/DeleteModal'
 import { EMPTY_LOCATION_FILTERS } from '@/components/locations/LocationFiltersSheet'
-import { LocationCardView } from '@/pages/LocationCardView'
 import type { LocationGridViewFilterState } from '@/pages/LocationGridView'
 
 const LocationGridView = lazy(() => import('@/pages/LocationGridView'))
+const LocationCardView = lazy(() =>
+  import('@/pages/LocationCardView').then(m => ({ default: m.LocationCardView }))
+)
 
 function GridLoadingFallback() {
   return (
     <div className="flex w-full items-center justify-center" style={{ height: 500 }}>
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  )
+}
+
+function CardLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-12">
       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   )
@@ -155,16 +165,18 @@ export function LocationManagementPage() {
       </Collapsible>
 
       {isMobile ? (
-        <LocationCardView
-          search={search}
-          onSearchChange={setSearch}
-          sort={sort}
-          onSortChange={setSort}
-          filters={filters}
-          onFiltersChange={setFilters}
-          rooms={allRooms}
-          cardListResetSignal={cardListResetSignal}
-        />
+        <Suspense fallback={<CardLoadingFallback />}>
+          <LocationCardView
+            search={search}
+            onSearchChange={setSearch}
+            sort={sort}
+            onSortChange={setSort}
+            filters={filters}
+            onFiltersChange={setFilters}
+            rooms={allRooms}
+            cardListResetSignal={cardListResetSignal}
+          />
+        </Suspense>
       ) : (
         <Suspense fallback={<GridLoadingFallback />}>
           <LocationGridView

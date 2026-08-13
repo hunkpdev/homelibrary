@@ -182,7 +182,7 @@ describe('LocationManagementPage — room delete modal', () => {
     // On mobile the Rooms panel starts collapsed — open it before its buttons are reachable.
     fireEvent.click(await screen.findByText('Helyiségek'))
     await screen.findByText('Bedroom')
-    expect(screen.getByTestId('card-reset-signal')).toHaveTextContent('0')
+    expect(await screen.findByTestId('card-reset-signal')).toHaveTextContent('0')
 
     fireEvent.click(screen.getByLabelText('Törlés'))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Törlés' }))
@@ -252,7 +252,7 @@ describe('LocationManagementPage — view switching', () => {
   it('renders the card view when mobile', async () => {
     mockUseIsMobile.mockReturnValue(true)
     renderPage()
-    expect(screen.getByTestId('location-card-view')).toBeInTheDocument()
+    expect(await screen.findByTestId('location-card-view')).toBeInTheDocument()
     expect(screen.queryByTestId('location-grid-view')).not.toBeInTheDocument()
 
     await waitFor(() => expect(mock.history.get.some(r => r.url === '/api/rooms/all')).toBe(true))
@@ -271,14 +271,14 @@ describe('LocationManagementPage — filter/sort state survives a breakpoint swi
     mockUseIsMobile.mockReturnValue(true)
     rerender(<LocationManagementPage />)
 
-    expect(screen.getByTestId('card-search')).toHaveTextContent('from-grid')
+    expect(await screen.findByTestId('card-search')).toHaveTextContent('from-grid')
   })
 
   it('state set in the card view is handed to the grid as its initial filter state after switching to desktop', async () => {
     mockUseIsMobile.mockReturnValue(true)
     const { rerender } = renderPage()
 
-    await userEvent.click(screen.getByRole('button', { name: 'set-search' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'set-search' }))
 
     mockUseIsMobile.mockReturnValue(false)
     rerender(<LocationManagementPage />)

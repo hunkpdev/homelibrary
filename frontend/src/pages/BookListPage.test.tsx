@@ -57,10 +57,10 @@ describe('BookListPage — view switching', () => {
     expect(screen.queryByTestId('book-card-view')).not.toBeInTheDocument()
   })
 
-  it('renders the card view when mobile', () => {
+  it('renders the card view when mobile', async () => {
     mockUseIsMobile.mockReturnValue(true)
     render(<BookListPage />)
-    expect(screen.getByTestId('book-card-view')).toBeInTheDocument()
+    expect(await screen.findByTestId('book-card-view')).toBeInTheDocument()
     expect(screen.queryByTestId('book-grid-view')).not.toBeInTheDocument()
   })
 })
@@ -76,7 +76,7 @@ describe('BookListPage — filter/sort state survives a breakpoint switch', () =
     mockUseIsMobile.mockReturnValue(true)
     rerender(<BookListPage />)
 
-    expect(screen.getByTestId('card-search')).toHaveTextContent('from-grid')
+    expect(await screen.findByTestId('card-search')).toHaveTextContent('from-grid')
     expect(screen.getByTestId('card-sort')).toHaveTextContent('authors,desc')
   })
 
@@ -84,7 +84,7 @@ describe('BookListPage — filter/sort state survives a breakpoint switch', () =
     mockUseIsMobile.mockReturnValue(true)
     const { rerender } = render(<BookListPage />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'set-search' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'set-search' }))
 
     mockUseIsMobile.mockReturnValue(false)
     rerender(<BookListPage />)
