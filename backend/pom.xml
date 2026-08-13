@@ -262,6 +262,16 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Explicit declaration required: `mvn sonar:sonar` used to resolve zero-config via a
+                 legacy org.codehaus.mojo:sonar-maven-plugin relocation on Maven Central (org.codehaus.mojo
+                 is one of Maven's two default plugin-prefix groups). SonarSource deprecated that
+                 relocation mechanism and stopped supporting it as of 2026-05-01, so the prefix can no
+                 longer resolve without this explicit declaration. -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>5.7.0.6970</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
