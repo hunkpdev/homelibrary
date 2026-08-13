@@ -10,6 +10,7 @@ import { useLocationStore } from '@/store/locationStore'
 import { useAuthStore } from '@/store/authStore'
 import { useTheme } from '@/hooks/useTheme'
 import { useGridFilterSortHandoff } from '@/hooks/useGridFilterSortHandoff'
+import { GridErrorBanner } from '@/components/common/GridErrorBanner'
 import { PassthroughFilter } from '@/components/grid/PassthroughFilter'
 import { SelectFloatingFilter } from '@/components/grid/SelectFloatingFilter'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
@@ -50,6 +51,7 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialFilterState.filters.roomId || null)
   const [allLocations, setAllLocations] = useState<LocationResponse[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [rowsError, setRowsError] = useState(false)
 
   const [editingLocation, setEditingLocation] = useState<LocationResponse | undefined>(undefined)
   const [locationFormOpen, setLocationFormOpen] = useState(false)
@@ -121,8 +123,14 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
         : 'name,asc'
 
       fetchLocations({ page, size: PAGE_SIZE, sort, name, roomId, description })
-        .then(data => params.successCallback(data.content, data.page.totalElements))
-        .catch(() => params.failCallback())
+        .then(data => {
+          setRowsError(false)
+          params.successCallback(data.content, data.page.totalElements)
+        })
+        .catch(() => {
+          setRowsError(true)
+          params.failCallback()
+        })
     },
   }), [])
 
@@ -240,6 +248,9 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
   return (
     <div className="flex flex-col gap-2">
       {loadError && <p className="text-sm text-destructive">{loadError}</p>}
+      {rowsError && (
+        <GridErrorBanner onRetry={() => gridRef.current?.api?.purgeInfiniteCache()} />
+      )}
 
       <div className="w-full" style={{ height: 500 }}>
         <AgGridReact<LocationResponse>

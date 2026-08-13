@@ -11,6 +11,7 @@ import { useBookStore } from '@/store/bookStore'
 import { useAuthStore } from '@/store/authStore'
 import { useTheme } from '@/hooks/useTheme'
 import { useGridFilterSortHandoff } from '@/hooks/useGridFilterSortHandoff'
+import { GridErrorBanner } from '@/components/common/GridErrorBanner'
 import { ClearableTextFloatingFilter } from '@/components/grid/ClearableTextFloatingFilter'
 import { BookActionCell } from '@/components/books/BookActionCell'
 import { BookDeleteConfirmModal } from '@/components/books/BookDeleteConfirmModal'
@@ -49,6 +50,7 @@ export default function BookGridView({ initialFilterState, onFilterStateCapture 
   const [editTarget, setEditTarget] = useState<BookResponse | null>(null)
   const [selectedBook, setSelectedBook] = useState<BookResponse | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<BookResponse | null>(null)
+  const [rowsError, setRowsError] = useState(false)
 
   const initialFilterStateRef = useRef(initialFilterState)
 
@@ -107,8 +109,14 @@ export default function BookGridView({ initialFilterState, onFilterStateCapture 
         : 'title,asc'
 
       fetchBooks({ page, size: PAGE_SIZE, sort, isbn, title, authors, category, publishYear })
-        .then(data => params.successCallback(data.content, data.page.totalElements))
-        .catch(() => params.failCallback())
+        .then(data => {
+          setRowsError(false)
+          params.successCallback(data.content, data.page.totalElements)
+        })
+        .catch(() => {
+          setRowsError(true)
+          params.failCallback()
+        })
     },
   }), [])
 
@@ -232,6 +240,10 @@ export default function BookGridView({ initialFilterState, onFilterStateCapture 
           {t('books.rowClickHint')}
         </p>
       </div>
+      {rowsError && (
+        <GridErrorBanner onRetry={() => gridRef.current?.api?.purgeInfiniteCache()} />
+      )}
+
       <div className="w-full" style={{ height: 500 }}>
         <AgGridReact<BookResponse>
           theme={gridTheme}

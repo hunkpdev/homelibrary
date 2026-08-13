@@ -121,6 +121,36 @@ describe('LocationGridView — datasource', () => {
     capturedGridProps.datasource.getRows({ startRow: 0, filterModel: {}, sortModel: [], successCallback, failCallback })
     await waitFor(() => expect(failCallback).toHaveBeenCalled())
   })
+
+  it('shows an error banner with a retry button when getRows fails, and retry purges the infinite cache', async () => {
+    mock.onGet('/api/locations').reply(500)
+    renderGrid()
+    capturedGridProps.datasource.getRows({
+      startRow: 0, filterModel: {}, sortModel: [], successCallback: vi.fn(), failCallback: vi.fn(),
+    })
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Újrapróbálom' }))
+    expect(mockGridApi.purgeInfiniteCache).toHaveBeenCalled()
+  })
+
+  it('clears the error banner once a subsequent getRows call succeeds', async () => {
+    mock.onGet('/api/locations').replyOnce(500)
+    renderGrid()
+    capturedGridProps.datasource.getRows({
+      startRow: 0, filterModel: {}, sortModel: [], successCallback: vi.fn(), failCallback: vi.fn(),
+    })
+    await screen.findByText('Váratlan hiba történt')
+
+    mock.onGet('/api/locations').reply(200, {
+      content: [location],
+      page: { totalElements: 1, totalPages: 1, size: 10, number: 0 },
+    })
+    capturedGridProps.datasource.getRows({
+      startRow: 0, filterModel: {}, sortModel: [], successCallback: vi.fn(), failCallback: vi.fn(),
+    })
+
+    await waitFor(() => expect(screen.queryByText('Váratlan hiba történt')).not.toBeInTheDocument())
+  })
 })
 
 describe('LocationGridView — location edit/delete modals', () => {
