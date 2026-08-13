@@ -13,17 +13,19 @@ const rooms: RoomResponse[] = [
 function renderSheet(props: Partial<Parameters<typeof LocationFiltersSheet>[0]> = {}) {
   const onClose = vi.fn()
   const onApply = vi.fn()
+  const onClearAll = vi.fn()
   render(
     <LocationFiltersSheet
       open={true}
       onClose={onClose}
       filters={EMPTY_LOCATION_FILTERS}
       onApply={onApply}
+      onClearAll={onClearAll}
       rooms={rooms}
       {...props}
     />
   )
-  return { onClose, onApply }
+  return { onClose, onApply, onClearAll }
 }
 
 describe('LocationFiltersSheet', () => {
@@ -51,12 +53,13 @@ describe('LocationFiltersSheet', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('"Törlés" resets all fields to empty and closes', async () => {
+  it('"Törlés" calls onClearAll (not onApply) and closes', async () => {
     const filters: LocationFiltersValues = { roomId: 'room-1', description: 'polc' }
-    const { onApply, onClose } = renderSheet({ filters })
+    const { onApply, onClearAll, onClose } = renderSheet({ filters })
     await userEvent.click(screen.getByRole('button', { name: 'Törlés' }))
 
-    expect(onApply).toHaveBeenCalledWith(EMPTY_LOCATION_FILTERS)
+    expect(onClearAll).toHaveBeenCalledOnce()
+    expect(onApply).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalledOnce()
   })
 })

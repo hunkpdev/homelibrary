@@ -7,7 +7,7 @@ import { useInfiniteBackendList } from '@/hooks/useInfiniteBackendList'
 import { InfiniteCardList } from '@/components/common/InfiniteCardList'
 import { LocationCard } from '@/components/locations/LocationCard'
 import { LocationFilterBar } from '@/components/locations/LocationFilterBar'
-import { LocationFiltersSheet } from '@/components/locations/LocationFiltersSheet'
+import { EMPTY_LOCATION_FILTERS, LocationFiltersSheet } from '@/components/locations/LocationFiltersSheet'
 import type { LocationFiltersValues } from '@/components/locations/LocationFiltersSheet'
 import { LocationFormModal } from '@/components/locations/LocationFormModal'
 import { DeleteModal } from '@/components/ui/DeleteModal'
@@ -115,6 +115,7 @@ export function LocationCardView({
         onClose={() => setFiltersSheetOpen(false)}
         filters={filters}
         onApply={onFiltersChange}
+        onClearAll={() => { onFiltersChange(EMPTY_LOCATION_FILTERS); onSearchChange('') }}
         rooms={rooms}
       />
 

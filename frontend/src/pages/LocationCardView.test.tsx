@@ -79,6 +79,22 @@ describe('LocationCardView — data & rendering', () => {
   })
 })
 
+describe('LocationCardView — filters sheet "Törlés"', () => {
+  it('clears both the search and the sheet filters, and refetches without any filter params', async () => {
+    mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    const { onSearchChange, onFiltersChange } = renderCardView({
+      search: 'polc',
+      filters: { ...EMPTY_LOCATION_FILTERS, roomId: 'room-1' },
+    })
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Szűrők' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Törlés' }))
+
+    expect(onSearchChange).toHaveBeenCalledWith('')
+    expect(onFiltersChange).toHaveBeenCalledWith(EMPTY_LOCATION_FILTERS)
+  })
+})
+
 describe('LocationCardView — resetKey', () => {
   it('a changed cardListResetSignal fully resets the list', async () => {
     mock.onGet('/api/locations').replyOnce(200, { content: [loc1], page: { totalElements: 1, totalPages: 1, size: 20, number: 0 } })

@@ -9,7 +9,7 @@ import { useInfiniteBackendList } from '@/hooks/useInfiniteBackendList'
 import { InfiniteCardList } from '@/components/common/InfiniteCardList'
 import { BookCard } from '@/components/books/BookCard'
 import { BookFilterBar } from '@/components/books/BookFilterBar'
-import { BookFiltersSheet } from '@/components/books/BookFiltersSheet'
+import { BookFiltersSheet, EMPTY_BOOK_FILTERS } from '@/components/books/BookFiltersSheet'
 import type { BookFiltersValues } from '@/components/books/BookFiltersSheet'
 import { BookDetailPanel } from '@/components/books/BookDetailPanel'
 import { BookFormModal } from '@/components/books/BookFormModal'
@@ -124,6 +124,7 @@ export function BookCardView({
         onClose={() => setFiltersSheetOpen(false)}
         filters={filters}
         onApply={onFiltersChange}
+        onClearAll={() => { onFiltersChange(EMPTY_BOOK_FILTERS); onSearchChange('') }}
       />
 
       <BookFormModal

@@ -23,10 +23,11 @@ export interface LocationFiltersSheetProps {
   onClose: () => void
   filters: LocationFiltersValues
   onApply: (filters: LocationFiltersValues) => void
+  onClearAll: () => void
   rooms: RoomResponse[]
 }
 
-export function LocationFiltersSheet({ open, onClose, filters, onApply, rooms }: Readonly<LocationFiltersSheetProps>) {
+export function LocationFiltersSheet({ open, onClose, filters, onApply, onClearAll, rooms }: Readonly<LocationFiltersSheetProps>) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<LocationFiltersValues>(filters)
 
@@ -40,7 +41,7 @@ export function LocationFiltersSheet({ open, onClose, filters, onApply, rooms }:
   }
 
   function handleClear() {
-    onApply(EMPTY_LOCATION_FILTERS)
+    onClearAll()
     onClose()
   }
 

@@ -80,6 +80,22 @@ describe('BookCardView — data & rendering', () => {
   })
 })
 
+describe('BookCardView — filters sheet "Törlés"', () => {
+  it('clears both the search and the sheet filters, and refetches without any filter params', async () => {
+    mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    const { onSearchChange, onFiltersChange } = renderCardView({
+      search: 'harry',
+      filters: { ...EMPTY_BOOK_FILTERS, isbn: '123' },
+    })
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Szűrők' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Törlés' }))
+
+    expect(onSearchChange).toHaveBeenCalledWith('')
+    expect(onFiltersChange).toHaveBeenCalledWith(EMPTY_BOOK_FILTERS)
+  })
+})
+
 describe('BookCardView — "+ Új könyv" FAB', () => {
   it('shows the FAB for ADMIN and opens the add modal', async () => {
     mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })

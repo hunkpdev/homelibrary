@@ -23,9 +23,10 @@ export interface BookFiltersSheetProps {
   onClose: () => void
   filters: BookFiltersValues
   onApply: (filters: BookFiltersValues) => void
+  onClearAll: () => void
 }
 
-export function BookFiltersSheet({ open, onClose, filters, onApply }: Readonly<BookFiltersSheetProps>) {
+export function BookFiltersSheet({ open, onClose, filters, onApply, onClearAll }: Readonly<BookFiltersSheetProps>) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<BookFiltersValues>(filters)
 
@@ -43,7 +44,7 @@ export function BookFiltersSheet({ open, onClose, filters, onApply }: Readonly<B
   }
 
   function handleClear() {
-    onApply(EMPTY_BOOK_FILTERS)
+    onClearAll()
     onClose()
   }
 

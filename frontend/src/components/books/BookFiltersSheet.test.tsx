@@ -9,16 +9,18 @@ const filters: BookFiltersValues = { isbn: '123', authors: 'Author', category: '
 function renderSheet(props: Partial<Parameters<typeof BookFiltersSheet>[0]> = {}) {
   const onClose = vi.fn()
   const onApply = vi.fn()
+  const onClearAll = vi.fn()
   render(
     <BookFiltersSheet
       open={true}
       onClose={onClose}
       filters={EMPTY_BOOK_FILTERS}
       onApply={onApply}
+      onClearAll={onClearAll}
       {...props}
     />
   )
-  return { onClose, onApply }
+  return { onClose, onApply, onClearAll }
 }
 
 describe('BookFiltersSheet', () => {
@@ -44,10 +46,11 @@ describe('BookFiltersSheet', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('"Törlés" resets all fields to empty and closes', async () => {
-    const { onApply, onClose } = renderSheet({ filters })
+  it('"Törlés" calls onClearAll (not onApply) and closes', async () => {
+    const { onApply, onClearAll, onClose } = renderSheet({ filters })
     await userEvent.click(screen.getByRole('button', { name: 'Törlés' }))
-    expect(onApply).toHaveBeenCalledWith(EMPTY_BOOK_FILTERS)
+    expect(onClearAll).toHaveBeenCalledOnce()
+    expect(onApply).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalledOnce()
   })
 })
