@@ -13,6 +13,8 @@ export function useDebouncedInput(
     if (draft === value) return
     const timer = setTimeout(() => onChange(draft), delayMs)
     return () => clearTimeout(timer)
+    // value/onChange excluded on purpose: reacting to them here would refire the timer on every
+    // parent re-render instead of only when the user actually types, defeating the debounce.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft])
 
