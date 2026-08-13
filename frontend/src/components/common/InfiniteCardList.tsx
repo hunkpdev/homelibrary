@@ -15,7 +15,6 @@ export interface InfiniteCardListProps<T extends WithId> {
   onLoadMore: () => void
   onRetry: () => void
   emptyMessage: ReactNode
-  className?: string
 }
 
 export function InfiniteCardList<T extends WithId>({
@@ -28,7 +27,6 @@ export function InfiniteCardList<T extends WithId>({
   onLoadMore,
   onRetry,
   emptyMessage,
-  className,
 }: Readonly<InfiniteCardListProps<T>>) {
   const { t } = useTranslation()
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -75,7 +73,7 @@ export function InfiniteCardList<T extends WithId>({
   }
 
   return (
-    <div className={className}>
+    <div>
       <div className="flex flex-col gap-3">
         {items.map(item => (
           <div key={item.id}>{renderItem(item)}</div>
