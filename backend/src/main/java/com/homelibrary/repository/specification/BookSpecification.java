@@ -52,7 +52,10 @@ public class BookSpecification {
             predicates.add(cb.like(cb.lower(root.get("categories").as(String.class)), "%" + params.category().toLowerCase() + "%"));
         }
         if (StringUtils.hasText(params.publishYear())) {
-            predicates.add(cb.like(root.get("publishYear").as(String.class), params.publishYear() + "%"));
+            // .as(String.class) is a Java-side type hint only (JPA spec: "does not cause type
+            // conversion") - Postgres has no integer ~~ text operator and rejects it outright.
+            // cb.function("str", ...) forces a real SQL cast, portable across HSQLDB and Postgres.
+            predicates.add(cb.like(cb.function("str", String.class, root.get("publishYear")), params.publishYear() + "%"));
         }
     }
 }
