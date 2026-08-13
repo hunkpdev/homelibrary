@@ -4,7 +4,7 @@ import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, IDatasource, IGetRowsParams } from 'ag-grid-community'
 import { AllCommunityModule, colorSchemeDark, colorSchemeLight, ModuleRegistry, themeQuartz } from 'ag-grid-community'
 import { AG_GRID_LOCALE_HU } from '@ag-grid-community/locale'
-import { deleteLocation, fetchAllLocations, fetchLocations } from '@/api/locationApi'
+import { deleteLocation, fetchLocations } from '@/api/locationApi'
 import type { LocationResponse, RoomResponse } from '@/api/types'
 import { useLocationStore } from '@/store/locationStore'
 import { useAuthStore } from '@/store/authStore'
@@ -46,11 +46,7 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
   const isDemo = useAuthStore(s => s.user?.role === 'DEMO')
   const { locationsRefreshTrigger, incrementRefreshTrigger } = useLocationStore()
 
-  const nameFilterRef = useRef<string | undefined>(initialFilterState.search || undefined)
   const roomIdFilterRef = useRef<string | undefined>(initialFilterState.filters.roomId || undefined)
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialFilterState.filters.roomId || null)
-  const [allLocations, setAllLocations] = useState<LocationResponse[]>([])
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [rowsError, setRowsError] = useState(false)
 
   const [editingLocation, setEditingLocation] = useState<LocationResponse | undefined>(undefined)
@@ -64,11 +60,10 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
     onStateCapture: onFilterStateCapture,
     seed: api => {
       const { search, sort, filters } = initialFilterStateRef.current
-      nameFilterRef.current = search || undefined
       roomIdFilterRef.current = filters.roomId || undefined
-      setSelectedRoomId(filters.roomId || null)
 
       const filterModel: Record<string, ReturnType<typeof textFilterModel>> = {}
+      if (search) filterModel.name = textFilterModel(search)
       if (filters.description) filterModel.description = textFilterModel(filters.description)
       api.setFilterModel(filterModel)
 
@@ -78,16 +73,16 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
         defaultState: { sort: null },
       })
 
-      // name/roomId live outside AG Grid's own filter model (PassthroughFilter) — setFilterModel/
-      // applyColumnState above won't necessarily trigger a refetch on their own if description/sort
-      // happen to already match their defaults, so force one explicitly.
+      // roomId lives outside AG Grid's own filter model (PassthroughFilter) — setFilterModel/
+      // applyColumnState above won't necessarily trigger a refetch on their own if name/description/
+      // sort happen to already match their defaults, so force one explicitly.
       api.purgeInfiniteCache()
     },
     capture: api => {
       const filterModel = api.getFilterModel() as Record<string, { filter?: string } | undefined>
       const sortedColumn = api.getColumnState().find(c => c.sort)
       return {
-        search: nameFilterRef.current ?? '',
+        search: filterModel.name?.filter ?? '',
         sort: sortedColumn ? `${sortedColumn.colId},${sortedColumn.sort}` : 'name,asc',
         filters: {
           roomId: roomIdFilterRef.current ?? '',
@@ -96,14 +91,6 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
       }
     },
   })
-
-  // Only the grid needs the full location list, to populate the name column's cascaded dropdown.
-  useEffect(() => {
-    setLoadError(null)
-    fetchAllLocations()
-      .then(setAllLocations)
-      .catch(() => setLoadError(t('common.errorUnexpected')))
-  }, [locationsRefreshTrigger, t])
 
   useEffect(() => {
     if (locationsRefreshTrigger > 0) {
@@ -115,8 +102,8 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
     getRows(params: IGetRowsParams) {
       const page = Math.floor(params.startRow / PAGE_SIZE)
       const roomId = roomIdFilterRef.current
-      const name = nameFilterRef.current
       const filterModel = params.filterModel as Record<string, { filter?: string }>
+      const name = filterModel?.name?.filter || undefined
       const description = filterModel?.description?.filter || undefined
       const sort = params.sortModel[0]
         ? `${params.sortModel[0].colId},${params.sortModel[0].sort}`
@@ -136,20 +123,8 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
 
   const roomOptions = useMemo(() => rooms.map(r => ({ value: r.id, label: r.name })), [rooms])
 
-  const locationOptions = useMemo(() => {
-    const filtered = selectedRoomId ? allLocations.filter(l => l.room.id === selectedRoomId) : allLocations
-    return filtered.map(l => ({ value: l.name, label: l.name }))
-  }, [allLocations, selectedRoomId])
-
   const handleRoomFilterChange = useCallback((value: string | null) => {
     roomIdFilterRef.current = value ?? undefined
-    setSelectedRoomId(value)
-    gridRef.current?.api?.purgeInfiniteCache()
-    onFilterChanged()
-  }, [gridRef, onFilterChanged])
-
-  const handleNameFilterChange = useCallback((value: string | null) => {
-    nameFilterRef.current = value ?? undefined
     gridRef.current?.api?.purgeInfiniteCache()
     onFilterChanged()
   }, [gridRef, onFilterChanged])
@@ -187,15 +162,11 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
         headerName: t('locations.grid.colName'),
         minWidth: 150,
         wrapText: true,
+        filter: 'agTextColumnFilter',
         floatingFilter: true,
-        filter: PassthroughFilter,
-        floatingFilterComponent: SelectFloatingFilter,
-        floatingFilterComponentParams: {
-          options: locationOptions,
-          allLabel: t('locations.grid.filterAllLocations'),
-          onValueChange: handleNameFilterChange,
-          initialValue: initialFilterStateRef.current.search || undefined,
-        },
+        floatingFilterComponent: ClearableTextFloatingFilter,
+        floatingFilterComponentParams: { initialValue: initialFilterStateRef.current.search || undefined },
+        filterParams: { filterOptions: ['contains'], defaultOption: 'contains' },
       },
       {
         field: 'description',
@@ -233,7 +204,7 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
       },
       ...(isAdmin || isDemo ? [actionCol] : []),
     ]
-  }, [isAdmin, isDemo, roomOptions, locationOptions, t, handleOpenEditLocation, handleOpenDeleteLocation, handleNameFilterChange, handleRoomFilterChange])
+  }, [isAdmin, isDemo, roomOptions, t, handleOpenEditLocation, handleOpenDeleteLocation, handleRoomFilterChange])
 
   const gridTheme = useMemo(
     () => themeQuartz.withPart(theme === 'dark' ? colorSchemeDark : colorSchemeLight),
@@ -247,7 +218,6 @@ export default function LocationGridView({ initialFilterState, onFilterStateCapt
 
   return (
     <div className="flex flex-col gap-2">
-      {loadError && <p className="text-sm text-destructive">{loadError}</p>}
       {rowsError && (
         <GridErrorBanner onRetry={() => gridRef.current?.api?.purgeInfiniteCache()} />
       )}

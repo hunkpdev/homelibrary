@@ -75,8 +75,7 @@
       "colDescription": "Leírás",
       "colRoom": "Helyiség",
       "colBookCount": "Könyvek",
-      "filterAllRooms": "Minden helyiség",
-      "filterAllLocations": "Minden helyszín"
+      "filterAllRooms": "Minden helyiség"
     },
     "cardView": {
       "searchPlaceholder": "Keresés név szerint…",

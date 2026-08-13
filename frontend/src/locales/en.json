@@ -76,8 +76,7 @@
       "colDescription": "Description",
       "colRoom": "Room",
       "colBookCount": "Books",
-      "filterAllRooms": "All rooms",
-      "filterAllLocations": "All locations"
+      "filterAllRooms": "All rooms"
     },
     "cardView": {
       "searchPlaceholder": "Search by name…",

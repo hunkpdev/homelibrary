@@ -64,7 +64,6 @@ function renderGrid(props: Partial<{ initialFilterState: LocationGridViewFilterS
 
 beforeEach(() => {
   mock.reset()
-  mock.onGet('/api/locations/all').reply(200, [location])
   capturedGridProps = {}
   mockGridApi.setFilterModel.mockClear()
   mockGridApi.applyColumnState.mockClear()
@@ -81,10 +80,15 @@ describe('LocationGridView — render', () => {
     expect(screen.getByTestId('ag-grid')).toBeInTheDocument()
   })
 
-  it('fetches all locations from the API on mount, for the name column dropdown', async () => {
+  it('does not call /api/locations/all — the name filter is free text now, no dropdown to populate', async () => {
     useAuthStore.setState({ user: { id: '1', username: 'visitor', role: 'VISITOR' }, accessToken: makeToken('VISITOR'), isInitialized: true })
+    mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 10, number: 0 } })
     renderGrid()
-    await waitFor(() => expect(mock.history.get.some(r => r.url === '/api/locations/all')).toBe(true))
+    capturedGridProps.datasource.getRows({
+      startRow: 0, filterModel: {}, sortModel: [], successCallback: vi.fn(), failCallback: vi.fn(),
+    })
+    await waitFor(() => expect(mock.history.get.length).toBeGreaterThan(0))
+    expect(mock.history.get.some(r => r.url === '/api/locations/all')).toBe(false)
   })
 
   it('VISITOR sees no action column (no edit/delete cell renderer params)', () => {
@@ -111,6 +115,23 @@ describe('LocationGridView — datasource', () => {
     const failCallback = vi.fn()
     capturedGridProps.datasource.getRows({ startRow: 0, filterModel: {}, sortModel: [], successCallback, failCallback })
     await waitFor(() => expect(successCallback).toHaveBeenCalledWith([location], 1))
+  })
+
+  it('getRows passes the name column\'s free-text filter value through to the request', async () => {
+    mock.onGet('/api/locations').reply(200, {
+      content: [location],
+      page: { totalElements: 1, totalPages: 1, size: 10, number: 0 },
+    })
+    renderGrid()
+    capturedGridProps.datasource.getRows({
+      startRow: 0,
+      filterModel: { name: { filter: 'polc' } },
+      sortModel: [],
+      successCallback: vi.fn(),
+      failCallback: vi.fn(),
+    })
+    await waitFor(() => expect(mock.history.get.length).toBeGreaterThan(0))
+    expect(mock.history.get[0].params).toMatchObject({ name: 'polc' })
   })
 
   it('getRows calls failCallback on API error', async () => {
@@ -190,7 +211,7 @@ describe('LocationGridView — filter/sort state handoff (option C: snapshot syn
     useAuthStore.setState({ user: { id: '1', username: 'admin', role: 'ADMIN' }, accessToken: makeToken('ADMIN'), isInitialized: true })
   })
 
-  it('seeds description filter model, sort and forces a refetch (purgeInfiniteCache) on grid ready', async () => {
+  it('seeds name/description filter model, sort and forces a refetch (purgeInfiniteCache) on grid ready', async () => {
     const initialFilterState: LocationGridViewFilterState = {
       search: 'polc',
       sort: 'room.name,desc',
@@ -202,6 +223,7 @@ describe('LocationGridView — filter/sort state handoff (option C: snapshot syn
     await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(mockGridApi.setFilterModel).toHaveBeenCalledWith({
+      name: { filterType: 'text', type: 'contains', filter: 'polc' },
       description: { filterType: 'text', type: 'contains', filter: 'alsó' },
     })
     expect(mockGridApi.applyColumnState).toHaveBeenCalledWith({
@@ -228,19 +250,17 @@ describe('LocationGridView — filter/sort state handoff (option C: snapshot syn
     expect(byField('room.name').floatingFilterComponentParams.initialValue).toBe('room-1')
   })
 
-  it('captures the last known state (name/room refs + description filter model + sort) on unmount', () => {
+  it('captures the last known state (name filter model + room ref + description filter model + sort) on unmount', () => {
     const onFilterStateCapture = vi.fn()
     const { unmount } = renderGrid({ onFilterStateCapture })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const colDefs = capturedGridProps.columnDefs as any[]
-    const nameCol = colDefs.find(c => c.field === 'name')
     const roomCol = colDefs.find(c => c.field === 'room.name')
 
-    act(() => nameCol.floatingFilterComponentParams.onValueChange('polc'))
     act(() => roomCol.floatingFilterComponentParams.onValueChange('room-1'))
 
-    mockGridApi.getFilterModel.mockReturnValue({ description: { filter: 'alsó' } })
+    mockGridApi.getFilterModel.mockReturnValue({ name: { filter: 'polc' }, description: { filter: 'alsó' } })
     mockGridApi.getColumnState.mockReturnValue([{ colId: 'room.name', sort: 'desc' }])
     act(() => capturedGridProps.onFilterChanged())
 
