@@ -29,7 +29,7 @@ describe('LocationCard — content', () => {
     render(<LocationCard {...defaultProps} />)
     expect(screen.getByText('Felső polc')).toBeInTheDocument()
     expect(screen.getByText('Nappali')).toBeInTheDocument()
-    expect(screen.getByText('0 Könyvek')).toBeInTheDocument()
+    expect(screen.getByText('0 könyv')).toBeInTheDocument()
     expect(screen.getByText('Regényes könyvek')).toBeInTheDocument()
   })
 

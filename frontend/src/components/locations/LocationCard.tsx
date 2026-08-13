@@ -26,7 +26,7 @@ export function LocationCard({ location, onEdit, onDelete }: Readonly<LocationCa
             <span className="font-medium text-card-foreground">{location.name}</span>
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge variant="secondary">{location.room.name}</Badge>
-              <Badge variant="outline">{location.bookCount} {t('locations.grid.colBookCount')}</Badge>
+              <Badge variant="outline">{location.bookCount} {t('locations.cardView.bookCount', { count: location.bookCount })}</Badge>
             </div>
             {location.description && (
               <span className="text-sm text-muted-foreground">{location.description}</span>

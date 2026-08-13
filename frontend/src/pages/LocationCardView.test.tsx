@@ -163,7 +163,7 @@ describe('LocationCardView — mutation refresh strategy', () => {
 
     await waitFor(() => expect(screen.queryByText('Felső polc')).not.toBeInTheDocument())
     const updatedCard = screen.getByText('Felső polc Updated').closest('[data-testid="location-card"]') as HTMLElement
-    expect(within(updatedCard).getByText('3 Könyvek')).toBeInTheDocument()
+    expect(within(updatedCard).getByText('3 könyv')).toBeInTheDocument()
     expect(within(updatedCard).queryByRole('button', { name: 'Törlés' })).not.toBeInTheDocument()
   })
 

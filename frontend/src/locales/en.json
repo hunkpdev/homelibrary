@@ -86,6 +86,8 @@
       "filtersSheetTitle": "Filters",
       "sortLabel": "Sort",
       "emptyState": "No results — try a different filter",
+      "bookCount_one": "book",
+      "bookCount_other": "books",
       "sort": {
         "nameAsc": "Name A-Z",
         "nameDesc": "Name Z-A",

@@ -79,11 +79,14 @@
     },
     "cardView": {
       "searchPlaceholder": "Keresés név szerint…",
-      "resultsCount": "{{count}} találat",
+      "resultsCount_one": "{{count}} találat",
+      "resultsCount_other": "{{count}} találat",
       "filtersButton": "Szűrők",
       "filtersSheetTitle": "Szűrők",
       "sortLabel": "Rendezés",
       "emptyState": "Nincs találat — próbálj más szűrőt",
+      "bookCount_one": "könyv",
+      "bookCount_other": "könyv",
       "sort": {
         "nameAsc": "Név A-Z",
         "nameDesc": "Név Z-A",
@@ -104,7 +107,8 @@
     },
     "cardView": {
       "searchPlaceholder": "Keresés cím szerint…",
-      "resultsCount": "{{count}} találat",
+      "resultsCount_one": "{{count}} találat",
+      "resultsCount_other": "{{count}} találat",
       "filtersButton": "Szűrők",
       "filtersSheetTitle": "Szűrők",
       "sortLabel": "Rendezés",
