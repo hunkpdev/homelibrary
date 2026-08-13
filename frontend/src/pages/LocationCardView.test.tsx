@@ -62,6 +62,15 @@ describe('LocationCardView — data & rendering', () => {
     expect(screen.getByText('2 találat')).toBeInTheDocument()
   })
 
+  it('shows the error message and retry button, without a misleading results count, when the initial load fails', async () => {
+    mock.onGet('/api/locations').reply(500)
+    renderCardView()
+
+    expect(await screen.findByText('Váratlan hiba történt')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Újrapróbálom' })).toBeInTheDocument()
+    expect(screen.queryByText(/találat/)).not.toBeInTheDocument()
+  })
+
   it('no FAB is rendered — location creation stays behind the Rooms panel', async () => {
     mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
     renderCardView()

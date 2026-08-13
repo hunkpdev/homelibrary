@@ -89,7 +89,7 @@ export function LocationCardView({
         onSortChange={onSortChange}
         activeFilterCount={activeFilterCount}
         onOpenFilters={() => setFiltersSheetOpen(true)}
-        resultsCount={cardList.isLoading ? null : cardList.totalElements}
+        resultsCount={cardList.isLoading || cardList.error ? null : cardList.totalElements}
       />
 
       <InfiniteCardList<LocationResponse>

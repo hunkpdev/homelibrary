@@ -62,6 +62,15 @@ describe('BookCardView — data & rendering', () => {
     expect(screen.getByText('2 találat')).toBeInTheDocument()
   })
 
+  it('shows the error message and retry button, without a misleading results count, when the initial load fails', async () => {
+    mock.onGet('/api/books').reply(500)
+    renderCardView()
+
+    expect(await screen.findByText('Váratlan hiba történt')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Újrapróbálom' })).toBeInTheDocument()
+    expect(screen.queryByText(/találat/)).not.toBeInTheDocument()
+  })
+
   it('tapping a card opens the BookDetailPanel', async () => {
     mock.onGet('/api/books').reply(200, { content: [book1], page: { totalElements: 1, totalPages: 1, size: 20, number: 0 } })
     renderCardView()
