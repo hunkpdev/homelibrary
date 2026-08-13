@@ -12,13 +12,14 @@ export interface SelectFloatingFilterParams extends IFloatingFilterParams {
   options: { value: string; label: string }[]
   allLabel: string
   onValueChange?: (value: string | null) => void
+  initialValue?: string
 }
 
 const SelectFloatingFilter = forwardRef<
   { onParentModelChanged: (m: { value: string } | null) => void },
   SelectFloatingFilterParams
->(({ options, allLabel, onValueChange, parentFilterInstance }, ref) => {
-  const [value, setValue] = useState<string>('__all__')
+>(({ options, allLabel, onValueChange, parentFilterInstance, initialValue }, ref) => {
+  const [value, setValue] = useState<string>(initialValue || '__all__')
 
   useImperativeHandle(ref, () => ({
     onParentModelChanged(parentModel: { value: string } | null) {

@@ -1,123 +1,85 @@
-import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState,} from 'react'
-import {useTranslation} from 'react-i18next'
-import {AgGridReact} from 'ag-grid-react'
-import type {ColDef, IDatasource, IGetRowsParams} from 'ag-grid-community'
-import {AllCommunityModule, colorSchemeDark, colorSchemeLight, ModuleRegistry, themeQuartz} from 'ag-grid-community'
-import {AG_GRID_LOCALE_HU} from '@ag-grid-community/locale'
-import {ChevronDown, ChevronUp, Pencil, Plus, Trash2} from 'lucide-react'
-import {deleteRoom, fetchAllRooms} from '@/api/roomApi'
-import {deleteLocation, fetchAllLocations, fetchLocations} from '@/api/locationApi'
-import type {LocationResponse, RoomResponse} from '@/api/types'
-import {useLocationStore} from '@/store/locationStore'
-import {useAuthStore} from '@/store/authStore'
-import {useTheme} from '@/hooks/useTheme'
-import {useIsMobile} from '@/hooks/use-mobile'
-import {Button} from '@/components/ui/button'
-import {MutationButton} from '@/components/common/MutationButton'
-import {Badge} from '@/components/ui/badge'
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible'
-import {PassthroughFilter} from '@/components/grid/PassthroughFilter'
-import {SelectFloatingFilter} from '@/components/grid/SelectFloatingFilter'
-import {ClearableTextFloatingFilter} from '@/components/grid/ClearableTextFloatingFilter'
-import {ActionCell} from '@/components/locations/ActionCell'
-import {LocationFormModal} from '@/components/locations/LocationFormModal'
-import {RoomFormModal} from '@/components/rooms/RoomFormModal'
-import {DeleteModal} from '@/components/ui/DeleteModal'
+import { type MouseEvent, lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
+import { deleteRoom, fetchAllRooms } from '@/api/roomApi'
+import type { RoomResponse } from '@/api/types'
+import { useLocationStore } from '@/store/locationStore'
+import { useAuthStore } from '@/store/authStore'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Button } from '@/components/ui/button'
+import { MutationButton } from '@/components/common/MutationButton'
+import { Badge } from '@/components/ui/badge'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { LocationFormModal } from '@/components/locations/LocationFormModal'
+import { RoomFormModal } from '@/components/rooms/RoomFormModal'
+import { DeleteModal } from '@/components/ui/DeleteModal'
+import { EMPTY_LOCATION_FILTERS } from '@/components/locations/LocationFiltersSheet'
+import type { LocationGridViewFilterState } from '@/pages/LocationGridView'
 
-ModuleRegistry.registerModules([AllCommunityModule])
+const LocationGridView = lazy(() => import('@/pages/LocationGridView'))
+const LocationCardView = lazy(() =>
+  import('@/pages/LocationCardView').then(m => ({ default: m.LocationCardView }))
+)
 
-const PAGE_SIZE = 10
+function GridLoadingFallback() {
+  return (
+    <div className="flex w-full items-center justify-center" style={{ height: 500 }}>
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  )
+}
 
-// ─── Page component ───────────────────────────────────────────────────────────
+function CardLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  )
+}
 
 export function LocationManagementPage() {
-  const { t, i18n } = useTranslation()
-  const { theme } = useTheme()
+  const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isAdmin = useAuthStore(s => s.user?.role === 'ADMIN')
   const isDemo = useAuthStore(s => s.user?.role === 'DEMO')
   const { locationsRefreshTrigger, incrementRefreshTrigger } = useLocationStore()
 
-  const gridRef = useRef<AgGridReact<LocationResponse>>(null)
-  const nameFilterRef = useRef<string | undefined>(undefined)
-  const roomIdFilterRef = useRef<string | undefined>(undefined)
   const [panelOpen, setPanelOpen] = useState(!isMobile)
   useEffect(() => setPanelOpen(!isMobile), [isMobile])
   const [allRooms, setAllRooms] = useState<RoomResponse[]>([])
-  const [allLocations, setAllLocations] = useState<LocationResponse[]>([])
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [roomFormOpen, setRoomFormOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<RoomResponse | undefined>(undefined)
   const [deleteRoomTarget, setDeleteRoomTarget] = useState<RoomResponse | undefined>(undefined)
   const [locationFormOpen, setLocationFormOpen] = useState(false)
-  const [editingLocation, setEditingLocation] = useState<LocationResponse | undefined>(undefined)
   const [defaultRoomId, setDefaultRoomId] = useState<string | undefined>(undefined)
-  const [deleteLocationTarget, setDeleteLocationTarget] = useState<LocationResponse | undefined>(undefined)
-  const [loadError, setLoadError] = useState<string | null>(null)
 
-  // ── Initial data load (rooms + locations for dropdowns) ──────────────────
+  const [search, setSearch] = useState('')
+  const [sort, setSort] = useState('name,asc')
+  const [filters, setFilters] = useState(EMPTY_LOCATION_FILTERS)
+  // Bumped on room mutations and location creation — the only events that should fully reset the
+  // card list. Location edit/delete update their own card in place instead (see LocationCardView),
+  // so they must not feed into this signal even though they still bump locationsRefreshTrigger
+  // above (which the Rooms panel below and the grid view both key their own refresh off of).
+  const [cardListResetSignal, setCardListResetSignal] = useState(0)
+
   useEffect(() => {
     setLoadError(null)
-    Promise.all([fetchAllRooms(), fetchAllLocations()])
-      .then(([rooms, locations]) => {
-        setAllRooms(rooms)
-        setAllLocations(locations)
-      })
+    fetchAllRooms()
+      .then(setAllRooms)
       .catch(() => setLoadError(t('common.errorUnexpected')))
-  }, [locationsRefreshTrigger])
+  }, [locationsRefreshTrigger, t])
 
-  // ── Refresh grid when trigger increments ─────────────────────────────────
-  useEffect(() => {
-    if (locationsRefreshTrigger > 0) {
-      gridRef.current?.api?.purgeInfiniteCache()
-    }
-  }, [locationsRefreshTrigger])
+  function handleRoomOrCreateSuccess() {
+    incrementRefreshTrigger()
+    setCardListResetSignal(s => s + 1)
+  }
 
-  // ── Datasource for Infinite Row Model ────────────────────────────────────
-  const datasource: IDatasource = useMemo(() => ({
-    getRows(params: IGetRowsParams) {
-      const page = Math.floor(params.startRow / PAGE_SIZE)
-      const roomId = roomIdFilterRef.current
-      const name = nameFilterRef.current
-      const filterModel = params.filterModel as Record<string, { filter?: string }>
-      const description = filterModel?.description?.filter || undefined
-      const sort = params.sortModel[0]
-        ? `${params.sortModel[0].colId},${params.sortModel[0].sort}`
-        : 'name,asc'
-
-      fetchLocations({ page, size: PAGE_SIZE, sort, name, roomId, description })
-        .then(data => {
-          params.successCallback(data.content, data.page.totalElements)
-        })
-        .catch(() => params.failCallback())
-    },
-  }), [])
-
-  // ── Room options for filter dropdown ─────────────────────────────────────
-  const roomOptions = useMemo(
-    () => allRooms.map(r => ({ value: r.id, label: r.name })),
-    [allRooms]
-  )
-
-  // ── Location options for filter dropdown (cascaded by room) ──────────────
-  const locationOptions = useMemo(() => {
-    const filtered = selectedRoomId
-      ? allLocations.filter(l => l.room.id === selectedRoomId)
-      : allLocations
-    return filtered.map(l => ({ value: l.name, label: l.name }))
-  }, [allLocations, selectedRoomId])
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleRoomFilterChange = useCallback((value: string | null) => {
-    roomIdFilterRef.current = value ?? undefined
-    setSelectedRoomId(value)
-    gridRef.current?.api?.purgeInfiniteCache()
-  }, [])
-
-  const handleNameFilterChange = useCallback((value: string | null) => {
-    nameFilterRef.current = value ?? undefined
-    gridRef.current?.api?.purgeInfiniteCache()
-  }, [])
+  function handleFilterStateCapture(state: LocationGridViewFilterState) {
+    setSearch(state.search)
+    setSort(state.sort)
+    setFilters(state.filters)
+  }
 
   const handleOpenCreateRoom = useCallback((e: MouseEvent) => {
     e.stopPropagation()
@@ -131,100 +93,9 @@ export function LocationManagementPage() {
   }, [])
 
   const handleOpenCreateLocation = useCallback((roomId: string) => {
-    setEditingLocation(undefined)
     setDefaultRoomId(roomId)
     setLocationFormOpen(true)
   }, [])
-
-  const handleOpenEditLocation = useCallback((location: LocationResponse) => {
-    setEditingLocation(location)
-    setDefaultRoomId(undefined)
-    setLocationFormOpen(true)
-  }, [])
-
-  const handleOpenDeleteLocation = useCallback((location: LocationResponse) => {
-    setDeleteLocationTarget(location)
-  }, [])
-
-  // ── Column definitions ────────────────────────────────────────────────────
-  const colDefs = useMemo<ColDef<LocationResponse>[]>(() => {
-    const actionCol: ColDef<LocationResponse> = {
-      headerName: '',
-      field: 'id',
-      width: 100,
-      sortable: false,
-      filter: false,
-      cellRenderer: ActionCell,
-      cellRendererParams: {
-        isAdmin,
-        isDemo,
-        onEdit: handleOpenEditLocation,
-        onDelete: handleOpenDeleteLocation,
-        deleteLabel: t('common.delete'),
-        editLabel: t('common.edit'),
-      },
-    }
-
-    return [
-      {
-        field: 'name',
-        headerName: t('locations.grid.colName'),
-        minWidth: 150,
-        wrapText: true,
-        floatingFilter: true,
-        filter: PassthroughFilter,
-        floatingFilterComponent: SelectFloatingFilter,
-        floatingFilterComponentParams: {
-          options: locationOptions,
-          allLabel: t('locations.grid.filterAllLocations'),
-          onValueChange: handleNameFilterChange,
-        },
-      },
-      {
-        field: 'description',
-        headerName: t('locations.grid.colDescription'),
-        minWidth: 200,
-        wrapText: true,
-        sortable: false,
-        filter: 'agTextColumnFilter',
-        floatingFilter: true,
-        floatingFilterComponent: ClearableTextFloatingFilter,
-        filterParams: { filterOptions: ['contains'], defaultOption: 'contains' },
-      },
-      {
-        field: 'room.name',
-        headerName: t('locations.grid.colRoom'),
-        minWidth: 150,
-        floatingFilter: true,
-        filter: PassthroughFilter,
-        floatingFilterComponent: SelectFloatingFilter,
-        floatingFilterComponentParams: {
-          options: roomOptions,
-          allLabel: t('locations.grid.filterAllRooms'),
-          onValueChange: handleRoomFilterChange,
-        },
-      },
-      {
-        field: 'bookCount',
-        headerName: t('locations.grid.colBookCount'),
-        width: 100,
-        minWidth: 80,
-        filter: false,
-        sortable: false,
-      },
-      ...(isAdmin || isDemo ? [actionCol] : []),
-    ]
-  }, [isAdmin, isDemo, roomOptions, locationOptions, t, handleOpenEditLocation, handleOpenDeleteLocation, handleNameFilterChange, handleRoomFilterChange])
-
-  const gridTheme = useMemo(
-    () => themeQuartz.withPart(theme === 'dark' ? colorSchemeDark : colorSchemeLight),
-    [theme]
-  )
-
-  const gridLocaleText = useMemo(() => {
-      const isHungarian = i18n.language?.startsWith('hu');
-      return isHungarian ? AG_GRID_LOCALE_HU : {};
-  }, [i18n.language]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -293,35 +164,39 @@ export function LocationManagementPage() {
         </CollapsibleContent>
       </Collapsible>
 
-      {/* ── Locations grid ── */}
-      <div className="w-full" style={{ height: 500 }}>
-        <AgGridReact<LocationResponse>
-          theme={gridTheme}
-          ref={gridRef}
-          rowModelType="infinite"
-          datasource={datasource}
-          columnDefs={colDefs}
-          suppressDragLeaveHidesColumns={true}
-          defaultColDef={{ sortable: true, resizable: true, filter: false, sortingOrder: ['asc', 'desc', null], suppressFloatingFilterButton: true, suppressHeaderFilterButton: true }}
-          cacheBlockSize={PAGE_SIZE}
-          maxBlocksInCache={10}
-          pagination={true}
-          paginationPageSize={PAGE_SIZE}
-          paginationPageSizeSelector={[5, 10, 20]}
-          localeText={gridLocaleText}
-        />
-      </div>
+      {isMobile ? (
+        <Suspense fallback={<CardLoadingFallback />}>
+          <LocationCardView
+            search={search}
+            onSearchChange={setSearch}
+            sort={sort}
+            onSortChange={setSort}
+            filters={filters}
+            onFiltersChange={setFilters}
+            rooms={allRooms}
+            cardListResetSignal={cardListResetSignal}
+          />
+        </Suspense>
+      ) : (
+        <Suspense fallback={<GridLoadingFallback />}>
+          <LocationGridView
+            initialFilterState={{ search, sort, filters }}
+            onFilterStateCapture={handleFilterStateCapture}
+            rooms={allRooms}
+          />
+        </Suspense>
+      )}
 
       <RoomFormModal
         open={roomFormOpen}
         onClose={() => setRoomFormOpen(false)}
-        onSuccess={incrementRefreshTrigger}
+        onSuccess={handleRoomOrCreateSuccess}
         room={editingRoom}
       />
       <DeleteModal
         open={deleteRoomTarget !== undefined}
         onClose={() => setDeleteRoomTarget(undefined)}
-        onSuccess={incrementRefreshTrigger}
+        onSuccess={handleRoomOrCreateSuccess}
         onDelete={() => deleteRoom(deleteRoomTarget!.id)}
         title={t('locations.rooms.delete.title')}
         description={t('locations.rooms.delete.confirm', { name: deleteRoomTarget?.name ?? '' })}
@@ -330,19 +205,9 @@ export function LocationManagementPage() {
       <LocationFormModal
         open={locationFormOpen}
         onClose={() => setLocationFormOpen(false)}
-        onSuccess={incrementRefreshTrigger}
-        location={editingLocation}
+        onSuccess={handleRoomOrCreateSuccess}
         rooms={allRooms}
         defaultRoomId={defaultRoomId}
-      />
-      <DeleteModal
-        open={deleteLocationTarget !== undefined}
-        onClose={() => setDeleteLocationTarget(undefined)}
-        onSuccess={incrementRefreshTrigger}
-        onDelete={() => deleteLocation(deleteLocationTarget!.id)}
-        title={t('locations.delete.title')}
-        description={t('locations.delete.confirm', { name: deleteLocationTarget?.name ?? '' })}
-        errorConflictMessage={t('locations.delete.errorConflict')}
       />
     </div>
   )

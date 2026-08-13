@@ -27,7 +27,10 @@
     "saving": "Saving...",
     "errorUnexpected": "An unexpected error occurred",
     "errorRequiredFields": "Required fields are missing",
-    "demoTooltip": "This action is not available in demo mode"
+    "demoTooltip": "This action is not available in demo mode",
+    "retry": "Try again",
+    "applyFilters": "Apply",
+    "clearFilters": "Clear"
   },
   "locations": {
     "pageTitle": "Location Management",
@@ -73,8 +76,25 @@
       "colDescription": "Description",
       "colRoom": "Room",
       "colBookCount": "Books",
-      "filterAllRooms": "All rooms",
-      "filterAllLocations": "All locations"
+      "filterAllRooms": "All rooms"
+    },
+    "cardView": {
+      "searchPlaceholder": "Search by name…",
+      "resultsCount_one": "{{count}} result",
+      "resultsCount_other": "{{count}} results",
+      "filtersButton": "Filters",
+      "filtersSheetTitle": "Filters",
+      "sortLabel": "Sort",
+      "emptyState": "There are no locations yet",
+      "emptyStateFiltered": "No results — try a different filter",
+      "bookCount_one": "book",
+      "bookCount_other": "books",
+      "sort": {
+        "nameAsc": "Name A-Z",
+        "nameDesc": "Name Z-A",
+        "roomAsc": "Room A-Z",
+        "roomDesc": "Room Z-A"
+      }
     }
   },
   "books": {
@@ -86,6 +106,24 @@
       "colAuthors": "Author(s)",
       "colPublishYear": "Year",
       "colCategories": "Categories"
+    },
+    "cardView": {
+      "searchPlaceholder": "Search by title…",
+      "resultsCount_one": "{{count}} result",
+      "resultsCount_other": "{{count}} results",
+      "filtersButton": "Filters",
+      "filtersSheetTitle": "Filters",
+      "sortLabel": "Sort",
+      "emptyState": "There are no books yet",
+      "emptyStateFiltered": "No results — try a different filter",
+      "sort": {
+        "titleAsc": "Title A-Z",
+        "titleDesc": "Title Z-A",
+        "authorsAsc": "Author A-Z",
+        "authorsDesc": "Author Z-A",
+        "publishYearDesc": "Year (newest)",
+        "publishYearAsc": "Year (oldest)"
+      }
     },
     "status": {
       "AT_HOME": "At home",

@@ -27,7 +27,10 @@
     "saving": "Mentés...",
     "errorUnexpected": "Váratlan hiba történt",
     "errorRequiredFields": "Kötelező mezők nincsenek kitöltve",
-    "demoTooltip": "Demo módban ez a művelet nem elérhető"
+    "demoTooltip": "Demo módban ez a művelet nem elérhető",
+    "retry": "Újrapróbálom",
+    "applyFilters": "Alkalmaz",
+    "clearFilters": "Törlés"
   },
   "locations": {
     "pageTitle": "Helyszínek kezelése",
@@ -72,8 +75,25 @@
       "colDescription": "Leírás",
       "colRoom": "Helyiség",
       "colBookCount": "Könyvek",
-      "filterAllRooms": "Minden helyiség",
-      "filterAllLocations": "Minden helyszín"
+      "filterAllRooms": "Minden helyiség"
+    },
+    "cardView": {
+      "searchPlaceholder": "Keresés név szerint…",
+      "resultsCount_one": "{{count}} találat",
+      "resultsCount_other": "{{count}} találat",
+      "filtersButton": "Szűrők",
+      "filtersSheetTitle": "Szűrők",
+      "sortLabel": "Rendezés",
+      "emptyState": "Még nincs egyetlen helyszín sem",
+      "emptyStateFiltered": "Nincs találat — próbálj más szűrőt",
+      "bookCount_one": "könyv",
+      "bookCount_other": "könyv",
+      "sort": {
+        "nameAsc": "Név A-Z",
+        "nameDesc": "Név Z-A",
+        "roomAsc": "Helyiség A-Z",
+        "roomDesc": "Helyiség Z-A"
+      }
     }
   },
   "books": {
@@ -85,6 +105,24 @@
       "colAuthors": "Szerző(k)",
       "colPublishYear": "Kiadási év",
       "colCategories": "Kategóriák"
+    },
+    "cardView": {
+      "searchPlaceholder": "Keresés cím szerint…",
+      "resultsCount_one": "{{count}} találat",
+      "resultsCount_other": "{{count}} találat",
+      "filtersButton": "Szűrők",
+      "filtersSheetTitle": "Szűrők",
+      "sortLabel": "Rendezés",
+      "emptyState": "Még nincs egyetlen könyv sem",
+      "emptyStateFiltered": "Nincs találat — próbálj más szűrőt",
+      "sort": {
+        "titleAsc": "Cím A-Z",
+        "titleDesc": "Cím Z-A",
+        "authorsAsc": "Szerző A-Z",
+        "authorsDesc": "Szerző Z-A",
+        "publishYearDesc": "Kiadási év (legújabb)",
+        "publishYearAsc": "Kiadási év (legrégebbi)"
+      }
     },
     "status": {
       "AT_HOME": "Itthon",

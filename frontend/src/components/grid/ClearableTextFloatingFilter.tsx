@@ -2,11 +2,15 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import type { IFloatingFilterParams } from 'ag-grid-community'
 import { X } from 'lucide-react'
 
+export interface ClearableTextFloatingFilterParams extends IFloatingFilterParams {
+  initialValue?: string
+}
+
 const ClearableTextFloatingFilter = forwardRef<
   { onParentModelChanged: (model: { filter?: string } | null) => void },
-  IFloatingFilterParams
->(({ parentFilterInstance }, ref) => {
-  const [value, setValue] = useState('')
+  ClearableTextFloatingFilterParams
+>(({ parentFilterInstance, initialValue }, ref) => {
+  const [value, setValue] = useState(initialValue ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useImperativeHandle(ref, () => ({

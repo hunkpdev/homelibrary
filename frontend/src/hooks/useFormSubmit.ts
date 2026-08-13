@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isAxiosError } from 'axios'
 
-interface Options {
+interface Options<T> {
   open: boolean
   conflictErrorKey: string
-  onSuccess: () => void
+  onSuccess: (result: T) => void
   onClose: () => void
-  submitFn: () => Promise<void>
+  submitFn: () => Promise<T>
 }
 
-export function useFormSubmit({ open, conflictErrorKey, onSuccess, onClose, submitFn }: Options) {
+export function useFormSubmit<T = void>({ open, conflictErrorKey, onSuccess, onClose, submitFn }: Options<T>) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,8 +28,8 @@ export function useFormSubmit({ open, conflictErrorKey, onSuccess, onClose, subm
     setIsLoading(true)
     setError(null)
     try {
-      await submitFn()
-      onSuccess()
+      const result = await submitFn()
+      onSuccess(result)
       onClose()
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
