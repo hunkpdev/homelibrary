@@ -106,7 +106,7 @@ export function BookCardView({
         hasMore={cardList.hasMore}
         onLoadMore={cardList.loadMore}
         onRetry={cardList.retry}
-        emptyMessage={t('books.cardView.emptyState')}
+        emptyMessage={t(activeFilterCount > 0 || search ? 'books.cardView.emptyStateFiltered' : 'books.cardView.emptyState')}
       />
 
       {(isAdmin || isDemo) && (

@@ -96,6 +96,26 @@ describe('BookCardView — filters sheet "Törlés"', () => {
   })
 })
 
+describe('BookCardView — empty state message', () => {
+  it('shows a neutral empty message when there is no search or filter active', async () => {
+    mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView()
+    expect(await screen.findByText('Még nincs egyetlen könyv sem')).toBeInTheDocument()
+  })
+
+  it('shows the "try a different filter" message when a search is active', async () => {
+    mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView({ search: 'harry' })
+    expect(await screen.findByText('Nincs találat — próbálj más szűrőt')).toBeInTheDocument()
+  })
+
+  it('shows the "try a different filter" message when a sheet filter is active', async () => {
+    mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView({ filters: { ...EMPTY_BOOK_FILTERS, isbn: '123' } })
+    expect(await screen.findByText('Nincs találat — próbálj más szűrőt')).toBeInTheDocument()
+  })
+})
+
 describe('BookCardView — "+ Új könyv" FAB', () => {
   it('shows the FAB for ADMIN and opens the add modal', async () => {
     mock.onGet('/api/books').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })

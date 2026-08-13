@@ -84,7 +84,8 @@
       "filtersButton": "Szűrők",
       "filtersSheetTitle": "Szűrők",
       "sortLabel": "Rendezés",
-      "emptyState": "Nincs találat — próbálj más szűrőt",
+      "emptyState": "Még nincs egyetlen helyszín sem",
+      "emptyStateFiltered": "Nincs találat — próbálj más szűrőt",
       "bookCount_one": "könyv",
       "bookCount_other": "könyv",
       "sort": {
@@ -112,7 +113,8 @@
       "filtersButton": "Szűrők",
       "filtersSheetTitle": "Szűrők",
       "sortLabel": "Rendezés",
-      "emptyState": "Nincs találat — próbálj más szűrőt",
+      "emptyState": "Még nincs egyetlen könyv sem",
+      "emptyStateFiltered": "Nincs találat — próbálj más szűrőt",
       "sort": {
         "titleAsc": "Cím A-Z",
         "titleDesc": "Cím Z-A",

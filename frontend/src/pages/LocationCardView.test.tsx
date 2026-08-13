@@ -79,6 +79,26 @@ describe('LocationCardView — data & rendering', () => {
   })
 })
 
+describe('LocationCardView — empty state message', () => {
+  it('shows a neutral empty message when there is no search or filter active', async () => {
+    mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView()
+    expect(await screen.findByText('Még nincs egyetlen helyszín sem')).toBeInTheDocument()
+  })
+
+  it('shows the "try a different filter" message when a search is active', async () => {
+    mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView({ search: 'polc' })
+    expect(await screen.findByText('Nincs találat — próbálj más szűrőt')).toBeInTheDocument()
+  })
+
+  it('shows the "try a different filter" message when a sheet filter is active', async () => {
+    mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })
+    renderCardView({ filters: { ...EMPTY_LOCATION_FILTERS, roomId: 'room-1' } })
+    expect(await screen.findByText('Nincs találat — próbálj más szűrőt')).toBeInTheDocument()
+  })
+})
+
 describe('LocationCardView — filters sheet "Törlés"', () => {
   it('clears both the search and the sheet filters, and refetches without any filter params', async () => {
     mock.onGet('/api/locations').reply(200, { content: [], page: { totalElements: 0, totalPages: 0, size: 20, number: 0 } })

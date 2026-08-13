@@ -107,7 +107,7 @@ export function LocationCardView({
         hasMore={cardList.hasMore}
         onLoadMore={cardList.loadMore}
         onRetry={cardList.retry}
-        emptyMessage={t('locations.cardView.emptyState')}
+        emptyMessage={t(activeFilterCount > 0 || search ? 'locations.cardView.emptyStateFiltered' : 'locations.cardView.emptyState')}
       />
 
       <LocationFiltersSheet
