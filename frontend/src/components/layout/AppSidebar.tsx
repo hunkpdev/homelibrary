@@ -11,6 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle'
 import { ThemeSelector } from '@/components/layout/ThemeSelector'
@@ -38,6 +39,7 @@ export function AppSidebar() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, clearAuth } = useAuthStore()
+  const { setOpenMobile } = useSidebar()
 
   const visibleItems = navItems.filter(item => user && item.roles.includes(user.role))
 
@@ -49,6 +51,10 @@ export function AppSidebar() {
     navigate('/login')
   }
 
+  function handleMenuButtonClick() {
+    setOpenMobile(false)
+  }
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -58,7 +64,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {visibleItems.map(item => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild onClick={handleMenuButtonClick}>
                     <NavLink to={item.to}>
                       {({ isActive }) => (
                         <>
