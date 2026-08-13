@@ -249,11 +249,14 @@ describe('LocationManagementPage — view switching', () => {
     expect(screen.queryByTestId('location-card-view')).not.toBeInTheDocument()
   })
 
-  it('renders the card view when mobile', () => {
+  it('renders the card view when mobile', async () => {
     mockUseIsMobile.mockReturnValue(true)
     renderPage()
     expect(screen.getByTestId('location-card-view')).toBeInTheDocument()
     expect(screen.queryByTestId('location-grid-view')).not.toBeInTheDocument()
+
+    await waitFor(() => expect(mock.history.get.some(r => r.url === '/api/rooms/all')).toBe(true))
+    expect(mock.history.get.some(r => r.url === '/api/locations/all')).toBe(false)
   })
 })
 
