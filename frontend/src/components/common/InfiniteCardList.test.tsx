@@ -11,14 +11,16 @@ interface Item {
 let observeMock: ReturnType<typeof vi.fn>
 let disconnectMock: ReturnType<typeof vi.fn>
 let observerCallback: (entries: { isIntersecting: boolean }[]) => void
+let observerOptions: IntersectionObserverInit | undefined
 
 class MockIntersectionObserver {
   observe = observeMock
   disconnect = disconnectMock
   unobserve = vi.fn()
 
-  constructor(callback: typeof observerCallback) {
+  constructor(callback: typeof observerCallback, options?: IntersectionObserverInit) {
     observerCallback = callback
+    observerOptions = options
   }
 }
 
@@ -65,6 +67,11 @@ describe('InfiniteCardList', () => {
     observerCallback([{ isIntersecting: true }])
 
     expect(onLoadMore).toHaveBeenCalledOnce()
+  })
+
+  it('observes the sentinel with a 200px rootMargin, to prefetch before the user hits the bottom', () => {
+    renderList({ items: [{ id: '1', name: 'A' }], hasMore: true })
+    expect(observerOptions).toEqual({ rootMargin: '200px' })
   })
 
   it('shows a full-area error state with a retry button when the initial load fails', async () => {

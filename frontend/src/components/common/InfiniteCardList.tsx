@@ -37,9 +37,12 @@ export function InfiniteCardList<T extends WithId>({
     const sentinel = sentinelRef.current
     if (!sentinel || isLoading || error || !hasMore) return
 
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) onLoadMore()
-    })
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) onLoadMore()
+      },
+      { rootMargin: '200px' }
+    )
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [isLoading, error, hasMore, onLoadMore])
